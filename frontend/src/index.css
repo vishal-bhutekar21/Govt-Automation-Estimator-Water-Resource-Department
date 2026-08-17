@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: 18 59 99;      /* Deep Navy #123B63 */
+    --color-secondary: 22 124 128;   /* Professional Teal #167C80 */
+    --color-accent: 217 154 43;     /* Muted Saffron #D99A2B */
+    --color-bg: 244 247 250;        /* Soft Blue-Gray #F4F7FA */
+  }
+
+  body {
+    background-color: #F4F7FA;
+    color: #1E293B;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Refined Institutional Scrollbars */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #F1F5F9;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
+  }
+}
+
+@layer components {
+  .gov-card {
+    @apply bg-white rounded-xl border border-slate-200/80 shadow-soft-sm hover:shadow-soft-md transition-all duration-200;
+  }
+  
+  .gov-card-alt {
+    @apply bg-gradient-to-br from-white to-slate-50/70 rounded-xl border border-slate-200/90 shadow-soft-sm;
+  }
+
+  .gov-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide;
+  }
+
+  .gov-table-header {
+    @apply bg-slate-50 text-slate-600 text-xs font-bold uppercase tracking-wider border-b border-slate-200;
+  }
+
+  .gov-table-row {
+    @apply border-b border-slate-100 hover:bg-slate-50/80 transition-colors;
+  }
+}
