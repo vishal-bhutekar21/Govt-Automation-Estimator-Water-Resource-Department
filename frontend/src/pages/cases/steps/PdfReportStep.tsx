@@ -19,6 +19,7 @@ import {
   Check,
   FileSpreadsheet,
   Layers,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface PdfReportStepProps {
@@ -116,27 +117,27 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Section Header with All Visible Actions */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+      {/* Top Header & Unified Single Action Toolbar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
-          <span className="text-xs font-bold text-gov-navy uppercase tracking-wider">
+          <span className="text-[11px] font-bold text-gov-navy uppercase tracking-wider">
             Step 10 of 10 • Final Sanction & PDF Report
           </span>
           <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
-            Official Multi-Page Valuation Report & Government Certificate
+            Official Valuation Report & Sanction Certificate
           </h2>
         </div>
 
-        {/* Prominent Action Toolbar (Print, Edit, Share, Download) */}
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Single Non-Overlapping Action Toolbar */}
+        <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={() => window.print()}
-            leftIcon={<Printer className="w-4 h-4 text-slate-600" />}
-            className="border-slate-300 hover:bg-slate-100 font-semibold"
+            leftIcon={<Printer className="w-3.5 h-3.5 text-slate-600" />}
+            className="border-slate-300 hover:bg-slate-50 font-semibold text-slate-700"
           >
-            Print Sheet
+            Print
           </Button>
 
           <Button
@@ -145,7 +146,7 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
             onClick={() => setIsEditMode(!isEditMode)}
             leftIcon={<Edit3 className="w-3.5 h-3.5" />}
           >
-            {isEditMode ? 'Save & Lock Report' : 'Edit Report Notes'}
+            {isEditMode ? 'Save & Lock' : 'Edit Notes'}
           </Button>
 
           <Button
@@ -154,7 +155,7 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
             onClick={() => setIsShareModalOpen(true)}
             leftIcon={<Share2 className="w-3.5 h-3.5" />}
           >
-            Share & Export
+            Share
           </Button>
 
           <Button
@@ -162,10 +163,10 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
             size="sm"
             onClick={handleDownloadPdf}
             isLoading={isDownloading}
-            leftIcon={<Download className="w-4 h-4" />}
-            className="bg-gov-navy hover:bg-gov-navy-900 font-bold shadow-soft-xs"
+            leftIcon={<Download className="w-3.5 h-3.5" />}
+            className="bg-gov-navy hover:bg-gov-navy-900 font-bold"
           >
-            Download Official PDF
+            Download PDF
           </Button>
         </div>
       </div>
@@ -176,7 +177,7 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
           <div className="flex items-center gap-2">
             <Edit3 className="w-4 h-4 text-amber-700 shrink-0" />
             <span>
-              <strong>Report Customization Mode Active:</strong> You can edit the certificate title, remarks, and signatories directly below. Click <strong>"Save & Lock Report"</strong> when finished.
+              <strong>Report Customization Mode Active:</strong> You can edit the certificate title, remarks, and signatories directly below. Click <strong>"Save & Lock"</strong> when finished.
             </span>
           </div>
           <Button size="sm" variant="secondary" onClick={() => setIsEditMode(false)}>
@@ -185,52 +186,44 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
         </div>
       )}
 
-      {/* Report Hero Card */}
+      {/* Summary Hero Card (Clean & Prestigious without Duplicate Buttons) */}
       <Card
         variant="accent-border"
-        className="p-6 bg-gradient-to-br from-gov-navy to-slate-900 text-white shadow-soft-lg flex flex-col md:flex-row items-center justify-between gap-6"
+        className="p-5 bg-gradient-to-br from-gov-navy to-slate-900 text-white shadow-soft-md flex flex-col md:flex-row items-center justify-between gap-6"
       >
         <div className="flex items-center gap-4 text-center md:text-left">
-          <div className="p-2 rounded-gov-md bg-white shrink-0 shadow-soft-sm">
+          <div className="p-2 rounded-gov-md bg-white shrink-0 shadow-soft-xs">
             <GovtEmblem size="md" />
           </div>
 
-          <div className="space-y-1">
-            <div className="flex items-center justify-center md:justify-start gap-2">
-              <Stamp className="w-4 h-4 text-gov-saffron" />
-              <span className="text-xs font-bold text-gov-saffron uppercase tracking-widest">
-                Maharashtra State Approved Format
+          <div className="space-y-0.5">
+            <div className="flex items-center justify-center md:justify-start gap-1.5">
+              <Stamp className="w-3.5 h-3.5 text-gov-saffron" />
+              <span className="text-[10px] font-bold text-gov-saffron uppercase tracking-widest">
+                Maharashtra State Approved Valuation Format
               </span>
             </div>
-            <h3 className="text-xl font-bold text-white">
-              Valuation Report for House No. {propertyData?.houseNumber || '165'} ({propertyData?.ownerName})
+            <h3 className="text-lg font-bold text-white tracking-tight">
+              House No. {propertyData?.houseNumber || '165'} • {propertyData?.ownerName || 'Mohan Vishwanath Gai'}
             </h3>
             <p className="text-xs text-gov-navy-200">
-              Jigaon Major Irrigation Project • PWD CSR 2014-15 Standard
+              Jigaon Major Irrigation Project • Sub-Division No. 2, Nandura (LA Case No. {propertyData?.laCaseNumber || '15/2008-09'})
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="md"
-            onClick={() => window.print()}
-            leftIcon={<Printer className="w-4 h-4 text-white" />}
-            className="text-white border border-white/40 hover:bg-white/15 font-bold"
-          >
-            Print Sheet
-          </Button>
-          <Button
-            variant="primary"
-            size="md"
-            onClick={handleDownloadPdf}
-            isLoading={isDownloading}
-            leftIcon={<Download className="w-4 h-4 text-slate-950" />}
-            className="bg-gov-saffron text-slate-950 hover:bg-gov-saffron-600 font-bold shadow-soft-sm"
-          >
-            Download PDF
-          </Button>
+        {/* Financial Badge Highlight */}
+        <div className="text-center md:text-right bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-gov-md border border-white/15 shrink-0">
+          <div className="text-[10px] font-bold text-gov-saffron uppercase tracking-wider">
+            Net Sanctioned Valuation
+          </div>
+          <div className="text-xl font-extrabold font-mono text-white">
+            ₹ 2,38,687.20
+          </div>
+          <div className="text-[10px] text-emerald-300 font-semibold flex items-center justify-center md:justify-end gap-1 mt-0.5">
+            <ShieldCheck className="w-3 h-3" />
+            <span>PWD CSR 2014-15 Validated</span>
+          </div>
         </div>
       </Card>
 
@@ -245,7 +238,7 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
               : 'text-slate-500 hover:text-slate-900 border-transparent'
           }`}
         >
-          Page 1: Official Certificate
+          Page 1: Official Certificate & Sanction
         </button>
         <button
           type="button"
@@ -267,7 +260,7 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
               : 'text-slate-500 hover:text-slate-900 border-transparent'
           }`}
         >
-          Page 3: Abstract Estimate (AB)
+          Page 3: Detailed Abstract Estimate (AB)
         </button>
         <button
           type="button"
@@ -566,34 +559,23 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
         </div>
       )}
 
-      {/* Action Toolbar */}
+      {/* Bottom Navigation */}
       <div className="flex items-center justify-between pt-4 border-t border-slate-200">
         <Button type="button" variant="outline" size="md" onClick={onPrev} leftIcon={<ArrowLeft className="w-4 h-4" />}>
           Back to Panchanama & Photos
         </Button>
 
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="md"
-            onClick={() => window.print()}
-            leftIcon={<Printer className="w-4 h-4" />}
-          >
-            Print Certificate
-          </Button>
-
-          <Button
-            type="button"
-            variant="primary"
-            size="md"
-            onClick={handleDownloadPdf}
-            isLoading={isDownloading}
-            leftIcon={<Download className="w-4 h-4" />}
-          >
-            Download Valuation PDF Report
-          </Button>
-        </div>
+        <Button
+          type="button"
+          variant="primary"
+          size="md"
+          onClick={handleDownloadPdf}
+          isLoading={isDownloading}
+          leftIcon={<Download className="w-4 h-4" />}
+          className="bg-gov-navy hover:bg-gov-navy-900 font-bold"
+        >
+          Download Official Government PDF (A4)
+        </Button>
       </div>
     </div>
   );
