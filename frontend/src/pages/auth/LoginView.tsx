@@ -9,15 +9,12 @@ import {
   Mail,
   ArrowRight,
   ShieldCheck,
-  Building2,
-  FileCheck2,
-  Scale,
-  UserPlus,
+  KeyRound,
 } from 'lucide-react';
 
 export const LoginView: React.FC = () => {
-  const [email, setEmail] = useState('engineer@jigaon.gov.in');
-  const [password, setPassword] = useState('Engineer@12345');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('Verifying credentials...');
   const [error, setError] = useState<string | null>(null);
@@ -27,25 +24,25 @@ export const LoginView: React.FC = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email.trim() || !password.trim()) {
+      setError('Please enter both your official email ID and password.');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     setLoadingMessage('Authenticating institutional credentials...');
 
     try {
-      await login(email, password);
+      await login(email.trim(), password);
       setLoadingMessage('Establishing secure session with Jigaon Registry...');
       setTimeout(() => {
         navigate('/dashboard');
       }, 500);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Authentication failed. Please check credentials.');
+      setError(err.response?.data?.message || 'Authentication failed. Please check your credentials.');
       setIsLoading(false);
     }
-  };
-
-  const handleQuickLogin = (roleEmail: string, rolePass: string) => {
-    setEmail(roleEmail);
-    setPassword(rolePass);
   };
 
   return (
@@ -70,7 +67,7 @@ export const LoginView: React.FC = () => {
           </div>
         </div>
 
-        {/* Login Form Container (Clean Crisp White) */}
+        {/* Clean Login Form Container */}
         <Card className="p-6 sm:p-8 bg-white border border-slate-200 shadow-soft-md rounded-gov-lg space-y-5">
           <div className="border-b border-slate-100 pb-3">
             <h2 className="text-sm font-bold text-slate-900">Officer Sign In</h2>
@@ -84,7 +81,7 @@ export const LoginView: React.FC = () => {
           )}
 
           {isLoading ? (
-            /* Elegant Smooth Loading Animation */
+            /* Smooth Loading Animation */
             <div className="py-10 text-center space-y-4">
               <div className="relative w-12 h-12 mx-auto">
                 <div className="w-12 h-12 rounded-full border-4 border-slate-100 border-t-gov-navy animate-spin" />
@@ -139,37 +136,14 @@ export const LoginView: React.FC = () => {
             </form>
           )}
 
-          {/* Clean 1-Click Fast Access Section */}
-          <div className="pt-4 border-t border-slate-100 space-y-2.5">
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">
-              Demonstration & Field Login Presets
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('engineer@jigaon.gov.in', 'Engineer@12345')}
-                className="px-3 py-2 text-xs rounded-gov-md bg-slate-50 border border-slate-200/80 text-slate-800 hover:bg-gov-teal-50 hover:border-gov-teal hover:text-gov-teal font-semibold transition-all text-center"
-              >
-                Assistant Engineer
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('admin@jigaon.gov.in', 'Admin@12345')}
-                className="px-3 py-2 text-xs rounded-gov-md bg-slate-50 border border-slate-200/80 text-slate-800 hover:bg-gov-navy-50 hover:border-gov-navy hover:text-gov-navy font-semibold transition-all text-center"
-              >
-                Executive Engineer
-              </button>
-            </div>
-          </div>
-
-          {/* Super Admin Registration Link */}
+          {/* Super Admin Login Link */}
           <div className="pt-3 border-t border-slate-100 text-center">
             <Link
-              to="/register"
+              to="/super-admin/login"
               className="inline-flex items-center gap-1.5 text-xs text-gov-navy hover:text-gov-teal font-bold transition-colors"
             >
-              <UserPlus className="w-3.5 h-3.5" />
-              Super Admin: Create New Officer Account →
+              <KeyRound className="w-3.5 h-3.5 text-gov-saffron" />
+              Super Admin Portal Access →
             </Link>
           </div>
         </Card>

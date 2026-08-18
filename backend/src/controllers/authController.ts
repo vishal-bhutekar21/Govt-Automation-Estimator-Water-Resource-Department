@@ -5,6 +5,32 @@ import { db } from '../database/db';
 import { signToken, AuthRequest } from '../middleware/auth';
 import { User, UserRole } from '../models/types';
 
+// Ensure Super Admin user exists in memory database
+const ensureSuperAdmin = async () => {
+  const superEmails = ['vishal.bhutekar1@gmai.com', 'vishal.bhutekar1@gmail.com'];
+  for (const email of superEmails) {
+    const existing = db.users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+    if (!existing) {
+      const hash = await bcrypt.hash('Vish@l@123', 10);
+      db.users.push({
+        id: `usr-super-${uuidv4().slice(0, 6)}`,
+        email,
+        name: 'Er. Vishal Bhutekar (Super Admin)',
+        role: 'ADMIN',
+        department: 'Water Resources Department, Maharashtra',
+        designation: 'Super Administrator / Chief System Architect',
+        passwordHash: hash,
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+      db.save();
+    }
+  }
+};
+
+ensureSuperAdmin();
+
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
@@ -12,10 +38,12 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     if (!email || !password) {
       res.status(400).json({
         error: 'VALIDATION_ERROR',
-        message: 'Please provide both institutional email and password.',
+        message: 'Please provide both email and password.',
       });
       return;
     }
+
+    await ensureSuperAdmin();
 
     const user = db.users.find((u) => u.email.toLowerCase() === email.toLowerCase().trim());
     if (!user) {
@@ -139,6 +167,43 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       error: 'SERVER_ERROR',
       message: err.message || 'Failed to create officer account.',
     });
+  }
+};
+
+export const listUsers = async (req: Request, res: Response): Promise<void> => {
+  try {
+    await ensureSuperAdmin();
+    const safeUsers = db.users.map((u) => ({
+      id: u.id,
+      email: u.email,
+      name: u.name,
+      role: u.role,
+      department: u.department,
+      designation: u.designation,
+      createdAt: u.createdAt,
+    }));
+
+    res.status(200).json({ users: safeUsers });
+  } catch (err: any) {
+    res.status(500).json({ error: 'SERVER_ERROR', message: 'Failed to list users.' });
+  }
+};
+
+export const deleteUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const index = db.users.findIndex((u) => u.id === id);
+    if (index === -1) {
+      res.status(404).json({ error: 'NOT_FOUND', message: 'User not found.' });
+      return;
+    }
+
+    const removed = db.users.splice(index, 1)[0];
+    db.save();
+
+    res.status(200).json({ message: `User ${removed.name} removed successfully.` });
+  } catch (err: any) {
+    res.status(500).json({ error: 'SERVER_ERROR', message: 'Failed to delete user.' });
   }
 };
 

@@ -4,6 +4,8 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { MainLayout } from './components/layout/MainLayout';
 import { LoginView } from './pages/auth/LoginView';
 import { RegisterView } from './pages/auth/RegisterView';
+import { SuperAdminLoginView } from './pages/auth/SuperAdminLoginView';
+import { SuperAdminPortalView } from './pages/auth/SuperAdminPortalView';
 import { DashboardView } from './pages/dashboard/DashboardView';
 import { ProjectListView } from './pages/projects/ProjectListView';
 import { CaseListView } from './pages/cases/CaseListView';
@@ -18,7 +20,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gov-bg flex items-center justify-center text-slate-500 text-xs font-semibold">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-500 text-xs font-semibold">
         Verifying institutional credentials...
       </div>
     );
@@ -37,7 +39,7 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gov-bg flex items-center justify-center text-slate-500 text-xs font-semibold">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-500 text-xs font-semibold">
         Loading...
       </div>
     );
@@ -60,6 +62,22 @@ export const AppRoutes: React.FC = () => {
             <LoginView />
           </PublicRoute>
         }
+      />
+      <Route
+        path="/super-admin/login"
+        element={<SuperAdminLoginView />}
+      />
+      <Route
+        path="/super-admin/users"
+        element={
+          <ProtectedRoute>
+            <SuperAdminPortalView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/super-admin"
+        element={<Navigate to="/super-admin/users" replace />}
       />
       <Route
         path="/register"
@@ -94,11 +112,11 @@ export const AppRoutes: React.FC = () => {
 
 export const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <BrowserRouter>
+      <AuthProvider>
         <AppRoutes />
-      </BrowserRouter>
-    </AuthProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 };
 
