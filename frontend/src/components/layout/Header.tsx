@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { GovtEmblem } from '../common/GovtEmblem';
 import { Button } from '../ui/Button';
@@ -7,9 +6,6 @@ import {
   LogOut,
   Calendar,
   ShieldCheck,
-  Building,
-  Radio,
-  ExternalLink,
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -66,33 +62,7 @@ export const Header: React.FC<HeaderProps> = () => {
         </div>
       </div>
 
-      {/* Center: Live System Status & Standards Information */}
-      <div className="hidden xl:flex items-center gap-3 px-3.5 py-1 rounded-full bg-slate-50 border border-slate-200/90 text-xs text-slate-600">
-        <div className="flex items-center gap-1.5 font-bold text-emerald-700">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
-          </span>
-          <span>System Online</span>
-        </div>
-        <span className="text-slate-300">•</span>
-        <span className="font-semibold text-slate-700">PWD CSR 2014-15 Standard</span>
-        <span className="text-slate-300">•</span>
-        <span className="text-slate-500 font-medium">FY 2025-26</span>
-        
-        {isSuperAdmin && (
-          <>
-            <span className="text-slate-300">•</span>
-            <Link
-              to="/super-admin/users"
-              className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 hover:text-amber-800 transition-colors"
-            >
-              <span>Admin Portal</span>
-              <ExternalLink className="w-3 h-3" />
-            </Link>
-          </>
-        )}
-      </div>
+
 
       {/* Right: Date, Role Pill, Officer Profile & Sign Out */}
       <div className="flex items-center gap-3 sm:gap-4 shrink-0">
