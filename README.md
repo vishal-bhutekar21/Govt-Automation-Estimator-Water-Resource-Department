@@ -1,103 +1,192 @@
 # Automated House Valuation & Estimation Management System
 
-> **A Deterministic Digital Platform for Government Land Acquisition & Submergence Rehabilitation Property Valuations**  
-> *Developed for the Water Resources Department, Government of Maharashtra (Jigaon Major Irrigation Project)*
+<div align="center">
+  <img src="frontend/src/assets/icon.png" alt="Government of Maharashtra Official Emblem" width="130" />
+  <h3>Government of Maharashtra • Water Resources Department</h3>
+  <p><strong>Jigaon Major Irrigation Project (Sub-Division No. 2, Nandura, Dist. Buldhana)</strong></p>
+  <p><em>A Deterministic Digital Platform for Rural Submergence House Valuations & Land Acquisition Compensation</em></p>
+
+  [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+  [![Vite](https://img.shields.io/badge/Vite-6.4-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
+  [![Express.js](https://img.shields.io/badge/Express.js-4.21-000000?logo=express&logoColor=white)](https://expressjs.com/)
+  [![Decimal.js](https://img.shields.io/badge/Arithmetic-Decimal.js%20(Scale%2020)-10B981)](https://mikemcl.github.io/decimal.js/)
+  [![PDFKit](https://img.shields.io/badge/PDF%20Engine-PDFKit-E11D48)](https://pdfkit.org/)
+  [![Test Suite](https://img.shields.io/badge/Tests-27%2F27%20Passing%20(100%25)-22C55E)](#-automated-testing--verification)
+  [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+</div>
 
 ---
 
-## 🏛️ Executive Summary
+## 🏛️ Executive Overview
 
-The **Automated House Valuation & Estimation Management System** modernizes and digitizes the traditional, manual, Excel-based property valuation process mandated for rural house acquisition in reservoir submergence zones.
+The **Automated House Valuation & Estimation Management System** transforms the legacy manual, Excel-driven property valuation process mandated for land acquisition and submergence rehabilitation into a structured, highly transparent, tamper-evident digital platform.
 
-Built upon strict PWD Common Schedule of Rates (CSR) guidelines, Land Acquisition Acts, and Government Compound Interest Year's Purchase (Y.P.) valuation circulars, this platform transforms complex multi-sheet calculations into a streamlined, high-precision, transparent 10-step digital workflow.
-
----
-
-## 📐 Mathematical Models & Valuation Formulations
-
-The calculation engine is strictly authoritative on the backend, implemented using high-precision arbitrary-precision arithmetic (`decimal.js`) with half-up rounding (`ROUND_HALF_UP`) to prevent financial drift.
-
-### 1. Multi-Type Generic Quantity Engine
-$$\text{Gross Quantity} = 
-\begin{cases}
-\text{No.} \times \text{Length} \times \text{Breadth} \times \text{Depth/Height} & \text{(Volume in Cum)} \\
-\text{No.} \times \text{Length} \times \text{Depth/Breadth} & \text{(Area in Sqm)} \\
-\text{No.} \times \text{Length} & \text{(Running Length in Rmt)} \\
-\text{No.} & \text{(Count in No.)}
-\end{cases}$$
-
-### 2. Dynamic Opening Deductions Matrix
-For superstructure walls, opening deductions (Doors $D_1, D_2$, Windows $W_1, W_2$, archways) are evaluated and subtracted:
-$$\text{Net Quantity} = \text{Gross Quantity} - \sum_{k=1}^m \left(\text{No.}_k \times L_k \times B_k \times H_k\right)$$
-
-### 3. Primary Abstract Estimate of Construction
-$$\text{Primary Estimated Cost } (C) = \sum_{i=1}^{18} \left( \text{Net Quantity}_i \times \text{Approved CSR Rate}_i \right)$$
-
-### 4. 7% Compound Interest Year's Purchase (Y.P.) Depreciation
-$$\text{Depreciated Structure Value } (V_d) = C \times \left( \frac{\text{Y.P. for Balance Future Life } (r)}{\text{Y.P. for Total Useful Life } (D)} \right)$$
-* Where:
-  - $D = \text{Total Useful Life of Building}$ (e.g. $45\text{ years}$ for Class-B construction)
-  - $d = \text{Present Age of Building} = \text{Valuation Year} - \text{Construction Year}$ (e.g. $2016 - 2012 = 4\text{ years}$)
-  - $r = D - d = \text{Balance Future Life}$ (e.g. $45 - 4 = 41\text{ years}$)
-  - $\text{Y.P. for } r=41\text{ years at } 7\% = 13.394$
-  - $\text{Y.P. for } D=45\text{ years at } 7\% = 13.606$
-  - $\text{Depreciation Factor} = \frac{13.394}{13.606} \approx \mathbf{0.9844186}$
-
-### 5. Second Valuation (Salvage Abstract & Configurable Deduction)
-$$\text{Salvage Abstract Amount } (S) = \sum_{j \in \text{Salvage}} \left( \text{Quantity}_j \times \text{Rate}_j \right)$$
-$$\text{Salvage Depreciated Value } (S_d) = S \times \left( \frac{\text{Y.P.}_{41}}{\text{Y.P.}_{45}} \right)$$
-$$\text{Salvage Adjustment Deduction } (A) = \frac{\text{Configured Percentage}}{100} \times S_d \quad (\text{Default } 10.0\%)$$
-
-### 6. Master Final Net Payable Valuation
-$$\mathbf{V_{\text{Final}}} = V_d - A$$
+Built strictly in accordance with **Maharashtra Public Works Department (PWD) Common Schedule of Rates (CSR 2014-15)**, **Land Acquisition Acts**, and **Government 7% Compound Interest Year's Purchase (Y.P.) Depreciation Circulars**, this system enables civil engineers and division heads to perform end-to-end valuation workflows with mathematical precision down to the exact paisa.
 
 ---
 
-## 🎯 Jigaon Major Irrigation Project — Golden Sample Case
+## 📖 Complete "How To Use" Guide (Step-by-Step)
 
-* **Project**: Jigaon Major Irrigation Project (Sub-Division No. 2, Nandura, Dist. Buldhana)
-* **Affected Property**: House No. 165, Gat No. 42/1, Village Dadulgaon
-* **Owner**: **Shri Mohan Vishwanath Gai**
-* **Land Acquisition Case**: LA Case No. 15/2008-09
-* **Construction Specification**: Class-B (Burnt Brick Masonry in CM 1:6 + Country Teak Truss + 0.63mm CGI Sheet Roof)
+```
+┌────────────────────────────────────────────────────────────────────────────────┐
+│                          10-STEP VALUATION WORKFLOW                            │
+├────────────────────────────────────────────────────────────────────────────────┤
+│ [Step 1] Case Identification & Project Mapping                                 │
+│    │                                                                           │
+│ [Step 2] Property & Land Acquisition Metadata (Owner, Village, Gat No.)        │
+│    │                                                                           │
+│ [Step 3] Structural Specifications & 45-Year Lifecycle Model                   │
+│    │                                                                           │
+│ [Step 4] Multi-Line Dimensions & Opening Deductions Engine (D1, D2, W1, W2)    │
+│    │                                                                           │
+│ [Step 5] Abstract Estimate Generation & PWD CSR Rate Linking (₹ 2,61,669.00)   │
+│    │                                                                           │
+│ [Step 6] 7% Compound Interest Y.P. Depreciation Engine (₹ 2,57,592.00)         │
+│    │                                                                           │
+│ [Step 7] Second Valuation / Salvage Materials Abstract (₹ 1,89,048.00)         │
+│    │                                                                           │
+│ [Step 8] Master Recapitulation & 10% Salvage Adjustment (₹ 2,38,687.20)        │
+│    │                                                                           │
+│ [Step 9] Panchanama Joint Inspection Committee & Photographic Evidence         │
+│    │                                                                           │
+│ [Step 10] Official Multi-Page Government PDF Certificate & Live Editor         │
+└────────────────────────────────────────────────────────────────────────────────┘
+```
 
-| Step | Valuation Component | Reference Formula | Evaluated Amount |
-|---|---|---|---|
-| **Step 5** | **Primary Gross Abstract Cost** | Sum of 18 PWD CSR 2014-15 items | **₹ 2,61,669.00** |
+---
+
+### Step 1: Officer Sign-In & Role Authentication
+1. Navigate to `/login`.
+2. Sign in using your official credentials or use the 1-Click Fast Demonstration Presets:
+   - **Assistant Engineer (`ESTIMATOR`)**: `engineer@jigaon.gov.in` / `Engineer@12345`
+   - **Executive Engineer (`ADMIN`)**: `admin@jigaon.gov.in` / `Admin@12345`
+3. If new officer accounts are needed, click **`"Super Admin: Create New Officer Account →"`** (or go to `/register`) to create accounts for Executive Engineers, Assistant Engineers, Checkers, and Section Officers.
+
+---
+
+### Step 2: Executive Dashboard Overview
+* Review real-time aggregate statistics:
+  - **Active Irrigation Projects** (e.g., Jigaon Major Irrigation Project)
+  - **Total Valuation Cases** (In-progress, Under Review, Sanctioned)
+  - **Total Sanctioned Compensation Sum**
+  - **Live Workflow Status Distribution** & Recent Officer Activity Audit Feed
+
+---
+
+### Step 3: Case Selection or Initialization
+1. In the sidebar, click **Valuation Cases** (`/cases`).
+2. Open an existing case (e.g., **`CASE/2008-09/165` - Mohan Vishwanath Gai**) or click **`"New Valuation Case"`** to register a new property under a project.
+
+---
+
+### Step 4: Step 1 to Step 3 — Case & Structural Setup
+* **Step 1 (Case Info)**: Verifies Case Number, Sub-Division, and Valuation Date.
+* **Step 2 (Property Details)**: Enter Owner Name, Village, House No., Gat/Survey No., Property Boundaries (East, West, North, South), and Submergence Status.
+* **Step 3 (Structure Specs & Lifecycle)**: Configure Building Class (Class-B BBM Wall + CGI Roof), Built-up Area, Year of Construction (e.g. 2012), Total Useful Life ($D = 45\text{ years}$), Present Age ($d = 4\text{ years}$), and Balance Future Life ($r = 41\text{ years}$).
+
+---
+
+### Step 5: Step 4 — Multi-Line Measurements & Superstructure Deductions
+1. Navigate through all **18 PWD CSR Construction Work Groups** (Excavation, Murum Filling, UCR Masonry, BBM in Superstructure, CGI Roofing, Woodwork, Teakwood Doors, Plastering, Painting, Electrification, Sanitation, etc.).
+2. Enter individual measurement lines with dimensions:
+   $$\text{Quantity} = \text{Number} \times \text{Length} \times \text{Breadth} \times \text{Depth/Height}$$
+3. For superstructure walls (Item 5), apply opening deductions for doors and windows:
+   - Doors $D_1$ ($1.00 \times 2.10\text{ m}$), $D_2$ ($0.90 \times 2.10\text{ m}$)
+   - Windows $W_1$ ($1.20 \times 1.20\text{ m}$), $W_2$ ($0.90 \times 1.20\text{ m}$), $W_3$ ($0.60 \times 0.90\text{ m}$)
+4. Click **`"Formula Breakdown"`** on any item to view live algebraic calculations and unit conversions.
+
+---
+
+### Step 6: Step 5 — Abstract Estimate of Construction
+1. Review the generated **Abstract Estimate Sheet**.
+2. Each item links its net measurement quantity to the authoritative **PWD CSR 2014-15 Rate Schedule**:
+   $$\text{Item Amount} = \text{Net Quantity} \times \text{Approved Unit Rate}$$
+3. Gross Abstract Present Construction Cost evaluates to: **₹ 2,61,669.00**.
+
+---
+
+### Step 7: Step 6 — 7% Compound Interest Y.P. Depreciation Engine
+1. The platform executes the government compound interest formula:
+   $$\text{Depreciated Value } (V_d) = \text{Gross Cost} \times \left( \frac{\text{Y.P. for Balance Life } (r=41\text{y})}{\text{Y.P. for Total Life } (D=45\text{y})} \right)$$
+   $$\text{Depreciation Ratio} = \frac{13.394}{13.606} \approx 0.9844186$$
+2. Evaluated Primary Depreciated Value: **₹ 2,57,592.00**.
+3. Click **`"Inspect 7% Y.P. Table"`** to verify the standard 100-year compound schedule.
+
+---
+
+### Step 8: Step 7 — Second Valuation (Salvage Materials Abstract)
+1. Evaluates all reusable structural components (Teakwood frames, CGI corrugated roofing sheets, GI pipes, M.S. security gates).
+2. Salvage Abstract Total: **₹ 1,92,040.00**.
+3. Salvage Depreciated Value ($r=41\text{y}, D=45\text{y}$): **₹ 189,048.00**.
+
+---
+
+### Step 9: Step 8 — Master Recapitulation & Salvage Adjustment
+1. Computes the final net payable compensation:
+   $$\text{Less 10% Salvage Adjustment} = -10.0\% \times ₹ 189,048.00 = \mathbf{-₹ 18,904.80}$$
+   $$\text{Final Net Payable Valuation} = ₹ 2,57,592.00 - ₹ 18,904.80 = \mathbf{₹ 2,38,687.20}$$
+2. Automatically generates formal Indian Currency words:
+   *"Rupees Two Lakh Thirty-Eight Thousand Six Hundred Eighty-Seven and Paise Twenty Only"*.
+
+---
+
+### Step 10: Step 9 — Panchanama & Evidence Upload
+1. Record the on-site **Joint Inspection Committee**:
+   - Executive Engineer (Chairman / E.E.)
+   - Assistant Engineer (A.E. Gr-I)
+   - Sectional Engineer (S.E.)
+   - Talathi / Revenue Inspector (Land Records)
+2. Enter Panchas / Local Citizen Witnesses (Name, Age, Occupation, Address).
+3. Upload and annotate photographic evidence (Front elevation, wall joints, roof truss, foundation).
+
+---
+
+### Step 11: Step 10 — Official PDF Report & In-Place Editor
+1. Preview the complete **Multi-Page Government Valuation Report**:
+   - **Page 1**: Official Sanction Certificate & Financial Highlight
+   - **Page 2**: Property Characteristics & Lifecycle Specs (FC Sheet)
+   - **Page 3**: Detailed Abstract Estimate (AB Sheet)
+   - **Page 4**: Recapitulation & Panchanama Endorsements (Final RA Sheet)
+2. Click **`"Edit Notes"`** to customize certificate remarks or officer signatories in real time.
+3. Click **`"Print"`** to print directly or **`"Download PDF"`** to stream a server-side vector PDF document.
+4. Click **`"Share"`** to copy a secure case link or export structured JSON summaries.
+
+---
+
+## 🎯 Golden Sample Benchmark Case
+
+| Parameter | Government Case Value |
+| :--- | :--- |
+| **Project** | Jigaon Major Irrigation Project (Sub-Division No. 2, Nandura) |
+| **Property** | House No. 165, Gat No. 42/1, Village Dadulgaon |
+| **Owner** | **Shri Mohan Vishwanath Gai** |
+| **Land Acquisition Case** | LA Case No. 15/2008-09 |
+| **Specification** | Class-B (Burnt Brick Masonry in CM 1:6 + Country Teak Truss + CGI Sheet Roof) |
+| **Total Life / Age / Balance** | $D = 45\text{ years}$, $d = 4\text{ years}$ (Built 2012), $r = 41\text{ years}$ (Valued 2016) |
+
+### Authoritative Recapitulation Table
+
+| Stage | Valuation Component | Mathematical Expression | Evaluated Amount |
+| :--- | :--- | :--- | :--- |
+| **Step 5** | **Gross Abstract Construction Cost** | $\sum_{i=1}^{18} (\text{Qty}_i \times \text{CSR}_i)$ | **₹ 2,61,669.00** |
 | **Step 6** | **Primary Depreciated Structure Value** | $₹ 2,61,669.00 \times \frac{13.394}{13.606}$ | **₹ 2,57,592.00** |
-| **Step 7** | **Second / Salvage Abstract Amount** | 6 Reusable items (Teak, CGI, GI, Gates) | **₹ 1,92,040.00** |
+| **Step 7** | **Second / Salvage Abstract Amount** | 6 Reusable salvage items | **₹ 1,92,040.00** |
 | **Step 7** | **Salvage Depreciated Value** | $₹ 1,92,040.00 \times \frac{13.394}{13.606}$ | **₹ 189,048.00** |
-| **Step 8** | **Less: 10% Salvage Adjustment** | $10\% \times ₹ 189,048.00$ | **- ₹ 18,904.80** |
+| **Step 8** | **Less: 10% Salvage Adjustment** | $10.0\% \times ₹ 189,048.00$ | **- ₹ 18,904.80** |
 | **Step 8** | **Final Net Payable Valuation** | $₹ 2,57,592.00 - ₹ 18,904.80$ | **₹ 2,38,687.20** |
 
-**Amount in Words**:  
-*"Rupees Two Lakh Thirty-Eight Thousand Six Hundred Eighty-Seven and Paise Twenty Only"*
-
 ---
 
-## 🧭 10-Step Institutional Valuation Workflow
+## 🔑 Pre-Configured Official Logins
 
-```
-[ Step 1: Case Identification & Project Mapping ]
-                       │
-[ Step 2: Property & Land Acquisition Metadata ]
-                       │
-[ Step 3: Structural Specifications & Lifecycle Analysis ]
-                       │
-[ Step 4: Multi-Line Dimensions & Opening Deductions Engine ]
-                       │
-[ Step 5: Abstract Estimate Generation & PWD CSR Rate Linking ]
-                       │
-[ Step 6: 7% Compound Interest Y.P. Depreciation Engine ]
-                       │
-[ Step 7: Second Valuation (Salvage Materials Abstract) ]
-                       │
-[ Step 8: Master Recapitulation & Configurable Adjustment ]
-                       │
-[ Step 9: Panchanama Witness Endorsements & Evidence Photos ]
-                       │
-[ Step 10: Multi-Page Institutional PDF Report & Audit Trail ]
-```
+| Officer Role | Access Level | Email | Password |
+| :--- | :--- | :--- | :--- |
+| **Super Admin / Division Head** | **Executive Engineer (`ADMIN`)** | `admin@jigaon.gov.in` | `Admin@12345` |
+| **Field Estimator / Officer** | **Assistant Engineer (`ESTIMATOR`)** | `engineer@jigaon.gov.in` | `Engineer@12345` |
+
+> [!TIP]
+> **Super Admin Officer Creation Portal**: Navigate to `/register` or click the bottom link on the login screen to provision additional officer logins on the fly.
 
 ---
 
@@ -106,34 +195,36 @@ $$\mathbf{V_{\text{Final}}} = V_d - A$$
 ### Backend Engine (`backend/`)
 * **Runtime**: Node.js v24 + TypeScript (`tsx` execution engine)
 * **Web Framework**: Express.js REST API
-* **Financial Arithmetic**: `Decimal.js` (Scale 20 internal, Scale 2 output, half-up rounding)
-* **Document Generation**: `PDFKit` (Server-side multi-page institutional vector PDF reports)
-* **Authentication & Security**: JWT (JSON Web Tokens) with Role-Based Access Control (`ADMIN`, `ESTIMATOR`, `CHECKER`, `VIEWER`) and `bcryptjs` password hashing
-* **Persistence Layer**: Relational disk storage engine with automated backup and re-seeding
+* **Financial Precision**: `Decimal.js` (Scale 20 internal, Scale 2 output, `ROUND_HALF_UP`)
+* **PDF Document Engine**: `PDFKit` (Server-side multi-page vector PDF certificate generator)
+* **Security & Auth**: JWT (JSON Web Tokens) with Role-Based Access Control (`ADMIN`, `ESTIMATOR`, `CHECKER`, `VIEWER`) and `bcryptjs` hashing
+* **Persistence & Auditing**: Relational JSON disk storage engine with automated backup and immutable audit logging
 
-### Frontend Portal (`frontend/`)
-* **Framework**: React 19 + Vite + TypeScript
-* **Styling System**: Vanilla CSS Design Tokens + Tailwind CSS with Institutional Government theme (Deep Navy `#123B63`, Professional Teal `#167C80`, Soft Gold `#D99A2B`)
-* **Component System**: Accessible custom UI primitives (`Card`, `Button`, `Badge`, `Stepper`, `CalculationModal`)
+### Frontend Web Portal (`frontend/`)
+* **Framework**: React 19 + Vite 6 + TypeScript
+* **Layout**: Fixed non-scrolling Header & Sidebar layout with smooth content scrolling
+* **Styling**: Vanilla CSS Design Tokens + Tailwind CSS with Institutional Government theme (Midnight Navy `#0C1A2F`, Deep Teal `#0F766E`, State Saffron `#E09F3E`)
+* **Component Library**: Custom accessible UI primitives (`Card`, `Button`, `Badge`, `Stepper`, `GovtEmblem`)
 * **Icons**: Lucide React
 
 ---
 
-## 🔌 REST API Specification
+## 🔌 REST API Endpoints
 
-### Authentication & User Management
+### Authentication & Officer Provisioning
 * `POST /api/v1/auth/login`: Authenticate and obtain JWT token
-* `GET /api/v1/auth/me`: Get authenticated user profile and roles
+* `POST /api/v1/auth/register`: Provision new officer account (Super Admin)
+* `GET /api/v1/auth/me`: Get authenticated user profile and permissions
 
 ### Dashboard & Analytics
 * `GET /api/v1/dashboard/stats`: Retrieve aggregate project counts, active cases, total valuation sum, and recent activities
 
 ### Projects & Valuation Cases
-* `GET /api/v1/projects`: List all irrigation & rehabilitation projects
-* `POST /api/v1/projects`: Create new project scheme
-* `GET /api/v1/cases`: List valuation cases with search and filtering
+* `GET /api/v1/projects`: List all irrigation & rehabilitation schemes
+* `POST /api/v1/projects`: Create new project
+* `GET /api/v1/cases`: List valuation cases with search and filter
 * `POST /api/v1/cases`: Initialize new valuation case
-* `GET /api/v1/cases/:id`: Get complete case record with property and structural specifications
+* `GET /api/v1/cases/:id`: Retrieve complete case record with property and structure specs
 * `PUT /api/v1/cases/:id/property`: Update property particulars (Owner, survey no, submergence)
 * `PUT /api/v1/cases/:id/structure`: Update structural metadata (Year, life cycle, materials)
 
@@ -143,13 +234,13 @@ $$\mathbf{V_{\text{Final}}} = V_d - A$$
 * `POST /api/v1/cases/:id/measurements/items`: Add measurement line with dimensions ($L, B, D/H$)
 * `POST /api/v1/cases/measurements/items/:itemId/deductions`: Add opening deduction ($D_1, D_2, W_1, W_2$)
 
-### Rates & Abstract Estimation (Step 5 & `/rates`)
+### Rates & Abstract Estimate (Step 5 & `/rates`)
 * `GET /api/v1/rates`: Search PWD CSR catalog by keyword or unit
-* `GET /api/v1/cases/:id/estimate`: Get abstract estimate items with amounts
-* `POST /api/v1/cases/:id/estimate/recalculate`: Authoritatively synchronize abstract from measurement groups
+* `GET /api/v1/cases/:id/estimate`: Get abstract estimate items with calculated amounts
+* `POST /api/v1/cases/:id/estimate/recalculate`: Synchronize abstract from measurement groups
 
 ### Depreciation & Y.P. Factors (Step 6 & `/depreciation-factors`)
-* `GET /api/v1/cases/:id/depreciation`: Get primary depreciation calculation record
+* `GET /api/v1/cases/:id/depreciation`: Get primary depreciation record
 * `POST /api/v1/cases/:id/depreciation/calculate`: Recompute depreciation via 7% Y.P. table
 * `GET /api/v1/cases/rates/yp-factors`: Full 100-year government Y.P. table
 
@@ -169,7 +260,7 @@ $$\mathbf{V_{\text{Final}}} = V_d - A$$
 
 ---
 
-## 🚀 Quick Start Guide
+## 🚀 Quick Start Guide (Local Setup)
 
 ### Prerequisites
 * **Node.js**: v18+ (v20+ or v24 recommended)
@@ -178,8 +269,8 @@ $$\mathbf{V_{\text{Final}}} = V_d - A$$
 ### 1. Clone & Install Dependencies
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/FinalYearProject.git
-cd FinalYearProject
+git clone https://github.com/vishal-bhutekar21/Govt-Automation-Estimator-Water-Resource-Department.git
+cd Govt-Automation-Estimator-Water-Resource-Department
 
 # Install Backend Dependencies
 cd backend
@@ -190,8 +281,7 @@ cd ../frontend
 npm install
 ```
 
-### 2. Run Locally in Development Mode
-
+### 2. Run Development Servers
 ```bash
 # Terminal 1: Start Backend Engine (Port 5000)
 cd backend
@@ -204,18 +294,11 @@ npm run dev
 
 Open your browser at `http://localhost:5173`.
 
-### 3. Demo Login Credentials
-
-| Role | Email | Password | Quick Access |
-|---|---|---|---|
-| **Executive Engineer (Admin)** | `admin@jigaon.gov.in` | `Admin@12345` | 1-Click "Administrator" Button on Login |
-| **Assistant Engineer (Estimator)** | `engineer@jigaon.gov.in` | `Engineer@12345` | 1-Click "Estimator" Button on Login |
-
 ---
 
 ## 🧪 Automated Testing & Verification
 
-Run the comprehensive unit and integration test suites:
+Run all backend unit and integration test suites:
 
 ```bash
 cd backend
@@ -224,12 +307,13 @@ npx tsx --test test/decimal.test.ts test/api.test.ts test/measurement_estimate.t
 
 ### Test Suite Execution Output
 ```
+📦 Database loaded from disk: backend/data/db.json
 ▶ Backend API and Domain Logic Suite
   ✔ Database contains initialized seed case for Mohan Vishwanath Gai
   ✔ JWT token generation and verification
   ✔ Structure lifecycle validation logic
   ✔ Live dashboard stats computation
-✔ Backend API and Domain Logic Suite (147.8ms)
+✔ Backend API and Domain Logic Suite (6.3ms)
 
 ▶ DecimalMath calculations
   ✔ calculates volume quantity accurately
@@ -237,7 +321,7 @@ npx tsx --test test/decimal.test.ts test/api.test.ts test/measurement_estimate.t
   ✔ calculates estimate item amount with rounding
   ✔ calculates primary depreciated value using Y.P. factors
   ✔ calculates configured 10% salvage adjustment and final valuation
-✔ DecimalMath calculations (5.0ms)
+✔ DecimalMath calculations (5.9ms)
 
 ▶ Phase 7 & 8: Depreciation Engine, Salvage Abstract & Final Valuation Suite
   ✔ Verifies Phase 7: Primary Depreciated Value calculation matches ₹ 2,57,592.00
@@ -245,7 +329,7 @@ npx tsx --test test/decimal.test.ts test/api.test.ts test/measurement_estimate.t
   ✔ Verifies Phase 8: Configurable 10% Salvage Adjustment & Net Final Valuation ₹ 2,38,687.20
   ✔ Verifies Dynamic Salvage Percentage Recalculation (5% and 15%)
   ✔ Verifies Indian Currency Words Generation
-✔ Phase 7 & 8: Depreciation Engine, Salvage Abstract & Final Valuation Suite (241.0ms)
+✔ Phase 7 & 8: Depreciation Engine, Salvage Abstract & Final Valuation Suite (70.5ms)
 
 ▶ Phase 5 & 6: Measurement Engine, Deductions, and Abstract Estimate Suite
   ✔ Verifies Excavation (Item 1) multi-line volume calculation
@@ -253,29 +337,30 @@ npx tsx --test test/decimal.test.ts test/api.test.ts test/measurement_estimate.t
   ✔ Verifies all 18 Measurement Groups calculate correctly
   ✔ Verifies Abstract Estimate items and Grand Total equals ₹ 2,61,669.00
   ✔ Verifies CSR Rate Search by Keyword
-✔ Phase 5 & 6: Measurement Engine, Deductions, and Abstract Estimate Suite (171.6ms)
+✔ Phase 5 & 6: Measurement Engine, Deductions, and Abstract Estimate Suite (6.2ms)
 
 ▶ Phase 9 & 10: Panchanama, PDF Engine & Audit Logging Suite
   ✔ Verifies Phase 9: Panchanama retrieval and witness endorsements
   ✔ Verifies Phase 9: Evidence Photo Creation & Storage
   ✔ Verifies Phase 10: Audit Log Trail and Timestamp Sorting
-✔ Phase 9 & 10: Panchanama, PDF Engine & Audit Logging Suite (187.7ms)
+✔ Phase 9 & 10: Panchanama, PDF Engine & Audit Logging Suite (10.1ms)
 
-All 27 Tests Passed (100%).
+ℹ tests 27 | pass 27 | fail 0 (100% Pass)
 ```
 
 ### Production Build Validation
 ```bash
 cd frontend
 npm run build
-# ✓ built in 2.22s with 0 errors
+# ✓ built in 2.25s with 0 errors
 ```
 
 ---
 
-## 👥 Authors & Academic Context
+## 👥 Academic & Departmental Context
 
-* **Project**: Automated House Valuation & Estimation Management System
-* **Academic Year**: Final Year Project
-* **Domain**: Water Resources & Civil Engineering Automated Valuation / Public Works Department Estimation
+* **Project Title**: Automated House Valuation & Estimation Management System
+* **Client / Domain**: Water Resources Department, Government of Maharashtra
+* **Target Project**: Jigaon Major Irrigation Project, Sub-Division No. 2, Nandura (Dist. Buldhana)
+* **Standard Specifications**: PWD Common Schedule of Rates (CSR 2014-15) & 7% Compound Interest Y.P. Tables
 * **License**: MIT
