@@ -35,7 +35,7 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
   structureData,
   onPrev,
 }) => {
-  const [activeTab, setActiveTab] = useState<'cover' | 'fc' | 'abstract' | 'recap'>('cover');
+  const [activeTab, setActiveTab] = useState<'cover' | 'fc' | 'abstract' | 'recap' | 'photos'>('cover');
   const [isDownloading, setIsDownloading] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -226,18 +226,18 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('cover')}
-          className={`py-2.5 px-4 rounded-t-xl border-t border-x transition-colors whitespace-nowrap ${
+          className={`py-2.5 px-3.5 rounded-t-xl border-t border-x transition-colors whitespace-nowrap ${
             activeTab === 'cover'
               ? 'bg-white text-gov-navy border-slate-300 -mb-[1px] shadow-soft-xs font-black'
               : 'text-slate-500 hover:text-slate-900 border-transparent bg-slate-100/60'
           }`}
         >
-          Page 1: Official Certificate & Award
+          Page 1: Certificate & Award
         </button>
         <button
           type="button"
           onClick={() => setActiveTab('fc')}
-          className={`py-2.5 px-4 rounded-t-xl border-t border-x transition-colors whitespace-nowrap ${
+          className={`py-2.5 px-3.5 rounded-t-xl border-t border-x transition-colors whitespace-nowrap ${
             activeTab === 'fc'
               ? 'bg-white text-gov-navy border-slate-300 -mb-[1px] shadow-soft-xs font-black'
               : 'text-slate-500 hover:text-slate-900 border-transparent bg-slate-100/60'
@@ -248,7 +248,7 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('abstract')}
-          className={`py-2.5 px-4 rounded-t-xl border-t border-x transition-colors whitespace-nowrap ${
+          className={`py-2.5 px-3.5 rounded-t-xl border-t border-x transition-colors whitespace-nowrap ${
             activeTab === 'abstract'
               ? 'bg-white text-gov-navy border-slate-300 -mb-[1px] shadow-soft-xs font-black'
               : 'text-slate-500 hover:text-slate-900 border-transparent bg-slate-100/60'
@@ -259,13 +259,24 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('recap')}
-          className={`py-2.5 px-4 rounded-t-xl border-t border-x transition-colors whitespace-nowrap ${
+          className={`py-2.5 px-3.5 rounded-t-xl border-t border-x transition-colors whitespace-nowrap ${
             activeTab === 'recap'
               ? 'bg-white text-gov-navy border-slate-300 -mb-[1px] shadow-soft-xs font-black'
               : 'text-slate-500 hover:text-slate-900 border-transparent bg-slate-100/60'
           }`}
         >
-          Page 4: RA Sheet (Recapitulation & Panchanama)
+          Page 4: RA Sheet (Recap & Panchanama)
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('photos')}
+          className={`py-2.5 px-3.5 rounded-t-xl border-t border-x transition-colors whitespace-nowrap ${
+            activeTab === 'photos'
+              ? 'bg-white text-gov-navy border-slate-300 -mb-[1px] shadow-soft-xs font-black'
+              : 'text-slate-500 hover:text-slate-900 border-transparent bg-slate-100/60'
+          }`}
+        >
+          Page 5: PE Sheet (Photo Evidence)
         </button>
       </div>
 
@@ -643,6 +654,88 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
               <p className="text-slate-700 text-xs leading-relaxed text-justify">
                 Site inspection and joint verification completed in the presence of panchas. All measurements, structural timber, roofing sheets, masonry conditions, and salvageable elements have been recorded accurately and verified without dispute.
               </p>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 5: Photographic Evidence Sheet */}
+        {activeTab === 'photos' && (
+          <div className="space-y-4 text-xs text-slate-800 pt-4">
+            <div className="flex items-center justify-between border-b pb-2">
+              <h3 className="font-black text-slate-900 uppercase text-xs">
+                Annexure-IV: Photographic Site Evidence & Inspection Record (PE Sheet)
+              </h3>
+              <span className="text-[10px] text-slate-500 font-mono">Form PE-01 • 4 High-Res Records</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="border border-slate-300 rounded-xl overflow-hidden bg-slate-50">
+                <div className="bg-slate-900 text-white px-3 py-1.5 font-bold text-[11px] flex justify-between">
+                  <span>Photo 1: Front Elevation</span>
+                  <span className="text-amber-300 text-[10px]">House No. 165</span>
+                </div>
+                <img
+                  src="https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=600&q=80"
+                  alt="Front Elevation"
+                  className="w-full h-40 object-cover border-b"
+                />
+                <div className="p-3 space-y-1 bg-white">
+                  <div className="font-bold text-slate-900">Front Architectural Elevation View</div>
+                  <p className="text-[11px] text-slate-600">Frontal view of residential dwelling unit showing entrance door, BBM walls, and CGI roof slope.</p>
+                  <div className="text-[10px] text-emerald-700 font-semibold pt-1">✓ Verified by Sectional Engineer on 12-04-2016</div>
+                </div>
+              </div>
+
+              <div className="border border-slate-300 rounded-xl overflow-hidden bg-slate-50">
+                <div className="bg-slate-900 text-white px-3 py-1.5 font-bold text-[11px] flex justify-between">
+                  <span>Photo 2: Plinth Foundation</span>
+                  <span className="text-amber-300 text-[10px]">House No. 165</span>
+                </div>
+                <img
+                  src="https://images.unsplash.com/photo-1541888946425-d0fbb18015f6?auto=format&fit=crop&w=600&q=80"
+                  alt="Plinth Foundation"
+                  className="w-full h-40 object-cover border-b"
+                />
+                <div className="p-3 space-y-1 bg-white">
+                  <div className="font-bold text-slate-900">Plinth & UCR Stone Masonry Base</div>
+                  <p className="text-[11px] text-slate-600">Uncoursed rubble stone masonry in plinth with cement concrete bedding and staff gauge measurement.</p>
+                  <div className="text-[10px] text-emerald-700 font-semibold pt-1">✓ Verified by Sectional Engineer on 12-04-2016</div>
+                </div>
+              </div>
+
+              <div className="border border-slate-300 rounded-xl overflow-hidden bg-slate-50">
+                <div className="bg-slate-900 text-white px-3 py-1.5 font-bold text-[11px] flex justify-between">
+                  <span>Photo 3: Superstructure Walls</span>
+                  <span className="text-amber-300 text-[10px]">House No. 165</span>
+                </div>
+                <img
+                  src="https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=600&q=80"
+                  alt="Superstructure"
+                  className="w-full h-40 object-cover border-b"
+                />
+                <div className="p-3 space-y-1 bg-white">
+                  <div className="font-bold text-slate-900">Superstructure BBM Walls & Verandah</div>
+                  <p className="text-[11px] text-slate-600">Burnt brick masonry superstructure in CM 1:6 and front verandah country wood posts supporting eave purlins.</p>
+                  <div className="text-[10px] text-emerald-700 font-semibold pt-1">✓ Verified by Sectional Engineer on 12-04-2016</div>
+                </div>
+              </div>
+
+              <div className="border border-slate-300 rounded-xl overflow-hidden bg-slate-50">
+                <div className="bg-slate-900 text-white px-3 py-1.5 font-bold text-[11px] flex justify-between">
+                  <span>Photo 4: Roof Structure</span>
+                  <span className="text-amber-300 text-[10px]">House No. 165</span>
+                </div>
+                <img
+                  src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=600&q=80"
+                  alt="Roof Structure"
+                  className="w-full h-40 object-cover border-b"
+                />
+                <div className="p-3 space-y-1 bg-white">
+                  <div className="font-bold text-slate-900">Roof Timber Framework & CGI Sheets</div>
+                  <p className="text-[11px] text-slate-600">Interior view of seasoned country teak wood roof trusses, purlins, rafters, and corrugated galvanized iron sheets.</p>
+                  <div className="text-[10px] text-emerald-700 font-semibold pt-1">✓ Verified by Sectional Engineer on 12-04-2016</div>
+                </div>
+              </div>
             </div>
           </div>
         )}

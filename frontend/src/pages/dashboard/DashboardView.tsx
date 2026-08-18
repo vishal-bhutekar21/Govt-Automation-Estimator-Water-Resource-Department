@@ -110,107 +110,116 @@ export const DashboardView: React.FC = () => {
       </div>
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Projects */}
-        <Card variant="default" className="space-y-3 relative overflow-hidden transition-all duration-200 hover:shadow-soft-md">
+        <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/90 shadow-soft-xs hover:shadow-soft-sm transition-all duration-200 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Projects</span>
-            <div className="p-2.5 rounded-gov-md bg-gov-navy-50 text-gov-navy">
-              <FolderKanban className="w-5 h-5" />
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Active Projects</span>
+            <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-800 flex items-center justify-center">
+              <FolderKanban className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-gov-navy">
-            {isLoading ? '...' : data?.stats.totalProjects ?? 0}
+          <div className="mt-3 mb-1">
+            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono tracking-tight">
+              {isLoading ? '...' : data?.stats.totalProjects ?? 0}
+            </div>
           </div>
-          <div className="text-xs text-slate-500 flex items-center gap-1 truncate">
-            <span>Primary Scheme:</span>
-            <strong className="text-slate-700 truncate">Jigaon Submergence</strong>
+          <div className="text-[11px] text-slate-500 flex items-center gap-1.5 pt-2 border-t border-slate-100">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+            <span className="truncate">Jigaon Submergence Scheme</span>
           </div>
-        </Card>
+        </div>
 
         {/* Total Cases */}
-        <Card variant="default" className="space-y-3 relative overflow-hidden transition-all duration-200 hover:shadow-soft-md">
+        <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/90 shadow-soft-xs hover:shadow-soft-sm transition-all duration-200 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total House Cases</span>
-            <div className="p-2.5 rounded-gov-md bg-gov-teal-50 text-gov-teal">
-              <FileSpreadsheet className="w-5 h-5" />
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total House Cases</span>
+            <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-800 flex items-center justify-center">
+              <FileSpreadsheet className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-gov-teal">
-            {isLoading ? '...' : data?.stats.totalCases ?? 0}
+          <div className="mt-3 mb-1">
+            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono tracking-tight">
+              {isLoading ? '...' : data?.stats.totalCases ?? 0}
+            </div>
           </div>
-          <div className="text-xs text-slate-500 flex items-center gap-2">
-            <span>Draft: {data?.stats.draftCases ?? 0}</span>
+          <div className="text-[11px] text-slate-500 flex items-center gap-2 pt-2 border-t border-slate-100 truncate">
+            <span>Draft: <strong>{data?.stats.draftCases ?? 0}</strong></span>
             <span>•</span>
-            <span>Completed: {data?.stats.completedCases ?? 0}</span>
+            <span>Completed: <strong>{data?.stats.completedCases ?? 0}</strong></span>
           </div>
-        </Card>
+        </div>
 
         {/* Completed Valuations */}
-        <Card variant="default" className="space-y-3 relative overflow-hidden transition-all duration-200 hover:shadow-soft-md">
+        <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/90 shadow-soft-xs hover:shadow-soft-sm transition-all duration-200 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Approved Valuations</span>
-            <div className="p-2.5 rounded-gov-md bg-emerald-50 text-emerald-700">
-              <CheckCircle2 className="w-5 h-5" />
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Sanctioned Awards</span>
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+              <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-emerald-700">
-            {isLoading ? '...' : data?.stats.completedCases ?? 0}
+          <div className="mt-3 mb-1">
+            <div className="text-2xl sm:text-3xl font-extrabold text-emerald-700 font-mono tracking-tight">
+              {isLoading ? '...' : data?.stats.completedCases ?? 0}
+            </div>
           </div>
-          <div className="text-xs text-slate-500 truncate">
-            Official A4 PDF reports finalized
+          <div className="text-[11px] text-emerald-800 font-medium flex items-center gap-1.5 pt-2 border-t border-slate-100 truncate">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+            <span>Ready for A4 Sanction PDF</span>
           </div>
-        </Card>
+        </div>
 
         {/* Total Estimated Value */}
-        <Card variant="accent-border" className="space-y-3 relative overflow-hidden bg-gradient-to-br from-white to-amber-50/30 transition-all duration-200 hover:shadow-soft-md">
+        <div className="bg-gradient-to-br from-slate-900 to-[#102a45] text-white p-4 sm:p-5 rounded-xl border border-slate-800 shadow-soft-xs hover:shadow-soft-sm transition-all duration-200 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-gov-saffron-800 uppercase tracking-wider">Total Value Sum</span>
-            <div className="p-2.5 rounded-gov-md bg-gov-saffron-50 text-gov-saffron-800">
-              <TrendingUp className="w-5 h-5" />
+            <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Total Award Value</span>
+            <div className="w-8 h-8 rounded-lg bg-white/10 text-amber-300 flex items-center justify-center">
+              <TrendingUp className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight font-mono truncate">
-            {isLoading ? '...' : data?.stats.formattedTotalEstimatedValue ?? '₹ 0.00'}
+          <div className="mt-3 mb-1">
+            <div className="text-xl sm:text-2xl lg:text-3xl font-black font-mono tracking-tight text-white truncate">
+              {isLoading ? '...' : data?.stats.formattedTotalEstimatedValue ?? '₹ 0.00'}
+            </div>
           </div>
-          <div className="text-xs text-slate-500 truncate">
-            Calculated across active cases
+          <div className="text-[11px] text-slate-300 flex items-center gap-1.5 pt-2 border-t border-white/10 truncate">
+            <span>PWD CSR 2014-15 Standard</span>
           </div>
-        </Card>
+        </div>
       </div>
 
       {/* Recent Cases Section */}
-      <Card className="space-y-4 p-0 overflow-hidden border border-slate-200 shadow-soft-sm">
-        <div className="p-4 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <Card className="space-y-4 p-0 overflow-hidden border border-slate-200/90 shadow-soft-xs rounded-xl">
+        <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white">
           <div>
-            <h2 className="text-base font-bold text-slate-900">Recent Valuation Cases</h2>
-            <p className="text-xs text-slate-500">Live records from Jigaon Project database</p>
+            <h2 className="text-sm sm:text-base font-bold text-slate-900">Recent Valuation Cases</h2>
+            <p className="text-[11px] text-slate-500">Live records from Jigaon Major Irrigation Project database</p>
           </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate('/cases')}
             rightIcon={<ArrowRight className="w-4 h-4" />}
-            className="self-start sm:self-auto text-xs"
+            className="self-start sm:self-auto text-xs font-semibold"
           >
             View All Cases
           </Button>
         </div>
 
         <div className="overflow-x-auto w-full scrollbar-thin">
-          <table className="w-full min-w-[720px] text-left border-collapse text-xs">
+          <table className="w-full min-w-[700px] text-left border-collapse text-xs">
             <thead>
-              <tr className="gov-table-header">
-                <th className="py-3 px-4 sm:px-6">Case Number</th>
-                <th className="py-3 px-4 sm:px-6">Owner Name</th>
-                <th className="py-3 px-4 sm:px-6">House / Village</th>
-                <th className="py-3 px-4 sm:px-6">Project</th>
-                <th className="py-3 px-4 sm:px-6">Status</th>
-                <th className="py-3 px-4 sm:px-6 text-right">Final Valuation</th>
-                <th className="py-3 px-4 sm:px-6 text-center">Action</th>
+              <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold text-[10px] uppercase tracking-wider">
+                <th className="py-3 px-4 sm:px-5">Case Number</th>
+                <th className="py-3 px-4 sm:px-5">Owner Name</th>
+                <th className="py-3 px-4 sm:px-5">House / Village</th>
+                <th className="py-3 px-4 sm:px-5">Project</th>
+                <th className="py-3 px-4 sm:px-5">Status</th>
+                <th className="py-3 px-4 sm:px-5 text-right">Final Valuation</th>
+                <th className="py-3 px-4 sm:px-5 text-center">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 bg-white">
               {isLoading ? (
                 <tr>
                   <td colSpan={7} className="py-8 text-center text-slate-400">
@@ -219,32 +228,32 @@ export const DashboardView: React.FC = () => {
                 </tr>
               ) : data?.recentCases.length ? (
                 data.recentCases.map((c) => (
-                  <tr key={c.id} className="gov-table-row">
-                    <td className="py-3.5 px-4 sm:px-6 font-mono font-bold text-gov-navy whitespace-nowrap">
+                  <tr key={c.id} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="py-3.5 px-4 sm:px-5 font-mono font-bold text-gov-navy whitespace-nowrap">
                       {c.caseNumber}
                     </td>
-                    <td className="py-3.5 px-4 sm:px-6 font-semibold text-slate-800">
+                    <td className="py-3.5 px-4 sm:px-5 font-semibold text-slate-900">
                       {c.ownerName}
                     </td>
-                    <td className="py-3.5 px-4 sm:px-6 text-slate-600">
+                    <td className="py-3.5 px-4 sm:px-5 text-slate-600">
                       House #{c.houseNumber}, {c.village}
                     </td>
-                    <td className="py-3.5 px-4 sm:px-6 text-slate-500 truncate max-w-[180px]">
+                    <td className="py-3.5 px-4 sm:px-5 text-slate-500 truncate max-w-[170px]">
                       {c.projectName}
                     </td>
-                    <td className="py-3.5 px-4 sm:px-6 whitespace-nowrap">
+                    <td className="py-3.5 px-4 sm:px-5 whitespace-nowrap">
                       {getStatusBadge(c.status)}
                     </td>
-                    <td className="py-3.5 px-4 sm:px-6 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
+                    <td className="py-3.5 px-4 sm:px-5 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
                       {c.formattedValuation}
                     </td>
-                    <td className="py-3.5 px-4 sm:px-6 text-center whitespace-nowrap">
+                    <td className="py-3.5 px-4 sm:px-5 text-center whitespace-nowrap">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => navigate(`/cases/${c.id}`)}
                         leftIcon={<Eye className="w-3.5 h-3.5" />}
-                        className="text-xs"
+                        className="text-xs h-7 px-2.5"
                       >
                         Open Case
                       </Button>
