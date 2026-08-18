@@ -675,9 +675,9 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
                   <span className="text-amber-300 text-[10px]">House No. 165</span>
                 </div>
                 <img
-                  src="https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=600&q=80"
+                  src="/photos/house_front_elevation.jpg"
                   alt="Front Elevation"
-                  className="w-full h-40 object-cover border-b"
+                  className="w-full h-44 object-cover border-b"
                 />
                 <div className="p-3 space-y-1 bg-white">
                   <div className="font-bold text-slate-900">Front Architectural Elevation View</div>
@@ -692,9 +692,9 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
                   <span className="text-amber-300 text-[10px]">House No. 165</span>
                 </div>
                 <img
-                  src="https://images.unsplash.com/photo-1541888946425-d0fbb18015f6?auto=format&fit=crop&w=600&q=80"
+                  src="/photos/house_plinth_foundation.jpg"
                   alt="Plinth Foundation"
-                  className="w-full h-40 object-cover border-b"
+                  className="w-full h-44 object-cover border-b"
                 />
                 <div className="p-3 space-y-1 bg-white">
                   <div className="font-bold text-slate-900">Plinth & UCR Stone Masonry Base</div>
@@ -709,9 +709,9 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
                   <span className="text-amber-300 text-[10px]">House No. 165</span>
                 </div>
                 <img
-                  src="https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=600&q=80"
+                  src="/photos/house_superstructure_walls.jpg"
                   alt="Superstructure"
-                  className="w-full h-40 object-cover border-b"
+                  className="w-full h-44 object-cover border-b"
                 />
                 <div className="p-3 space-y-1 bg-white">
                   <div className="font-bold text-slate-900">Superstructure BBM Walls & Verandah</div>
@@ -726,9 +726,9 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
                   <span className="text-amber-300 text-[10px]">House No. 165</span>
                 </div>
                 <img
-                  src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=600&q=80"
+                  src="/photos/house_roof_structure.jpg"
                   alt="Roof Structure"
-                  className="w-full h-40 object-cover border-b"
+                  className="w-full h-44 object-cover border-b"
                 />
                 <div className="p-3 space-y-1 bg-white">
                   <div className="font-bold text-slate-900">Roof Timber Framework & CGI Sheets</div>

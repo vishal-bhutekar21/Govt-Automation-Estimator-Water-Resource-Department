@@ -1495,8 +1495,8 @@
       "totalLifeYpFactor": 13.606,
       "depreciationFactor": 0.9844186,
       "depreciatedValue": 257592,
-      "formulaText": "Present Cost (2,61,669.00) × Y.P. Future (13.394) ÷ Y.P. Total (13.606)",
-      "updatedAt": "2026-01-02T10:00:00.000Z"
+      "formulaText": "Present Cost (₹ 2,61,669) × Y.P. Future [41 yrs] (13.394) ÷ Y.P. Total [45 yrs] (13.606) = ₹ 2,57,592.00",
+      "updatedAt": "2026-08-18T16:29:25.242Z"
     }
   ],
   "salvageEstimates": [
@@ -1517,10 +1517,10 @@
       "totalLife": 45,
       "futureLifeYpFactor": 13.394,
       "totalLifeYpFactor": 13.606,
-      "salvageDepreciatedValue": 183981,
+      "salvageDepreciatedValue": 189048,
       "adjustmentPercentage": 10,
-      "adjustmentAmount": 18398.1,
-      "updatedAt": "2026-01-02T10:00:00.000Z"
+      "adjustmentAmount": 18904.8,
+      "updatedAt": "2026-08-18T16:29:25.243Z"
     }
   ],
   "finalValuations": [
@@ -1536,7 +1536,7 @@
       "finalValuationAmount": 238687.2,
       "calculationVersion": 1,
       "status": "APPROVED",
-      "updatedAt": "2026-01-02T10:00:00.000Z"
+      "updatedAt": "2026-08-18T16:29:25.243Z"
     }
   ],
   "documents": [],
@@ -1590,5 +1590,79 @@
       "timestamp": "2026-01-15T14:30:00.000Z"
     }
   ],
-  "calculationVersions": []
+  "calculationVersions": [],
+  "panchanamaRecords": [
+    {
+      "id": "panch-87130c0d",
+      "caseId": "case-jigaon-165",
+      "dateOfInspection": "2016-04-12",
+      "panchas": [
+        {
+          "name": "Shri Rambhau Tukaram Patil",
+          "address": "Dadulgaon, Tal. Nandura",
+          "isSigned": true
+        },
+        {
+          "name": "Shri Suresh Pundlik Wankhade",
+          "address": "Dadulgaon, Tal. Nandura",
+          "isSigned": true
+        }
+      ],
+      "jointInspectionOfficers": [
+        "Sectional Engineer (Irrigation Sub-Division)",
+        "Talathi / Patwari (Dadulgaon Saja)",
+        "Circle Officer (Revenue Department)"
+      ],
+      "generalRemarks": "The residential house structure of Shri Mohan Vishwanath Gai is located in the core submergence zone of Jigaon Major Irrigation Project. Measurements of all rooms, BBM walls, teak roof purlins, and CGI sheets were recorded in the presence of the owner and panchas.",
+      "structuralCondition": "GOOD",
+      "updatedAt": "2026-08-18T14:41:22.851Z"
+    }
+  ],
+  "evidencePhotos": [
+    {
+      "id": "photo-jig-165-01",
+      "caseId": "case-jigaon-165",
+      "title": "Front Elevation View (House No. 165)",
+      "category": "FRONT_ELEVATION",
+      "description": "Frontal view of residential dwelling unit with BBM walls, main entrance, and CGI roof slope.",
+      "photoUrl": "/photos/house_front_elevation.jpg",
+      "capturedAt": "2016-04-12T10:30:00.000Z"
+    },
+    {
+      "id": "photo-jig-165-02",
+      "caseId": "case-jigaon-165",
+      "title": "Plinth & UCR Stone Masonry Foundation",
+      "category": "OTHER",
+      "description": "Uncoursed rubble stone masonry in plinth with cement concrete 1:4:8 bedding and measured height verification.",
+      "photoUrl": "/photos/house_plinth_foundation.jpg",
+      "capturedAt": "2016-04-12T11:00:00.000Z"
+    },
+    {
+      "id": "photo-jig-165-03",
+      "caseId": "case-jigaon-165",
+      "title": "Superstructure BBM Walls & Verandah Frame",
+      "category": "DOORS_WINDOWS",
+      "description": "Burnt brick masonry superstructure in CM 1:6 and front verandah country wood posts supporting eave purlins.",
+      "photoUrl": "/photos/house_superstructure_walls.jpg",
+      "capturedAt": "2016-04-12T11:30:00.000Z"
+    },
+    {
+      "id": "photo-jig-165-04",
+      "caseId": "case-jigaon-165",
+      "title": "Roof Timber Framework & CGI Sheets",
+      "category": "ROOF_STRUCTURE",
+      "description": "Interior view of seasoned country teak wood roof trusses, purlins, rafters, and corrugated galvanized iron sheets.",
+      "photoUrl": "/photos/house_roof_structure.jpg",
+      "capturedAt": "2016-04-12T12:00:00.000Z"
+    },
+    {
+      "id": "photo-test-01",
+      "caseId": "case-jigaon-165",
+      "title": "Front Elevation Test",
+      "category": "FRONT_ELEVATION",
+      "description": "Test structural photo",
+      "photoUrl": "https://example.com/photo.jpg",
+      "capturedAt": "2026-08-18T16:29:26.055Z"
+    }
+  ]
 }

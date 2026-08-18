@@ -1,5 +1,7 @@
 import { Response } from 'express';
 import PDFDocument from 'pdfkit';
+import path from 'path';
+import fs from 'fs';
 import { db } from '../database/db';
 import { AuthRequest } from '../middleware/auth';
 import { calculateCaseDepreciation } from './depreciationController';
@@ -484,24 +486,28 @@ export const generateValuationPdf = (req: AuthRequest, res: Response): void => {
       {
         title: 'Front Elevation View (House No. 165)',
         category: 'FRONT_ELEVATION',
-        description: 'Frontal architectural view of single-storey residential dwelling with BBM walls, main entrance, and CGI roof slope.',
+        filename: 'house_front_elevation.jpg',
+        description: 'Frontal architectural elevation view showing residential dwelling unit with BBM walls, main timber entrance door, and CGI roof slope.',
         capturedAt: '2016-04-12T10:30:00.000Z',
       },
       {
         title: 'Plinth & UCR Stone Masonry Foundation',
         category: 'SUPERSTRUCTURE',
+        filename: 'house_plinth_foundation.jpg',
         description: 'Uncoursed rubble stone masonry in plinth with cement concrete 1:4:8 bedding and measured height verification.',
         capturedAt: '2016-04-12T11:00:00.000Z',
       },
       {
         title: 'Superstructure BBM Walls & Verandah Frame',
         category: 'VERANDAH',
+        filename: 'house_superstructure_walls.jpg',
         description: 'Burnt brick masonry superstructure in CM 1:6 and front verandah country wood posts supporting eave purlins.',
         capturedAt: '2016-04-12T11:30:00.000Z',
       },
       {
         title: 'Roof Timber Framework & CGI Sheets',
         category: 'ROOF_STRUCTURE',
+        filename: 'house_roof_structure.jpg',
         description: 'Interior view of seasoned country teak wood roof trusses, purlins, rafters, and corrugated galvanized iron sheets.',
         capturedAt: '2016-04-12T12:00:00.000Z',
       },
@@ -513,89 +519,90 @@ export const generateValuationPdf = (req: AuthRequest, res: Response): void => {
 
     doc.fontSize(10.5).font('Helvetica-Bold').fillColor('#000000').text(
       'ANNEXURE-IV: PHOTOGRAPHIC SITE EVIDENCE & INSPECTION RECORD',
-      30,
-      38
+      25,
+      38,
+      { width: 545, lineBreak: false }
     );
     doc.fontSize(7.5).font('Helvetica').fillColor('#4B5563').text(
       `Visual evidentiary documentation of acquired immovable structure recorded on site for House No. ${prop.houseNumber}`,
-      30,
-      50
+      25,
+      50,
+      { width: 545, lineBreak: false }
     );
 
-    // 2x2 Photo Cards Layout
+    // 2x2 Photo Cards Layout (Exact geometry bounded within y <= 785)
     const cardPositions = [
-      { x: 30, y: 68, w: 260, h: 320 },
-      { x: 305, y: 68, w: 260, h: 320 },
-      { x: 30, y: 405, w: 260, h: 330 },
-      { x: 305, y: 405, w: 260, h: 330 },
+      { x: 25, y: 64, w: 265, h: 350, img: 'house_front_elevation.jpg' },
+      { x: 300, y: 64, w: 265, h: 350, img: 'house_plinth_foundation.jpg' },
+      { x: 25, y: 424, w: 265, h: 360, img: 'house_superstructure_walls.jpg' },
+      { x: 300, y: 424, w: 265, h: 360, img: 'house_roof_structure.jpg' },
     ];
 
     evidencePhotos.slice(0, 4).forEach((photo: any, pIdx: number) => {
       const pos = cardPositions[pIdx];
+
       // Outer Card Frame
       doc.rect(pos.x, pos.y, pos.w, pos.h).lineWidth(0.5).strokeColor('#000000').fillAndStroke('#FFFFFF', '#000000');
 
       // Card Header Banner
-      doc.rect(pos.x, pos.y, pos.w, 18).fillAndStroke('#E5E7EB', '#000000');
+      doc.rect(pos.x, pos.y, pos.w, 16).fillAndStroke('#E5E7EB', '#000000');
       doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#000000').text(
         `EVIDENCE PHOTO #${pIdx + 1}: ${photo.category.replace(/_/g, ' ')}`,
         pos.x + 6,
-        pos.y + 5,
-        { width: pos.w - 12 }
+        pos.y + 4,
+        { width: pos.w - 12, lineBreak: false }
       );
 
-      // Simulated Architectural / Engineering Visual Frame
-      const frameY = pos.y + 24;
-      const frameH = 175;
-      doc.rect(pos.x + 8, frameY, pos.w - 16, frameH).lineWidth(0.5).strokeColor('#9CA3AF').fillAndStroke('#F8FAFC', '#9CA3AF');
+      // Embedded Image Rendering
+      const imgPath = path.resolve(__dirname, '../../assets/photos', pos.img);
+      const imgX = pos.x + 6;
+      const imgY = pos.y + 20;
+      const imgW = pos.w - 12;
+      const imgH = 175;
 
-      // Grid / Scale overlay lines
-      doc.lineWidth(0.25).strokeColor('#E2E8F0');
-      doc.moveTo(pos.x + 8, frameY + 45).lineTo(pos.x + pos.w - 8, frameY + 45).stroke();
-      doc.moveTo(pos.x + 8, frameY + 90).lineTo(pos.x + pos.w - 8, frameY + 90).stroke();
-      doc.moveTo(pos.x + 8, frameY + 135).lineTo(pos.x + pos.w - 8, frameY + 135).stroke();
+      // Frame background
+      doc.rect(imgX, imgY, imgW, imgH).lineWidth(0.5).strokeColor('#9CA3AF').fillAndStroke('#F8FAFC', '#9CA3AF');
 
-      // Inspection Stamp in Photo Frame
-      doc.roundedRect(pos.x + 16, frameY + 14, pos.w - 32, 145, 4).lineWidth(0.5).strokeColor('#CBD5E1').stroke();
-      doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#1E293B').text(
-        `[ SITE EVIDENCE RECORD • HOUSE NO. ${prop.houseNumber} ]`,
-        pos.x + 16,
-        frameY + 45,
-        { width: pos.w - 32, align: 'center' }
+      if (fs.existsSync(imgPath)) {
+        try {
+          doc.image(imgPath, imgX, imgY, {
+            fit: [imgW, imgH],
+            align: 'center',
+            valign: 'center',
+          });
+        } catch (imgErr) {
+          console.error('Image render error:', imgErr);
+        }
+      }
+
+      // WRD Joint Inspection Stamp Badge Below Image
+      const badgeY = imgY + imgH + 4;
+      doc.rect(imgX, badgeY, imgW, 14).lineWidth(0.5).strokeColor('#10B981').fillAndStroke('#ECFDF5', '#10B981');
+      doc.fontSize(6.5).font('Helvetica-Bold').fillColor('#065F46').text(
+        `✓ WRD JOINT INSPECTION RECORD • HOUSE NO. ${prop.houseNumber}`,
+        imgX,
+        badgeY + 4,
+        { width: imgW, align: 'center', lineBreak: false }
       );
-      doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#374151').text(
-        photo.title,
-        pos.x + 16,
-        frameY + 65,
-        { width: pos.w - 32, align: 'center' }
-      );
-      doc.fontSize(6.5).font('Helvetica').fillColor('#6B7280').text(
-        `GPS: Dadulgaon Submergence Sector • Camera Azimuth: Verified\nInspection Date: ${caseRecord.valuationDate} • Sectional Engineer`,
-        pos.x + 16,
-        frameY + 90,
-        { width: pos.w - 32, align: 'center', lineGap: 3 }
-      );
-      doc.roundedRect(pos.x + pos.w / 2 - 60, frameY + 120, 120, 16, 2).lineWidth(0.5).strokeColor('#10B981').stroke();
-      doc.fontSize(6.5).font('Helvetica-Bold').fillColor('#047857').text('✓ WRD JOINT INSPECTION VERIFIED', pos.x + pos.w / 2 - 60, frameY + 125, { width: 120, align: 'center' });
 
-      // Photo Metadata & Observations Below Frame
-      const metaY = frameY + frameH + 8;
-      doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#000000').text('Title:', pos.x + 8, metaY);
-      doc.fontSize(7.5).font('Helvetica').fillColor('#111827').text(photo.title, pos.x + 36, metaY, { width: pos.w - 44, lineBreak: false });
+      // Photo Metadata & Observations Below Badge
+      const metaY = badgeY + 18;
+      doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#000000').text('Title:', imgX, metaY, { lineBreak: false });
+      doc.fontSize(7.5).font('Helvetica').fillColor('#111827').text(photo.title, imgX + 26, metaY, { width: imgW - 28, lineBreak: false });
 
-      doc.fontSize(7).font('Helvetica-Bold').fillColor('#000000').text('Observations:', pos.x + 8, metaY + 14);
-      doc.fontSize(7).font('Helvetica').fillColor('#374151').text(
+      doc.fontSize(7).font('Helvetica-Bold').fillColor('#000000').text('Observations:', imgX, metaY + 13, { lineBreak: false });
+      doc.fontSize(6.8).font('Helvetica').fillColor('#374151').text(
         photo.description,
-        pos.x + 8,
-        metaY + 25,
-        { width: pos.w - 16, height: 60, lineGap: 1.5 }
+        imgX,
+        metaY + 24,
+        { width: imgW, height: 42, lineGap: 1.5 }
       );
 
       doc.fontSize(6.5).font('Helvetica-Bold').fillColor('#4B5563').text(
         `Attested: Joint Inspection Authority • ${prop.village}`,
-        pos.x + 8,
-        pos.y + pos.h - 14,
-        { width: pos.w - 16 }
+        imgX,
+        pos.y + pos.h - 12,
+        { width: imgW, lineBreak: false }
       );
     });
 
