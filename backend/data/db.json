@@ -21,6 +21,18 @@
       "passwordHash": "$2b$10$zb3qmbJ4TgZFlncNAxbjZu4PofzrebHP8Vn1cYYf25WYe/KS9itUa",
       "createdAt": "2026-01-01T00:00:00.000Z",
       "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "usr-011d85da",
+      "email": "ee.sanjay@jigaon.gov.in",
+      "name": "Er. Sanjay V. Kulkarni",
+      "passwordHash": "$2b$10$6mEgRmu/N0f.5dmIJB4dROac194ls2rCzsYygzY1IJA0PX2/SYq8C",
+      "role": "ADMIN",
+      "department": "Jigaon Major Irrigation Sub-Division No. 2, Nandura",
+      "designation": "Executive Engineer (Division Officer)",
+      "isActive": true,
+      "createdAt": "2026-08-18T11:01:08.164Z",
+      "updatedAt": "2026-08-18T11:01:08.164Z"
     }
   ],
   "projects": [
@@ -1485,7 +1497,7 @@
       "depreciationFactor": 0.9844186,
       "depreciatedValue": 257592,
       "formulaText": "Present Cost (₹ 2,61,669) × Y.P. Future [41 yrs] (13.394) ÷ Y.P. Total [45 yrs] (13.606) = ₹ 2,57,592.00",
-      "updatedAt": "2026-08-18T10:52:38.247Z"
+      "updatedAt": "2026-08-18T11:02:11.883Z"
     }
   ],
   "salvageEstimates": [
@@ -1509,7 +1521,7 @@
       "salvageDepreciatedValue": 189048,
       "adjustmentPercentage": 10,
       "adjustmentAmount": 18904.8,
-      "updatedAt": "2026-08-18T10:52:38.251Z"
+      "updatedAt": "2026-08-18T11:02:11.891Z"
     }
   ],
   "finalValuations": [
@@ -1525,7 +1537,7 @@
       "finalValuationAmount": 238687.2,
       "calculationVersion": 1,
       "status": "APPROVED",
-      "updatedAt": "2026-08-18T10:52:38.251Z"
+      "updatedAt": "2026-08-18T11:02:11.891Z"
     }
   ],
   "documents": [],
@@ -1577,6 +1589,17 @@
       "entityId": "final-165",
       "newValue": "Final net payable valuation sanctioned at Rs. 2,38,687.20",
       "timestamp": "2026-01-15T14:30:00.000Z"
+    },
+    {
+      "id": "log-d01ce998",
+      "userId": "usr-011d85da",
+      "userName": "Er. Sanjay V. Kulkarni",
+      "userRole": "ADMIN",
+      "action": "OFFICER_ACCOUNT_CREATED",
+      "entityType": "User",
+      "entityId": "usr-011d85da",
+      "newValue": "New ADMIN account created for Er. Sanjay V. Kulkarni (Executive Engineer (Division Officer))",
+      "timestamp": "2026-08-18T11:01:08.164Z"
     }
   ],
   "calculationVersions": [],
@@ -1630,6 +1653,15 @@
       "description": "Test structural photo",
       "photoUrl": "https://example.com/photo.jpg",
       "capturedAt": "2026-08-18T10:52:38.187Z"
+    },
+    {
+      "id": "photo-test-01",
+      "caseId": "case-jigaon-165",
+      "title": "Front Elevation Test",
+      "category": "FRONT_ELEVATION",
+      "description": "Test structural photo",
+      "photoUrl": "https://example.com/photo.jpg",
+      "capturedAt": "2026-08-18T11:02:11.803Z"
     }
   ]
 }

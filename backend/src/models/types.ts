@@ -1,4 +1,4 @@
-export type UserRole = 'ADMIN' | 'ESTIMATOR' | 'VIEWER';
+export type UserRole = 'ADMIN' | 'ESTIMATOR' | 'CHECKER' | 'VIEWER';
 
 export interface User {
   id: string;
@@ -8,6 +8,7 @@ export interface User {
   department: string;
   designation: string;
   passwordHash: string;
+  isActive?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -249,10 +250,12 @@ export interface AuditLog {
   caseId?: string;
   userId: string;
   userName: string;
+  userRole?: UserRole;
   action: string;
   entityType: string;
   entityId: string;
   oldValue?: string;
+  previousValue?: string;
   newValue?: string;
   reason?: string;
   timestamp: string;

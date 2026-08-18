@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { MainLayout } from './components/layout/MainLayout';
 import { LoginView } from './pages/auth/LoginView';
+import { RegisterView } from './pages/auth/RegisterView';
 import { DashboardView } from './pages/dashboard/DashboardView';
 import { ProjectListView } from './pages/projects/ProjectListView';
 import { CaseListView } from './pages/cases/CaseListView';
@@ -57,6 +58,14 @@ export const AppRoutes: React.FC = () => {
         element={
           <PublicRoute>
             <LoginView />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <PublicRoute>
+            <RegisterView />
           </PublicRoute>
         }
       />

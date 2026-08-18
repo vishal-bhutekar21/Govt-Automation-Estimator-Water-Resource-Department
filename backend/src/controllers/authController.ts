@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
 import { db } from '../database/db';
 import { signToken, AuthRequest } from '../middleware/auth';
+import { User, UserRole } from '../models/types';
 
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -55,6 +57,87 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({
       error: 'SERVER_ERROR',
       message: err.message || 'Authentication failed due to server error.',
+    });
+  }
+};
+
+export const register = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name, email, password, role, designation, department } = req.body;
+
+    if (!name || !email || !password || !role) {
+      res.status(400).json({
+        error: 'VALIDATION_ERROR',
+        message: 'Name, email, password, and role are required.',
+      });
+      return;
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const existing = db.users.find((u) => u.email.toLowerCase() === cleanEmail);
+    if (existing) {
+      res.status(409).json({
+        error: 'USER_EXISTS',
+        message: `An officer account with email ${cleanEmail} already exists.`,
+      });
+      return;
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
+
+    const newUser: User = {
+      id: `usr-${uuidv4().slice(0, 8)}`,
+      email: cleanEmail,
+      name: name.trim(),
+      passwordHash,
+      role: role as UserRole,
+      department: department || 'Water Resources Department, Maharashtra',
+      designation: designation || (role === 'ADMIN' ? 'Executive Engineer' : 'Assistant Engineer'),
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    db.users.push(newUser);
+
+    // Audit log
+    db.auditLogs.push({
+      id: `log-${uuidv4().slice(0, 8)}`,
+      userId: newUser.id,
+      userName: newUser.name,
+      userRole: newUser.role,
+      action: 'OFFICER_ACCOUNT_CREATED',
+      entityType: 'User',
+      entityId: newUser.id,
+      newValue: `New ${newUser.role} account created for ${newUser.name} (${newUser.designation})`,
+      timestamp: new Date().toISOString(),
+    });
+
+    db.save();
+
+    const token = signToken({
+      id: newUser.id,
+      email: newUser.email,
+      role: newUser.role,
+    });
+
+    res.status(201).json({
+      message: 'Officer account created successfully',
+      token,
+      user: {
+        id: newUser.id,
+        email: newUser.email,
+        name: newUser.name,
+        role: newUser.role,
+        department: newUser.department,
+        designation: newUser.designation,
+      },
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      error: 'SERVER_ERROR',
+      message: err.message || 'Failed to create officer account.',
     });
   }
 };
