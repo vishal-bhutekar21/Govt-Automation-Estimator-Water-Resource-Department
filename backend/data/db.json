@@ -1497,7 +1497,7 @@
       "depreciationFactor": 0.9844186,
       "depreciatedValue": 257592,
       "formulaText": "Present Cost (₹ 2,61,669) × Y.P. Future [41 yrs] (13.394) ÷ Y.P. Total [45 yrs] (13.606) = ₹ 2,57,592.00",
-      "updatedAt": "2026-08-18T11:06:35.449Z"
+      "updatedAt": "2026-08-18T11:11:26.629Z"
     }
   ],
   "salvageEstimates": [
@@ -1521,7 +1521,7 @@
       "salvageDepreciatedValue": 189048,
       "adjustmentPercentage": 10,
       "adjustmentAmount": 18904.8,
-      "updatedAt": "2026-08-18T11:06:35.454Z"
+      "updatedAt": "2026-08-18T11:11:26.635Z"
     }
   ],
   "finalValuations": [
@@ -1537,7 +1537,7 @@
       "finalValuationAmount": 238687.2,
       "calculationVersion": 1,
       "status": "APPROVED",
-      "updatedAt": "2026-08-18T11:06:35.454Z"
+      "updatedAt": "2026-08-18T11:11:26.635Z"
     }
   ],
   "documents": [],
