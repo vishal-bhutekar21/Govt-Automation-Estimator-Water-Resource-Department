@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { GovtEmblem } from '../common/GovtEmblem';
 import {
   LayoutDashboard,
   FolderKanban,
@@ -33,17 +34,20 @@ export const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="w-64 bg-gov-navy text-white flex flex-col border-r border-gov-navy-900 shadow-soft-md shrink-0">
-      {/* Portal Branding Banner */}
-      <div className="p-5 border-b border-gov-navy-800/80 bg-gov-navy-900/40">
-        <div className="text-[10px] font-bold text-gov-saffron uppercase tracking-widest">
-          Institutional Platform
-        </div>
-        <div className="text-sm font-extrabold text-white mt-0.5 tracking-tight">
-          House Valuation & Estimation
-        </div>
-        <div className="text-[11px] text-gov-navy-300 font-sans">
-          Jigaon Sub-Division No. 2
+    <aside className="w-64 bg-gov-navy text-white flex flex-col border-r border-gov-navy-900 shadow-soft-md shrink-0 select-none">
+      {/* Portal Branding Banner with Maharashtra Seal */}
+      <div className="p-4 border-b border-gov-navy-800/80 bg-gov-navy-900/50 flex items-center gap-3">
+        <GovtEmblem size="sm" variant="gold" />
+        <div className="leading-tight">
+          <div className="text-[10px] font-bold text-gov-saffron uppercase tracking-widest">
+            Maharashtra Shasan
+          </div>
+          <div className="text-xs font-extrabold text-white tracking-tight">
+            Valuation & Estimation
+          </div>
+          <div className="text-[10px] text-gov-navy-300">
+            Water Resources Dept.
+          </div>
         </div>
       </div>
 
@@ -80,7 +84,7 @@ export const Sidebar: React.FC = () => {
           })}
         </div>
 
-        {/* Schedules & Governance */}
+        {/* Standards & Governance */}
         <div className="space-y-1">
           <div className="px-3 text-[10px] font-bold text-gov-navy-400 uppercase tracking-wider mb-2">
             Standards & Governance
@@ -110,14 +114,14 @@ export const Sidebar: React.FC = () => {
         </div>
       </div>
 
-      {/* Footer Security Badge */}
-      <div className="p-4 border-t border-gov-navy-800/80 bg-gov-navy-950/40 text-[11px] text-slate-400 space-y-1">
+      {/* Footer System Integrity Badge */}
+      <div className="p-4 border-t border-gov-navy-800/80 bg-gov-navy-950/50 text-[11px] text-slate-400 space-y-1">
         <div className="flex items-center gap-1.5 text-slate-300 font-semibold">
           <ShieldCheck className="w-3.5 h-3.5 text-gov-teal" />
-          <span>PWD CSR 2014-15 Validated</span>
+          <span>PWD CSR 2014-15 Compliant</span>
         </div>
         <div className="text-[10px] text-slate-500">
-          Land Acquisition Act Deterministic Math
+          Compound Interest 7% Y.P. Valuation
         </div>
       </div>
     </aside>

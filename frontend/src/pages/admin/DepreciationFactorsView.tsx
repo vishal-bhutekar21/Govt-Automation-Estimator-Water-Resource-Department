@@ -46,7 +46,6 @@ export const DepreciationFactorsView: React.FC = () => {
             7% Year's Purchase (Y.P.) Depreciation Factors
           </h1>
         </div>
-        <Badge variant="teal">Official 7% Compound Schedule</Badge>
       </div>
 
       {/* Info Callout */}

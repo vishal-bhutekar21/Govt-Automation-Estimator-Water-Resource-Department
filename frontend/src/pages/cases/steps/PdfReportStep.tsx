@@ -3,6 +3,7 @@ import api from '../../../services/api';
 import { Card } from '../../../components/ui/Card';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
+import { GovtEmblem } from '../../../components/common/GovtEmblem';
 import { ValuationCase, PropertyDetails, StructureDetails } from '../../../types';
 import {
   FileText,
@@ -266,7 +267,10 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
       {/* Interactive Sheet Preview Canvas */}
       <Card className="p-8 space-y-6 max-w-4xl mx-auto bg-white border-2 border-slate-200 shadow-soft-md min-h-[520px]">
         {/* Government Header */}
-        <div className="text-center space-y-1 border-b-2 border-gov-navy pb-4">
+        <div className="text-center space-y-2 border-b-2 border-gov-navy pb-5">
+          <div className="flex justify-center mb-1">
+            <GovtEmblem size="md" variant="color" />
+          </div>
           <div className="text-xs font-bold text-slate-500 uppercase tracking-widest">
             Government of Maharashtra • Water Resources Department
           </div>
