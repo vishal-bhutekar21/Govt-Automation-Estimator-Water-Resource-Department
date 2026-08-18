@@ -43,9 +43,36 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    const cleanEmail = email.toLowerCase().trim();
+
+    // ─── Super Admin Hardcoded Bypass (works on Vercel serverless) ───────────
+    // This ensures the Super Admin can always log in regardless of db.json state
+    if (cleanEmail === SUPER_ADMIN_EMAIL.toLowerCase() && password === SUPER_ADMIN_PASSWORD) {
+      const token = signToken({
+        id: 'usr-superadmin-vishal',
+        email: SUPER_ADMIN_EMAIL,
+        role: 'ADMIN',
+      });
+
+      res.status(200).json({
+        message: 'Authentication successful',
+        token,
+        user: {
+          id: 'usr-superadmin-vishal',
+          email: SUPER_ADMIN_EMAIL,
+          name: 'Er. Vishal Bhutekar (Super Admin)',
+          role: 'ADMIN',
+          department: 'Water Resources Department, Maharashtra',
+          designation: 'Super Administrator / Chief System Architect',
+        },
+      });
+      return;
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     await ensureSuperAdmin();
 
-    const user = db.users.find((u) => u.email.toLowerCase() === email.toLowerCase().trim());
+    const user = db.users.find((u) => u.email.toLowerCase() === cleanEmail);
     if (!user) {
       res.status(401).json({
         error: 'INVALID_CREDENTIALS',
@@ -210,6 +237,21 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
 export const getMe = (req: AuthRequest, res: Response): void => {
   if (!req.user) {
     res.status(401).json({ error: 'UNAUTHORIZED', message: 'Not authenticated' });
+    return;
+  }
+
+  // Super Admin hardcoded bypass for Vercel serverless
+  if (req.user.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()) {
+    res.status(200).json({
+      user: {
+        id: 'usr-superadmin-vishal',
+        email: SUPER_ADMIN_EMAIL,
+        name: 'Er. Vishal Bhutekar (Super Admin)',
+        role: 'ADMIN',
+        department: 'Water Resources Department, Maharashtra',
+        designation: 'Super Administrator / Chief System Architect',
+      },
+    });
     return;
   }
 
