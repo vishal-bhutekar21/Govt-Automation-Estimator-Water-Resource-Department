@@ -219,7 +219,7 @@ export const generateValuationPdf = (req: AuthRequest, res: Response): void => {
     y += 45;
     doc.fontSize(9).font('Helvetica-Bold').fillColor('#0F172A').text('PANCHANAMA & WITNESS ENDORSEMENT:', 45, y);
     doc.fontSize(8).font('Helvetica').fillColor('#475569').text(
-      panchanama.generalRemarks,
+      panchanama.generalRemarks || panchanama.remarks || 'Site inspection completed in the presence of panchas.',
       45,
       y + 15,
       { width: 505, align: 'justify' }
@@ -227,7 +227,7 @@ export const generateValuationPdf = (req: AuthRequest, res: Response): void => {
 
     y += 65;
     doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#0F172A').text('Panchanama Witnesses / Panchas:', 45, y);
-    panchanama.panchas.forEach((p, idx) => {
+    panchanama.panchas.forEach((p: any, idx: number) => {
       doc.fontSize(8).font('Helvetica').fillColor('#334155').text(`${idx + 1}. ${p.name}, ${p.address} [Endorsed]`, 55, y + 15 + idx * 14);
     });
 

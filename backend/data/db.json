@@ -1485,7 +1485,7 @@
       "depreciationFactor": 0.9844186,
       "depreciatedValue": 257592,
       "formulaText": "Present Cost (₹ 2,61,669) × Y.P. Future [41 yrs] (13.394) ÷ Y.P. Total [45 yrs] (13.606) = ₹ 2,57,592.00",
-      "updatedAt": "2026-08-18T10:25:35.982Z"
+      "updatedAt": "2026-08-18T10:52:38.247Z"
     }
   ],
   "salvageEstimates": [
@@ -1507,9 +1507,9 @@
       "futureLifeYpFactor": 13.394,
       "totalLifeYpFactor": 13.606,
       "salvageDepreciatedValue": 189048,
-      "adjustmentPercentage": 5,
-      "adjustmentAmount": 9452.4,
-      "updatedAt": "2026-08-18T10:25:35.976Z"
+      "adjustmentPercentage": 10,
+      "adjustmentAmount": 18904.8,
+      "updatedAt": "2026-08-18T10:52:38.251Z"
     }
   ],
   "finalValuations": [
@@ -1520,12 +1520,12 @@
       "primaryDepreciatedValue": 257592,
       "salvageEstimateTotal": 192040,
       "salvageDepreciatedValue": 189048,
-      "adjustmentPercentage": 5,
-      "adjustmentAmount": 9452.4,
-      "finalValuationAmount": 248139.6,
+      "adjustmentPercentage": 10,
+      "adjustmentAmount": 18904.8,
+      "finalValuationAmount": 238687.2,
       "calculationVersion": 1,
       "status": "APPROVED",
-      "updatedAt": "2026-08-18T10:25:35.976Z"
+      "updatedAt": "2026-08-18T10:52:38.251Z"
     }
   ],
   "documents": [],
@@ -1621,6 +1621,15 @@
       "description": "Test structural photo",
       "photoUrl": "https://example.com/photo.jpg",
       "capturedAt": "2026-08-18T10:25:35.987Z"
+    },
+    {
+      "id": "photo-test-01",
+      "caseId": "case-jigaon-165",
+      "title": "Front Elevation Test",
+      "category": "FRONT_ELEVATION",
+      "description": "Test structural photo",
+      "photoUrl": "https://example.com/photo.jpg",
+      "capturedAt": "2026-08-18T10:52:38.187Z"
     }
   ]
 }

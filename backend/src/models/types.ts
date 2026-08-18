@@ -272,3 +272,48 @@ export interface CalculationVersion {
   finalValuationAmount: number;
   snapshotJson: string;
 }
+
+export interface PanchaWitness {
+  id?: string;
+  name: string;
+  address: string;
+  occupation?: string;
+  age?: number;
+  isSigned?: boolean;
+  signaturePresent?: boolean;
+}
+
+export interface InspectionOfficer {
+  designation: string;
+  name?: string;
+  department?: string;
+  isSigned?: boolean;
+}
+
+export interface PanchanamaDetails {
+  id: string;
+  caseId: string;
+  inspectionDate?: string;
+  dateOfInspection?: string;
+  village?: string;
+  taluka?: string;
+  district?: string;
+  jointInspectionOfficers: (InspectionOfficer | string)[];
+  panchas: PanchaWitness[];
+  ownerPresent?: boolean;
+  remarks?: string;
+  generalRemarks?: string;
+  structuralCondition?: string;
+  updatedAt: string;
+}
+
+export interface EvidencePhoto {
+  id: string;
+  caseId: string;
+  title: string;
+  description: string;
+  category: 'FRONT_ELEVATION' | 'ROOF_STRUCTURE' | 'INTERIOR_ROOM' | 'DOORS_WINDOWS' | 'CRACKS_DAMAGE' | 'OTHER';
+  photoUrl: string;
+  capturedAt: string;
+}
+

@@ -17,6 +17,8 @@ import {
   DocumentRecord,
   AuditLog,
   CalculationVersion,
+  PanchanamaDetails,
+  EvidencePhoto,
 } from '../models/types';
 import {
   getSeedUsers,

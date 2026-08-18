@@ -27,14 +27,16 @@ export const getCasePanchanama = (caseId: string): { panchanama: PanchanamaDetai
       structuralCondition: 'GOOD',
       updatedAt: new Date().toISOString(),
     };
-    if (!db.panchanamaRecords) db.panchanamaRecords = [];
+    if (!db.panchanamaRecords) {
+      db.panchanamaRecords = [];
+    }
     db.panchanamaRecords.push(panchanama);
     db.save();
   }
 
   const photos = db.evidencePhotos?.filter((p) => p.caseId === caseId) || [];
 
-  return { panchanama, photos };
+  return { panchanama: panchanama!, photos };
 };
 
 export const getPanchanama = (req: AuthRequest, res: Response): void => {
