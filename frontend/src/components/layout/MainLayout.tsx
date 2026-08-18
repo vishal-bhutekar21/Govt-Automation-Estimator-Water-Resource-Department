@@ -10,11 +10,19 @@ interface MainLayoutProps {
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ currentCaseNumber, currentOwnerName }) => {
   return (
-    <div className="min-h-screen bg-gov-bg flex flex-col font-sans">
-      <Header currentCaseNumber={currentCaseNumber} currentOwnerName={currentOwnerName} />
-      <div className="flex flex-1">
+    <div className="h-screen w-screen overflow-hidden bg-slate-50 flex flex-col font-sans">
+      {/* Fixed Top Header */}
+      <div className="shrink-0 z-30">
+        <Header currentCaseNumber={currentCaseNumber} currentOwnerName={currentOwnerName} />
+      </div>
+
+      {/* Main Workspace Area (Fixed Sidebar + Scrollable Content) */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Fixed Left Sidebar (Never scrolls away) */}
         <Sidebar />
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
+
+        {/* Scrollable Main Content Area */}
+        <main className="flex-1 h-full overflow-y-auto p-6 md:p-8 max-w-7xl mx-auto w-full scrollbar-thin">
           <Outlet />
         </main>
       </div>

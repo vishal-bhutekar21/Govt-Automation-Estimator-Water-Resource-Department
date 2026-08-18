@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import api from '../../../services/api';
 import { Card } from '../../../components/ui/Card';
 import { Button } from '../../../components/ui/Button';
-import { Badge } from '../../../components/ui/Badge';
 import { GovtEmblem } from '../../../components/common/GovtEmblem';
 import { ValuationCase, PropertyDetails, StructureDetails } from '../../../types';
 import {
@@ -18,8 +17,8 @@ import {
   Edit3,
   Copy,
   Check,
-  CheckCheck,
   FileSpreadsheet,
+  Layers,
 } from 'lucide-react';
 
 interface PdfReportStepProps {
@@ -89,7 +88,7 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
   const handleDownloadPdf = async () => {
     try {
       setIsDownloading(true);
-      const token = localStorage.getItem('auth_token');
+      const token = localStorage.getItem('gov_valuation_token') || localStorage.getItem('auth_token');
       const response = await fetch(
         `http://localhost:5000/api/v1/cases/${caseData.id}/report/download`,
         {
@@ -117,17 +116,29 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Section Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+      {/* Section Header with All Visible Actions */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
           <span className="text-xs font-bold text-gov-navy uppercase tracking-wider">
-            Step 10 of 10 • Valuation Workflow
+            Step 10 of 10 • Final Sanction & PDF Report
           </span>
           <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
-            Official Multi-Page Valuation Report & Government PDF Certificate
+            Official Multi-Page Valuation Report & Government Certificate
           </h2>
         </div>
-        <div className="flex items-center gap-2.5">
+
+        {/* Prominent Action Toolbar (Print, Edit, Share, Download) */}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.print()}
+            leftIcon={<Printer className="w-4 h-4 text-slate-600" />}
+            className="border-slate-300 hover:bg-slate-100 font-semibold"
+          >
+            Print Sheet
+          </Button>
+
           <Button
             variant={isEditMode ? 'primary' : 'outline'}
             size="sm"
@@ -152,6 +163,7 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
             onClick={handleDownloadPdf}
             isLoading={isDownloading}
             leftIcon={<Download className="w-4 h-4" />}
+            className="bg-gov-navy hover:bg-gov-navy-900 font-bold shadow-soft-xs"
           >
             Download Official PDF
           </Button>
@@ -178,37 +190,43 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
         variant="accent-border"
         className="p-6 bg-gradient-to-br from-gov-navy to-slate-900 text-white shadow-soft-lg flex flex-col md:flex-row items-center justify-between gap-6"
       >
-        <div className="space-y-1 text-center md:text-left">
-          <div className="flex items-center justify-center md:justify-start gap-2">
-            <Stamp className="w-5 h-5 text-gov-saffron" />
-            <span className="text-xs font-bold text-gov-saffron uppercase tracking-widest">
-              State Government Approved Format
-            </span>
+        <div className="flex items-center gap-4 text-center md:text-left">
+          <div className="p-2 rounded-gov-md bg-white shrink-0 shadow-soft-sm">
+            <GovtEmblem size="md" />
           </div>
-          <h3 className="text-xl font-bold text-white">
-            Valuation Report for House No. {propertyData?.houseNumber || '165'} ({propertyData?.ownerName})
-          </h3>
-          <p className="text-xs text-gov-navy-200">
-            Jigaon Major Irrigation Project • PWD CSR 2014-15 Standard
-          </p>
+
+          <div className="space-y-1">
+            <div className="flex items-center justify-center md:justify-start gap-2">
+              <Stamp className="w-4 h-4 text-gov-saffron" />
+              <span className="text-xs font-bold text-gov-saffron uppercase tracking-widest">
+                Maharashtra State Approved Format
+              </span>
+            </div>
+            <h3 className="text-xl font-bold text-white">
+              Valuation Report for House No. {propertyData?.houseNumber || '165'} ({propertyData?.ownerName})
+            </h3>
+            <p className="text-xs text-gov-navy-200">
+              Jigaon Major Irrigation Project • PWD CSR 2014-15 Standard
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
           <Button
-            variant="outline"
+            variant="ghost"
             size="md"
             onClick={() => window.print()}
-            leftIcon={<Printer className="w-4 h-4" />}
-            className="text-white border-white/30 hover:bg-white/10"
+            leftIcon={<Printer className="w-4 h-4 text-white" />}
+            className="text-white border border-white/40 hover:bg-white/15 font-bold"
           >
-            Print
+            Print Sheet
           </Button>
           <Button
             variant="primary"
             size="md"
             onClick={handleDownloadPdf}
             isLoading={isDownloading}
-            leftIcon={<Download className="w-4 h-4" />}
+            leftIcon={<Download className="w-4 h-4 text-slate-950" />}
             className="bg-gov-saffron text-slate-950 hover:bg-gov-saffron-600 font-bold shadow-soft-sm"
           >
             Download PDF
@@ -216,7 +234,7 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
         </div>
       </Card>
 
-      {/* Page Tabs */}
+      {/* Multi-Page Tabs */}
       <div className="flex border-b border-slate-200 gap-2 text-xs font-bold">
         <button
           type="button"
@@ -265,11 +283,11 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
       </div>
 
       {/* Interactive Sheet Preview Canvas */}
-      <Card className="p-8 space-y-6 max-w-4xl mx-auto bg-white border-2 border-slate-200 shadow-soft-md min-h-[520px]">
+      <Card className="p-8 space-y-6 max-w-4xl mx-auto bg-white border-2 border-slate-200 shadow-soft-md min-h-[540px]">
         {/* Government Header */}
         <div className="text-center space-y-2 border-b-2 border-gov-navy pb-5">
           <div className="flex justify-center mb-1">
-            <GovtEmblem size="md" variant="color" />
+            <GovtEmblem size="lg" />
           </div>
           <div className="text-xs font-bold text-slate-500 uppercase tracking-widest">
             Government of Maharashtra • Water Resources Department
@@ -327,7 +345,7 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
             {/* Certificate Body Paragraph */}
             <div className="p-4 bg-slate-50/70 rounded-gov-md border border-slate-200 space-y-2">
               <span className="text-[10px] font-bold text-gov-navy uppercase tracking-wider">
-                Official Certification Text:
+                Official Certification Statement:
               </span>
               {isEditMode ? (
                 <textarea
@@ -554,16 +572,28 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
           Back to Panchanama & Photos
         </Button>
 
-        <Button
-          type="button"
-          variant="primary"
-          size="md"
-          onClick={handleDownloadPdf}
-          isLoading={isDownloading}
-          leftIcon={<Download className="w-4 h-4" />}
-        >
-          Download Valuation PDF Report
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="md"
+            onClick={() => window.print()}
+            leftIcon={<Printer className="w-4 h-4" />}
+          >
+            Print Certificate
+          </Button>
+
+          <Button
+            type="button"
+            variant="primary"
+            size="md"
+            onClick={handleDownloadPdf}
+            isLoading={isDownloading}
+            leftIcon={<Download className="w-4 h-4" />}
+          >
+            Download Valuation PDF Report
+          </Button>
+        </div>
       </div>
     </div>
   );
