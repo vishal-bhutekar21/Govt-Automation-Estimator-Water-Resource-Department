@@ -1,0 +1,75 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        gov: {
+          navy: {
+            DEFAULT: '#123B63',
+            50: '#F0F5FA',
+            100: '#D9E6F2',
+            200: '#B3CCE5',
+            300: '#80A8D1',
+            400: '#4D84BD',
+            500: '#2A639B',
+            600: '#1B4D7E',
+            700: '#123B63',
+            800: '#0C2744',
+            900: '#07182B',
+            950: '#030C16',
+          },
+          teal: {
+            DEFAULT: '#167C80',
+            50: '#F0F9F9',
+            100: '#D3EFEF',
+            200: '#A7DFE1',
+            300: '#6FC7CA',
+            400: '#3DABB0',
+            500: '#167C80',
+            600: '#126467',
+            700: '#0F4E51',
+            800: '#0D3D3F',
+            900: '#0B3335',
+          },
+          saffron: {
+            DEFAULT: '#D99A2B',
+            50: '#FDF9F0',
+            100: '#FAF1DA',
+            200: '#F4E0B3',
+            300: '#ECCB85',
+            400: '#E4B555',
+            500: '#D99A2B',
+            600: '#BD7F1D',
+            700: '#946016',
+            800: '#754B16',
+            900: '#603E16',
+          },
+          bg: '#F4F7FA',
+          surface: '#FFFFFF',
+          card: '#FFFFFF',
+          border: '#E2E8F0',
+        },
+      },
+      fontFamily: {
+        sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Menlo', 'monospace'],
+      },
+      borderRadius: {
+        'gov-sm': '8px',
+        'gov-md': '12px',
+        'gov-lg': '16px',
+        'gov-xl': '20px',
+      },
+      boxShadow: {
+        'soft-sm': '0 1px 3px rgba(18, 59, 99, 0.04), 0 1px 2px rgba(18, 59, 99, 0.02)',
+        'soft-md': '0 4px 12px rgba(18, 59, 99, 0.05), 0 1px 3px rgba(18, 59, 99, 0.03)',
+        'soft-lg': '0 10px 25px -5px rgba(18, 59, 99, 0.07), 0 8px 10px -6px rgba(18, 59, 99, 0.04)',
+      },
+    },
+  },
+  plugins: [],
+}
