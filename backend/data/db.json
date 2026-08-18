@@ -1,0 +1,1594 @@
+{
+  "users": [
+    {
+      "id": "usr-superadmin-vishal",
+      "email": "vishal.bhutekar1@gmail.com",
+      "name": "Er. Vishal Bhutekar (Super Admin)",
+      "role": "ADMIN",
+      "department": "Water Resources Department, Maharashtra",
+      "designation": "Super Administrator / Chief System Architect",
+      "passwordHash": "$2b$10$InlNUzaH9PqDDjAm4yDah.eOCn22ZWkUK0DLwEfPj2gErrA5yHsxK",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "usr-admin-01",
+      "email": "admin@jigaon.gov.in",
+      "name": "Executive Engineer (Admin)",
+      "role": "ADMIN",
+      "department": "Water Resources Department",
+      "designation": "Executive Engineer",
+      "passwordHash": "$2b$10$FZiNMLJa/EHpoV1JvmdMeurw3HuZGaqon8zSfchixEftQiDDUDYRq",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "usr-eng-01",
+      "email": "engineer@jigaon.gov.in",
+      "name": "Assistant Engineer (Estimator)",
+      "role": "ESTIMATOR",
+      "department": "Jigaon Project Sub-Division No. 2",
+      "designation": "Assistant Engineer Gr-II",
+      "passwordHash": "$2b$10$Igt9uGyMhB0GfSA2YQv3r.YeQHPN8RHHYS/Xza2M8mL.lboZl1y0e",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj-jigaon-01",
+      "projectCode": "WRD-JIG-2008",
+      "projectName": "Jigaon Major Irrigation Project",
+      "department": "Water Resources Department",
+      "division": "Jigaon Project Division",
+      "subDivision": "Sub-Division No. 2, Nandura",
+      "district": "Buldhana",
+      "taluka": "Jalgaon Jamod / Nandura",
+      "description": "Submergence and rehabilitation house valuation scheme for affected rural dwellings.",
+      "status": "ACTIVE",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    }
+  ],
+  "cases": [
+    {
+      "id": "case-jigaon-165",
+      "caseNumber": "CASE/2008-09/165",
+      "projectId": "proj-jigaon-01",
+      "status": "APPROVED",
+      "dateOfInspection": "2016-04-12",
+      "valuationDate": "2016-05-20",
+      "preparedBy": "Sectional Engineer (S.E.)",
+      "checkedBy": "Assistant Engineer (A.E. Gr-I)",
+      "approvedBy": "Executive Engineer (E.E.)",
+      "createdBy": "usr-eng-01",
+      "createdAt": "2026-01-02T10:00:00.000Z",
+      "updatedAt": "2026-01-15T14:30:00.000Z"
+    }
+  ],
+  "properties": [
+    {
+      "id": "prop-165",
+      "caseId": "case-jigaon-165",
+      "ownerName": "Mohan Vishwanath Gai",
+      "contactNumber": "+91 98223 45678",
+      "address": "At Post Dadulgaon, Taluka Nandura",
+      "village": "Dadulgaon",
+      "taluka": "Nandura",
+      "district": "Buldhana",
+      "laCaseNumber": "15/2008-09",
+      "houseNumber": "165",
+      "surveyNumber": "Gat No. 42/1",
+      "submergenceType": "Full Submergence (Reservoir Area)",
+      "additionalNotes": "Affected under primary dam submergence zone.",
+      "updatedAt": "2026-01-02T10:00:00.000Z"
+    }
+  ],
+  "structures": [
+    {
+      "id": "struct-165",
+      "caseId": "case-jigaon-165",
+      "structureType": "Residential Dwelling",
+      "constructionType": "B.B.M. Wall + C.G.I. Sheet Roof (Class-B Construction)",
+      "yearOfConstruction": 2012,
+      "totalUsefulLife": 45,
+      "presentLife": 4,
+      "futureLife": 41,
+      "roofType": "C.G.I. Sheet over Country Teak Frame & Jingle Ballies",
+      "wallType": "Burnt Brick Masonry in Cement Mortar 1:6",
+      "floorType": "Cement Concrete 1:4:8 Flooring with IPS finish",
+      "numberOfRooms": 4,
+      "builtUpArea": 73.01,
+      "plinthArea": 80.5,
+      "additionalNotes": "Well maintained residential structure with teak wood rafters and CGI sheet roofing.",
+      "updatedAt": "2026-01-02T10:00:00.000Z"
+    }
+  ],
+  "rateSchedules": [
+    {
+      "id": "sched-pwd-2014",
+      "scheduleName": "PWD Common Schedule of Rates (CSR)",
+      "scheduleYear": "2014-15",
+      "department": "Public Works Department (Maharashtra)",
+      "effectiveFrom": "2014-04-01",
+      "effectiveTo": "2015-03-31",
+      "isActive": true
+    }
+  ],
+  "rateItems": [
+    {
+      "id": "rate-01",
+      "scheduleId": "sched-pwd-2014",
+      "itemCode": "PWD-CSR-01",
+      "itemNumber": "Item 1",
+      "description": "Excavation for foundation in earth, soils of all sorts including removing the excavated material up to 50m distance.",
+      "unit": "Cum",
+      "rate": 120,
+      "department": "PWD",
+      "scheduleYear": "2014-15",
+      "referenceSource": "PWD CSR 2014-15 Item 1 Pg 12",
+      "isActive": true
+    },
+    {
+      "id": "rate-02",
+      "scheduleId": "sched-pwd-2014",
+      "itemCode": "PWD-CSR-03",
+      "itemNumber": "Item 3",
+      "description": "Providing and laying dry rubble filling under floors including hand packing and watering complete.",
+      "unit": "Cum",
+      "rate": 905,
+      "department": "PWD",
+      "scheduleYear": "2014-15",
+      "referenceSource": "PWD CSR 2014-15 Item 3 Pg 15",
+      "isActive": true
+    },
+    {
+      "id": "rate-03",
+      "scheduleId": "sched-pwd-2014",
+      "itemCode": "PWD-CSR-04",
+      "itemNumber": "Item 4",
+      "description": "Providing and laying in situ cement concrete 1:4:8 of trap/granite metal for foundation and bedding.",
+      "unit": "Cum",
+      "rate": 3476.1,
+      "department": "PWD",
+      "scheduleYear": "2014-15",
+      "referenceSource": "PWD CSR 2014-15 Item 4 Pg 18",
+      "isActive": true
+    },
+    {
+      "id": "rate-04",
+      "scheduleId": "sched-pwd-2014",
+      "itemCode": "PWD-CSR-06",
+      "itemNumber": "Item 6",
+      "description": "Uncoursed rubble masonry in cement mortar 1:6 in foundation and plinth.",
+      "unit": "Cum",
+      "rate": 1797.35,
+      "department": "PWD",
+      "scheduleYear": "2014-15",
+      "referenceSource": "PWD CSR 2014-15 Item 6 Pg 22",
+      "isActive": true
+    },
+    {
+      "id": "rate-05",
+      "scheduleId": "sched-pwd-2014",
+      "itemCode": "PWD-CSR-12",
+      "itemNumber": "Item 12",
+      "description": "Providing second class burnt brick masonry in cement mortar 1:6 in superstructure.",
+      "unit": "Cum",
+      "rate": 2585.2,
+      "department": "PWD",
+      "scheduleYear": "2014-15",
+      "referenceSource": "PWD CSR 2014-15 Item 12 Pg 34",
+      "isActive": true
+    },
+    {
+      "id": "rate-06",
+      "scheduleId": "sched-pwd-2014",
+      "itemCode": "PWD-CSR-72",
+      "itemNumber": "Item 72",
+      "description": "Providing and fixing country teak wood common rafters, purlins, post plates, ridge boards, etc. in roof truss frame.",
+      "unit": "Cum",
+      "rate": 86131.6,
+      "department": "PWD",
+      "scheduleYear": "2014-15",
+      "referenceSource": "PWD CSR 2014-15 Item 72 Pg 88",
+      "isActive": true
+    },
+    {
+      "id": "rate-07",
+      "scheduleId": "sched-pwd-2014",
+      "itemCode": "PWD-CSR-45",
+      "itemNumber": "Item 45",
+      "description": "Providing internal cement plaster 12mm thick in cement mortar 1:4 with smooth neeru finish.",
+      "unit": "Sqm",
+      "rate": 150.75,
+      "department": "PWD",
+      "scheduleYear": "2014-15",
+      "referenceSource": "PWD CSR 2014-15 Item 45 Pg 62",
+      "isActive": true
+    },
+    {
+      "id": "rate-08",
+      "scheduleId": "sched-pwd-2014",
+      "itemCode": "PWD-CSR-87",
+      "itemNumber": "Item 87",
+      "description": "Providing and applying colour wash / white wash two coats to new or old plastered surfaces.",
+      "unit": "Sqm",
+      "rate": 15,
+      "department": "PWD",
+      "scheduleYear": "2014-15",
+      "referenceSource": "PWD CSR 2014-15 Item 87 Pg 104",
+      "isActive": true
+    },
+    {
+      "id": "rate-09",
+      "scheduleId": "sched-pwd-2014",
+      "itemCode": "PWD-CSR-48",
+      "itemNumber": "Item 48",
+      "description": "Providing sand faced plaster externally in two coats with water proofing compound.",
+      "unit": "Sqm",
+      "rate": 362.15,
+      "department": "PWD",
+      "scheduleYear": "2014-15",
+      "referenceSource": "PWD CSR 2014-15 Item 48 Pg 65",
+      "isActive": true
+    },
+    {
+      "id": "rate-10",
+      "scheduleId": "sched-pwd-2014",
+      "itemCode": "PWD-CSR-52",
+      "itemNumber": "Item 52",
+      "description": "Providing and fixing corrugated galvanised iron (C.G.I.) sheets 0.63mm thick for roofing including J-hooks, bolts and washers.",
+      "unit": "Sqm",
+      "rate": 650.05,
+      "department": "PWD",
+      "scheduleYear": "2014-15",
+      "referenceSource": "PWD CSR 2014-15 Item 52 Pg 71",
+      "isActive": true
+    },
+    {
+      "id": "rate-11",
+      "scheduleId": "sched-pwd-2014",
+      "itemCode": "PWD-CSR-38",
+      "itemNumber": "Item 38",
+      "description": "Providing and laying cement concrete flooring 40mm thick in 1:2:4 over prepared bed.",
+      "unit": "Sqm",
+      "rate": 313.6,
+      "department": "PWD",
+      "scheduleYear": "2014-15",
+      "referenceSource": "PWD CSR 2014-15 Item 38 Pg 54",
+      "isActive": true
+    },
+    {
+      "id": "rate-12",
+      "scheduleId": "sched-pwd-2014",
+      "itemCode": "PWD-CSR-65",
+      "itemNumber": "Item 65",
+      "description": "Providing and fixing jingle wood ballies / jungle wood rafters for roof supporting structure.",
+      "unit": "Rmt",
+      "rate": 110,
+      "department": "PWD",
+      "scheduleYear": "2014-15",
+      "referenceSource": "PWD CSR 2014-15 Item 65 Pg 82",
+      "isActive": true
+    },
+    {
+      "id": "rate-13",
+      "scheduleId": "sched-pwd-2014",
+      "itemCode": "PWD-CSR-73",
+      "itemNumber": "Item 73",
+      "description": "Providing and fixing G.I. pipes medium grade 50mm dia for structural columns and verandah supports.",
+      "unit": "Rmt",
+      "rate": 320.65,
+      "department": "PWD",
+      "scheduleYear": "2014-15",
+      "referenceSource": "PWD CSR 2014-15 Item 73 Pg 90",
+      "isActive": true
+    },
+    {
+      "id": "rate-14",
+      "scheduleId": "sched-pwd-2014",
+      "itemCode": "PWD-CSR-81",
+      "itemNumber": "Item 81",
+      "description": "Providing and fixing M.S. grill gate / ornamental iron work with primer and paint.",
+      "unit": "Sqm",
+      "rate": 1903.4,
+      "department": "PWD",
+      "scheduleYear": "2014-15",
+      "referenceSource": "PWD CSR 2014-15 Item 81 Pg 98",
+      "isActive": true
+    },
+    {
+      "id": "rate-15",
+      "scheduleId": "sched-pwd-2014",
+      "itemCode": "PWD-CSR-29",
+      "itemNumber": "Item 29",
+      "description": "Providing and fixing Kud walling / bamboo matting / thatching for partition and temporary cover.",
+      "unit": "Sqm",
+      "rate": 73.25,
+      "department": "PWD",
+      "scheduleYear": "2014-15",
+      "referenceSource": "PWD CSR 2014-15 Item 29 Pg 41",
+      "isActive": true
+    },
+    {
+      "id": "rate-16",
+      "scheduleId": "sched-pwd-2014",
+      "itemCode": "PWD-CSR-95.1",
+      "itemNumber": "Item 95.1",
+      "description": "Point wiring for light, fan, call bell, and 5A socket using PVC insulated copper wire in PVC conduit.",
+      "unit": "No.",
+      "rate": 410,
+      "department": "PWD",
+      "scheduleYear": "2014-15",
+      "referenceSource": "PWD CSR 2014-15 Item 95.1 Pg 112",
+      "isActive": true
+    },
+    {
+      "id": "rate-17",
+      "scheduleId": "sched-pwd-2014",
+      "itemCode": "PWD-CSR-71",
+      "itemNumber": "Item 71",
+      "description": "Providing and fixing country teak wood door & window frames (chaukhats) wrought, framed and fixed.",
+      "unit": "Cum",
+      "rate": 96131.6,
+      "department": "PWD",
+      "scheduleYear": "2014-15",
+      "referenceSource": "PWD CSR 2014-15 Item 71 Pg 86",
+      "isActive": true
+    },
+    {
+      "id": "rate-18",
+      "scheduleId": "sched-pwd-2014",
+      "itemCode": "PWD-CSR-75",
+      "itemNumber": "Item 75",
+      "description": "Providing and fixing 35mm thick double leaf panelled teak wood door shutters including brass fittings.",
+      "unit": "Sqm",
+      "rate": 3501.6,
+      "department": "PWD",
+      "scheduleYear": "2014-15",
+      "referenceSource": "PWD CSR 2014-15 Item 75 Pg 92",
+      "isActive": true
+    }
+  ],
+  "depreciationFactors": [
+    {
+      "id": "yp-1",
+      "year": 1,
+      "interestRate": 7,
+      "factor": 0.935,
+      "scheduleType": "GOV_YP_7PCT"
+    },
+    {
+      "id": "yp-2",
+      "year": 2,
+      "interestRate": 7,
+      "factor": 1.808,
+      "scheduleType": "GOV_YP_7PCT"
+    },
+    {
+      "id": "yp-3",
+      "year": 3,
+      "interestRate": 7,
+      "factor": 2.624,
+      "scheduleType": "GOV_YP_7PCT"
+    },
+    {
+      "id": "yp-4",
+      "year": 4,
+      "interestRate": 7,
+      "factor": 3.387,
+      "scheduleType": "GOV_YP_7PCT"
+    },
+    {
+      "id": "yp-5",
+      "year": 5,
+      "interestRate": 7,
+      "factor": 4.1,
+      "scheduleType": "GOV_YP_7PCT"
+    },
+    {
+      "id": "yp-6",
+      "year": 6,
+      "interestRate": 7,
+      "factor": 4.767,
+      "scheduleType": "GOV_YP_7PCT"
+    },
+    {
+      "id": "yp-7",
+      "year": 7,
+      "interestRate": 7,
+      "factor": 5.389,
+      "scheduleType": "GOV_YP_7PCT"
+    },
+    {
+      "id": "yp-8",
+      "year": 8,
+      "interestRate": 7,
+      "factor": 5.971,
+      "scheduleType": "GOV_YP_7PCT"
+    },
+    {
+      "id": "yp-9",
+      "year": 9,
+      "interestRate": 7,
+      "factor": 6.515,
+      "scheduleType": "GOV_YP_7PCT"
+    },
+    {
+      "id": "yp-10",
+      "year": 10,
+      "interestRate": 7,
+      "factor": 7.024,
+      "scheduleType": "GOV_YP_7PCT"
+    },
+    {
+      "id": "yp-15",
+      "year": 15,
+      "interestRate": 7,
+      "factor": 9.108,
+      "scheduleType": "GOV_YP_7PCT"
+    },
+    {
+      "id": "yp-20",
+      "year": 20,
+      "interestRate": 7,
+      "factor": 10.594,
+      "scheduleType": "GOV_YP_7PCT"
+    },
+    {
+      "id": "yp-25",
+      "year": 25,
+      "interestRate": 7,
+      "factor": 11.654,
+      "scheduleType": "GOV_YP_7PCT"
+    },
+    {
+      "id": "yp-30",
+      "year": 30,
+      "interestRate": 7,
+      "factor": 12.409,
+      "scheduleType": "GOV_YP_7PCT"
+    },
+    {
+      "id": "yp-35",
+      "year": 35,
+      "interestRate": 7,
+      "factor": 12.948,
+      "scheduleType": "GOV_YP_7PCT"
+    },
+    {
+      "id": "yp-40",
+      "year": 40,
+      "interestRate": 7,
+      "factor": 13.332,
+      "scheduleType": "GOV_YP_7PCT"
+    },
+    {
+      "id": "yp-41",
+      "year": 41,
+      "interestRate": 7,
+      "factor": 13.394,
+      "scheduleType": "GOV_YP_7PCT"
+    },
+    {
+      "id": "yp-42",
+      "year": 42,
+      "interestRate": 7,
+      "factor": 13.453,
+      "scheduleType": "GOV_YP_7PCT"
+    },
+    {
+      "id": "yp-43",
+      "year": 43,
+      "interestRate": 7,
+      "factor": 13.507,
+      "scheduleType": "GOV_YP_7PCT"
+    },
+    {
+      "id": "yp-44",
+      "year": 44,
+      "interestRate": 7,
+      "factor": 13.558,
+      "scheduleType": "GOV_YP_7PCT"
+    },
+    {
+      "id": "yp-45",
+      "year": 45,
+      "interestRate": 7,
+      "factor": 13.606,
+      "scheduleType": "GOV_YP_7PCT"
+    },
+    {
+      "id": "yp-50",
+      "year": 50,
+      "interestRate": 7,
+      "factor": 13.801,
+      "scheduleType": "GOV_YP_7PCT"
+    },
+    {
+      "id": "yp-60",
+      "year": 60,
+      "interestRate": 7,
+      "factor": 14.039,
+      "scheduleType": "GOV_YP_7PCT"
+    },
+    {
+      "id": "yp-80",
+      "year": 80,
+      "interestRate": 7,
+      "factor": 14.221,
+      "scheduleType": "GOV_YP_7PCT"
+    },
+    {
+      "id": "yp-100",
+      "year": 100,
+      "interestRate": 7,
+      "factor": 14.269,
+      "scheduleType": "GOV_YP_7PCT"
+    }
+  ],
+  "measurementGroups": [
+    {
+      "id": "grp-01",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 1,
+      "title": "Excavation for foundation in earth/soils",
+      "unit": "Cum",
+      "totalQuantity": 12.2,
+      "rateItemId": "rate-01",
+      "items": [
+        {
+          "id": "mea-01-1",
+          "groupId": "grp-01",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 1,
+          "itemSubSequence": "a",
+          "description": "Long Wall Foundation",
+          "calculationType": "VOLUME",
+          "numberCount": 2,
+          "length": 6.66,
+          "breadth": 0.83,
+          "depthOrHeight": 0.75,
+          "grossQuantity": 8.29,
+          "deductionQuantity": 0,
+          "netQuantity": 8.29,
+          "unit": "Cum",
+          "deductions": []
+        },
+        {
+          "id": "mea-01-2",
+          "groupId": "grp-01",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 1,
+          "itemSubSequence": "b",
+          "description": "Short Wall Foundation",
+          "calculationType": "VOLUME",
+          "numberCount": 2,
+          "length": 2.85,
+          "breadth": 0.83,
+          "depthOrHeight": 0.75,
+          "grossQuantity": 3.55,
+          "deductionQuantity": 0,
+          "netQuantity": 3.55,
+          "unit": "Cum",
+          "deductions": []
+        },
+        {
+          "id": "mea-01-3",
+          "groupId": "grp-01",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 1,
+          "itemSubSequence": "c",
+          "description": "Vertical Post Pits",
+          "calculationType": "VOLUME",
+          "numberCount": 12,
+          "length": 0.2,
+          "breadth": 0.2,
+          "depthOrHeight": 0.75,
+          "grossQuantity": 0.36,
+          "deductionQuantity": 0,
+          "netQuantity": 0.36,
+          "unit": "Cum",
+          "deductions": []
+        }
+      ]
+    },
+    {
+      "id": "grp-02",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 2,
+      "title": "Providing and laying dry rubble filling under floors",
+      "unit": "Cum",
+      "totalQuantity": 4.88,
+      "rateItemId": "rate-02",
+      "items": [
+        {
+          "id": "mea-02-1",
+          "groupId": "grp-02",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 2,
+          "itemSubSequence": "a",
+          "description": "Main Living Hall Bed",
+          "calculationType": "VOLUME",
+          "numberCount": 1,
+          "length": 6.2,
+          "breadth": 3.5,
+          "depthOrHeight": 0.15,
+          "grossQuantity": 3.26,
+          "deductionQuantity": 0,
+          "netQuantity": 3.26,
+          "unit": "Cum",
+          "deductions": []
+        },
+        {
+          "id": "mea-02-2",
+          "groupId": "grp-02",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 2,
+          "itemSubSequence": "b",
+          "description": "Verandah Bed",
+          "calculationType": "VOLUME",
+          "numberCount": 1,
+          "length": 5.4,
+          "breadth": 2,
+          "depthOrHeight": 0.15,
+          "grossQuantity": 1.62,
+          "deductionQuantity": 0,
+          "netQuantity": 1.62,
+          "unit": "Cum",
+          "deductions": []
+        }
+      ]
+    },
+    {
+      "id": "grp-03",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 3,
+      "title": "Cement Concrete 1:4:8 in foundation and bedding",
+      "unit": "Cum",
+      "totalQuantity": 2.44,
+      "rateItemId": "rate-03",
+      "items": [
+        {
+          "id": "mea-03-1",
+          "groupId": "grp-03",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 3,
+          "itemSubSequence": "a",
+          "description": "Foundation Bed Concrete Long Wall",
+          "calculationType": "VOLUME",
+          "numberCount": 2,
+          "length": 6.66,
+          "breadth": 0.83,
+          "depthOrHeight": 0.15,
+          "grossQuantity": 1.66,
+          "deductionQuantity": 0,
+          "netQuantity": 1.66,
+          "unit": "Cum",
+          "deductions": []
+        },
+        {
+          "id": "mea-03-2",
+          "groupId": "grp-03",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 3,
+          "itemSubSequence": "b",
+          "description": "Short Wall Bed Concrete",
+          "calculationType": "VOLUME",
+          "numberCount": 2,
+          "length": 2.85,
+          "breadth": 0.83,
+          "depthOrHeight": 0.15,
+          "grossQuantity": 0.71,
+          "deductionQuantity": 0,
+          "netQuantity": 0.71,
+          "unit": "Cum",
+          "deductions": []
+        },
+        {
+          "id": "mea-03-3",
+          "groupId": "grp-03",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 3,
+          "itemSubSequence": "c",
+          "description": "Post Pits Base Pad",
+          "calculationType": "VOLUME",
+          "numberCount": 12,
+          "length": 0.2,
+          "breadth": 0.2,
+          "depthOrHeight": 0.15,
+          "grossQuantity": 0.07,
+          "deductionQuantity": 0,
+          "netQuantity": 0.07,
+          "unit": "Cum",
+          "deductions": []
+        }
+      ]
+    },
+    {
+      "id": "grp-04",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 4,
+      "title": "Uncoursed rubble masonry in cement mortar 1:6 in plinth",
+      "unit": "Cum",
+      "totalQuantity": 3.59,
+      "rateItemId": "rate-04",
+      "items": [
+        {
+          "id": "mea-04-1",
+          "groupId": "grp-04",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 4,
+          "itemSubSequence": "a",
+          "description": "Plinth Masonry Long Wall",
+          "calculationType": "VOLUME",
+          "numberCount": 2,
+          "length": 6.66,
+          "breadth": 0.45,
+          "depthOrHeight": 0.4,
+          "grossQuantity": 2.4,
+          "deductionQuantity": 0,
+          "netQuantity": 2.4,
+          "unit": "Cum",
+          "deductions": []
+        },
+        {
+          "id": "mea-04-2",
+          "groupId": "grp-04",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 4,
+          "itemSubSequence": "b",
+          "description": "Plinth Masonry Short Wall",
+          "calculationType": "VOLUME",
+          "numberCount": 2,
+          "length": 2.85,
+          "breadth": 0.45,
+          "depthOrHeight": 0.4,
+          "grossQuantity": 1.03,
+          "deductionQuantity": 0,
+          "netQuantity": 1.03,
+          "unit": "Cum",
+          "deductions": []
+        },
+        {
+          "id": "mea-04-3",
+          "groupId": "grp-04",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 4,
+          "itemSubSequence": "c",
+          "description": "Plinth Steps & Offsets",
+          "calculationType": "VOLUME",
+          "numberCount": 1,
+          "length": 1,
+          "breadth": 0.4,
+          "depthOrHeight": 0.4,
+          "grossQuantity": 0.16,
+          "deductionQuantity": 0,
+          "netQuantity": 0.16,
+          "unit": "Cum",
+          "deductions": []
+        }
+      ]
+    },
+    {
+      "id": "grp-05",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 5,
+      "title": "Burnt brick masonry in superstructure (with Deductions)",
+      "unit": "Cum",
+      "totalQuantity": 7.94,
+      "rateItemId": "rate-05",
+      "items": [
+        {
+          "id": "mea-05-1",
+          "groupId": "grp-05",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 5,
+          "itemSubSequence": "a",
+          "description": "Main Superstructure Wall Matrix",
+          "calculationType": "VOLUME",
+          "numberCount": 2,
+          "length": 6.66,
+          "breadth": 0.23,
+          "depthOrHeight": 3.283,
+          "grossQuantity": 10.06,
+          "deductionQuantity": 2.12,
+          "netQuantity": 7.94,
+          "unit": "Cum",
+          "deductions": [
+            {
+              "id": "ded-01",
+              "measurementItemId": "mea-05-1",
+              "code": "D1",
+              "description": "Main Entrance Door (0.90 x 0.23 x 1.91)",
+              "numberCount": 2,
+              "length": 0.9,
+              "breadth": 0.23,
+              "depthOrHeight": 1.91,
+              "deductionQuantity": 0.79,
+              "unit": "Cum"
+            },
+            {
+              "id": "ded-02",
+              "measurementItemId": "mea-05-1",
+              "code": "D2",
+              "description": "Inner Room Door (0.75 x 0.23 x 2.09)",
+              "numberCount": 1,
+              "length": 0.75,
+              "breadth": 0.23,
+              "depthOrHeight": 2.087,
+              "deductionQuantity": 0.36,
+              "unit": "Cum"
+            },
+            {
+              "id": "ded-03",
+              "measurementItemId": "mea-05-1",
+              "code": "W1",
+              "description": "Window 1 (1.00 x 0.23 x 0.89)",
+              "numberCount": 2,
+              "length": 1,
+              "breadth": 0.23,
+              "depthOrHeight": 0.891,
+              "deductionQuantity": 0.41,
+              "unit": "Cum"
+            },
+            {
+              "id": "ded-04",
+              "measurementItemId": "mea-05-1",
+              "code": "W2",
+              "description": "Window 2 (1.20 x 0.23 x 1.01)",
+              "numberCount": 2,
+              "length": 1.2,
+              "breadth": 0.23,
+              "depthOrHeight": 1.014,
+              "deductionQuantity": 0.56,
+              "unit": "Cum"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "grp-06",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 6,
+      "title": "Country teak wood common rafters & roof truss frame",
+      "unit": "Cum",
+      "totalQuantity": 0.89,
+      "rateItemId": "rate-06",
+      "items": [
+        {
+          "id": "mea-06-1",
+          "groupId": "grp-06",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 6,
+          "itemSubSequence": "a",
+          "description": "Teak Wood Main Purlins",
+          "calculationType": "VOLUME",
+          "numberCount": 8,
+          "length": 6.8,
+          "breadth": 0.1,
+          "depthOrHeight": 0.1195,
+          "grossQuantity": 0.65,
+          "deductionQuantity": 0,
+          "netQuantity": 0.65,
+          "unit": "Cum",
+          "deductions": []
+        },
+        {
+          "id": "mea-06-2",
+          "groupId": "grp-06",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 6,
+          "itemSubSequence": "b",
+          "description": "Ridge Plates & Rafter Posts",
+          "calculationType": "VOLUME",
+          "numberCount": 4,
+          "length": 5,
+          "breadth": 0.1,
+          "depthOrHeight": 0.12,
+          "grossQuantity": 0.24,
+          "deductionQuantity": 0,
+          "netQuantity": 0.24,
+          "unit": "Cum",
+          "deductions": []
+        }
+      ]
+    },
+    {
+      "id": "grp-07",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 7,
+      "title": "Internal cement plaster 12mm thick in CM 1:4",
+      "unit": "Sqm",
+      "totalQuantity": 32.41,
+      "rateItemId": "rate-07",
+      "items": [
+        {
+          "id": "mea-07-1",
+          "groupId": "grp-07",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 7,
+          "itemSubSequence": "a",
+          "description": "Internal Wall Plaster Surfaces",
+          "calculationType": "AREA",
+          "numberCount": 1,
+          "length": 32.41,
+          "breadth": 0,
+          "depthOrHeight": 1,
+          "grossQuantity": 32.41,
+          "deductionQuantity": 0,
+          "netQuantity": 32.41,
+          "unit": "Sqm",
+          "deductions": []
+        }
+      ]
+    },
+    {
+      "id": "grp-08",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 8,
+      "title": "Colour washing two coats on plastered surfaces",
+      "unit": "Sqm",
+      "totalQuantity": 32.41,
+      "rateItemId": "rate-08",
+      "items": [
+        {
+          "id": "mea-08-1",
+          "groupId": "grp-08",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 8,
+          "itemSubSequence": "a",
+          "description": "Internal Painted Surface",
+          "calculationType": "AREA",
+          "numberCount": 1,
+          "length": 32.41,
+          "breadth": 0,
+          "depthOrHeight": 1,
+          "grossQuantity": 32.41,
+          "deductionQuantity": 0,
+          "netQuantity": 32.41,
+          "unit": "Sqm",
+          "deductions": []
+        }
+      ]
+    },
+    {
+      "id": "grp-09",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 9,
+      "title": "Sand faced plaster externally in two coats",
+      "unit": "Sqm",
+      "totalQuantity": 15.6,
+      "rateItemId": "rate-09",
+      "items": [
+        {
+          "id": "mea-09-1",
+          "groupId": "grp-09",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 9,
+          "itemSubSequence": "a",
+          "description": "External Weather Plaster",
+          "calculationType": "AREA",
+          "numberCount": 2,
+          "length": 3,
+          "breadth": 0,
+          "depthOrHeight": 2.6,
+          "grossQuantity": 15.6,
+          "deductionQuantity": 0,
+          "netQuantity": 15.6,
+          "unit": "Sqm",
+          "deductions": []
+        }
+      ]
+    },
+    {
+      "id": "grp-10",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 10,
+      "title": "C.G.I. sheet roofing 0.63mm thick",
+      "unit": "Sqm",
+      "totalQuantity": 73.01,
+      "rateItemId": "rate-10",
+      "items": [
+        {
+          "id": "mea-10-1",
+          "groupId": "grp-10",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 10,
+          "itemSubSequence": "a",
+          "description": "Main Roof Slope CGI Cover",
+          "calculationType": "AREA",
+          "numberCount": 1,
+          "length": 73.01,
+          "breadth": 0,
+          "depthOrHeight": 1,
+          "grossQuantity": 73.01,
+          "deductionQuantity": 0,
+          "netQuantity": 73.01,
+          "unit": "Sqm",
+          "deductions": []
+        }
+      ]
+    },
+    {
+      "id": "grp-11",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 11,
+      "title": "Cement concrete flooring 40mm thick in 1:2:4",
+      "unit": "Sqm",
+      "totalQuantity": 19.32,
+      "rateItemId": "rate-11",
+      "items": [
+        {
+          "id": "mea-11-1",
+          "groupId": "grp-11",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 11,
+          "itemSubSequence": "a",
+          "description": "Rooms Floor Area",
+          "calculationType": "AREA",
+          "numberCount": 1,
+          "length": 5.6,
+          "breadth": 0,
+          "depthOrHeight": 3.45,
+          "grossQuantity": 19.32,
+          "deductionQuantity": 0,
+          "netQuantity": 19.32,
+          "unit": "Sqm",
+          "deductions": []
+        }
+      ]
+    },
+    {
+      "id": "grp-12",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 12,
+      "title": "Providing and fixing jingle wood ballies rafters",
+      "unit": "Rmt",
+      "totalQuantity": 50.6,
+      "rateItemId": "rate-12",
+      "items": [
+        {
+          "id": "mea-12-1",
+          "groupId": "grp-12",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 12,
+          "itemSubSequence": "a",
+          "description": "Under Roof Ballies Rafter Support",
+          "calculationType": "RUNNING_LENGTH",
+          "numberCount": 11,
+          "length": 4.6,
+          "breadth": 0,
+          "depthOrHeight": 0,
+          "grossQuantity": 50.6,
+          "deductionQuantity": 0,
+          "netQuantity": 50.6,
+          "unit": "Rmt",
+          "deductions": []
+        }
+      ]
+    },
+    {
+      "id": "grp-13",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 13,
+      "title": "G.I. pipe 50mm dia for columns & verandah posts",
+      "unit": "Rmt",
+      "totalQuantity": 19.8,
+      "rateItemId": "rate-13",
+      "items": [
+        {
+          "id": "mea-13-1",
+          "groupId": "grp-13",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 13,
+          "itemSubSequence": "a",
+          "description": "Verandah Structural Columns",
+          "calculationType": "RUNNING_LENGTH",
+          "numberCount": 6,
+          "length": 3.3,
+          "breadth": 0,
+          "depthOrHeight": 0,
+          "grossQuantity": 19.8,
+          "deductionQuantity": 0,
+          "netQuantity": 19.8,
+          "unit": "Rmt",
+          "deductions": []
+        }
+      ]
+    },
+    {
+      "id": "grp-14",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 14,
+      "title": "M.S. Grill gate & ornamental iron work",
+      "unit": "Sqm",
+      "totalQuantity": 1.95,
+      "rateItemId": "rate-14",
+      "items": [
+        {
+          "id": "mea-14-1",
+          "groupId": "grp-14",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 14,
+          "itemSubSequence": "a",
+          "description": "Front Verandah Grill Gate",
+          "calculationType": "AREA",
+          "numberCount": 1,
+          "length": 1.5,
+          "breadth": 0,
+          "depthOrHeight": 1.3,
+          "grossQuantity": 1.95,
+          "deductionQuantity": 0,
+          "netQuantity": 1.95,
+          "unit": "Sqm",
+          "deductions": []
+        }
+      ]
+    },
+    {
+      "id": "grp-15",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 15,
+      "title": "Providing Kud wall / bamboo partition thatching",
+      "unit": "Sqm",
+      "totalQuantity": 37.84,
+      "rateItemId": "rate-15",
+      "items": [
+        {
+          "id": "mea-15-1",
+          "groupId": "grp-15",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 15,
+          "itemSubSequence": "a",
+          "description": "Rear Shed Bamboo Partition",
+          "calculationType": "AREA",
+          "numberCount": 1,
+          "length": 37.84,
+          "breadth": 0,
+          "depthOrHeight": 1,
+          "grossQuantity": 37.84,
+          "deductionQuantity": 0,
+          "netQuantity": 37.84,
+          "unit": "Sqm",
+          "deductions": []
+        }
+      ]
+    },
+    {
+      "id": "grp-16",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 16,
+      "title": "Point wiring for lights, fans & socket outlets",
+      "unit": "No.",
+      "totalQuantity": 7,
+      "rateItemId": "rate-16",
+      "items": [
+        {
+          "id": "mea-16-1",
+          "groupId": "grp-16",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 16,
+          "itemSubSequence": "a",
+          "description": "Electrification Points Count",
+          "calculationType": "COUNT",
+          "numberCount": 7,
+          "length": 0,
+          "breadth": 0,
+          "depthOrHeight": 0,
+          "grossQuantity": 7,
+          "deductionQuantity": 0,
+          "netQuantity": 7,
+          "unit": "No.",
+          "deductions": []
+        }
+      ]
+    },
+    {
+      "id": "grp-17",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 17,
+      "title": "Country teak wood chaukhat frames for doors & windows",
+      "unit": "Cum",
+      "totalQuantity": 0.12,
+      "rateItemId": "rate-17",
+      "items": [
+        {
+          "id": "mea-17-1",
+          "groupId": "grp-17",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 17,
+          "itemSubSequence": "a",
+          "description": "Chaukhat Teak Sections",
+          "calculationType": "VOLUME",
+          "numberCount": 1,
+          "length": 0.12,
+          "breadth": 1,
+          "depthOrHeight": 1,
+          "grossQuantity": 0.12,
+          "deductionQuantity": 0,
+          "netQuantity": 0.12,
+          "unit": "Cum",
+          "deductions": []
+        }
+      ]
+    },
+    {
+      "id": "grp-18",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 18,
+      "title": "Double leaf panelled teak wood door shutters 35mm",
+      "unit": "Sqm",
+      "totalQuantity": 13.23,
+      "rateItemId": "rate-18",
+      "items": [
+        {
+          "id": "mea-18-1",
+          "groupId": "grp-18",
+          "caseId": "case-jigaon-165",
+          "itemSequence": 18,
+          "itemSubSequence": "a",
+          "description": "Door Shutters Surface Area",
+          "calculationType": "AREA",
+          "numberCount": 1,
+          "length": 13.23,
+          "breadth": 0,
+          "depthOrHeight": 1,
+          "grossQuantity": 13.23,
+          "deductionQuantity": 0,
+          "netQuantity": 13.23,
+          "unit": "Sqm",
+          "deductions": []
+        }
+      ]
+    }
+  ],
+  "estimateItems": [
+    {
+      "id": "est-1",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 1,
+      "description": "Excavation for foundation in earth/soils",
+      "quantity": 12.2,
+      "unit": "Cum",
+      "rate": 120,
+      "amount": 1464,
+      "rateReference": "PWD CSR 2014-15 Item 1",
+      "isSalvageEligible": false,
+      "measurementGroupId": "grp-01"
+    },
+    {
+      "id": "est-2",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 2,
+      "description": "Providing and laying dry rubble filling under floors",
+      "quantity": 4.88,
+      "unit": "Cum",
+      "rate": 905,
+      "amount": 4416.4,
+      "rateReference": "PWD CSR 2014-15 Item 3",
+      "isSalvageEligible": false,
+      "measurementGroupId": "grp-02"
+    },
+    {
+      "id": "est-3",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 3,
+      "description": "Cement Concrete 1:4:8 in foundation and bedding",
+      "quantity": 2.44,
+      "unit": "Cum",
+      "rate": 3476.1,
+      "amount": 8481.68,
+      "rateReference": "PWD CSR 2014-15 Item 4",
+      "isSalvageEligible": false,
+      "measurementGroupId": "grp-03"
+    },
+    {
+      "id": "est-4",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 4,
+      "description": "Uncoursed rubble masonry in cement mortar 1:6 in plinth",
+      "quantity": 3.59,
+      "unit": "Cum",
+      "rate": 1797.35,
+      "amount": 6452.49,
+      "rateReference": "PWD CSR 2014-15 Item 6",
+      "isSalvageEligible": false,
+      "measurementGroupId": "grp-04"
+    },
+    {
+      "id": "est-5",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 5,
+      "description": "Burnt brick masonry in superstructure",
+      "quantity": 7.94,
+      "unit": "Cum",
+      "rate": 2585.2,
+      "amount": 20526.49,
+      "rateReference": "PWD CSR 2014-15 Item 12",
+      "isSalvageEligible": false,
+      "measurementGroupId": "grp-05"
+    },
+    {
+      "id": "est-6",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 6,
+      "description": "Country teak wood common rafters & roof truss frame",
+      "quantity": 0.89,
+      "unit": "Cum",
+      "rate": 86131.6,
+      "amount": 76657.12,
+      "rateReference": "PWD CSR 2014-15 Item 72",
+      "isSalvageEligible": true,
+      "measurementGroupId": "grp-06"
+    },
+    {
+      "id": "est-7",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 7,
+      "description": "Internal cement plaster 12mm thick in CM 1:4",
+      "quantity": 32.41,
+      "unit": "Sqm",
+      "rate": 150.75,
+      "amount": 4885.81,
+      "rateReference": "PWD CSR 2014-15 Item 45",
+      "isSalvageEligible": false,
+      "measurementGroupId": "grp-07"
+    },
+    {
+      "id": "est-8",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 8,
+      "description": "Colour washing two coats on plastered surfaces",
+      "quantity": 32.41,
+      "unit": "Sqm",
+      "rate": 15,
+      "amount": 486.15,
+      "rateReference": "PWD CSR 2014-15 Item 87",
+      "isSalvageEligible": false,
+      "measurementGroupId": "grp-08"
+    },
+    {
+      "id": "est-9",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 9,
+      "description": "Sand faced plaster externally in two coats",
+      "quantity": 15.6,
+      "unit": "Sqm",
+      "rate": 362.15,
+      "amount": 5649.54,
+      "rateReference": "PWD CSR 2014-15 Item 48",
+      "isSalvageEligible": false,
+      "measurementGroupId": "grp-09"
+    },
+    {
+      "id": "est-10",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 10,
+      "description": "C.G.I. sheet roofing 0.63mm thick",
+      "quantity": 73.01,
+      "unit": "Sqm",
+      "rate": 650.05,
+      "amount": 47460.15,
+      "rateReference": "PWD CSR 2014-15 Item 52",
+      "isSalvageEligible": true,
+      "measurementGroupId": "grp-10"
+    },
+    {
+      "id": "est-11",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 11,
+      "description": "Cement concrete flooring 40mm thick in 1:2:4",
+      "quantity": 19.32,
+      "unit": "Sqm",
+      "rate": 313.6,
+      "amount": 6058.75,
+      "rateReference": "PWD CSR 2014-15 Item 38",
+      "isSalvageEligible": false,
+      "measurementGroupId": "grp-11"
+    },
+    {
+      "id": "est-12",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 12,
+      "description": "Providing and fixing jingle wood ballies rafters",
+      "quantity": 50.6,
+      "unit": "Rmt",
+      "rate": 110,
+      "amount": 5566,
+      "rateReference": "PWD CSR 2014-15 Item 65",
+      "isSalvageEligible": false,
+      "measurementGroupId": "grp-12"
+    },
+    {
+      "id": "est-13",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 13,
+      "description": "G.I. pipe 50mm dia for columns & verandah posts",
+      "quantity": 19.8,
+      "unit": "Rmt",
+      "rate": 320.65,
+      "amount": 6348.87,
+      "rateReference": "PWD CSR 2014-15 Item 73",
+      "isSalvageEligible": true,
+      "measurementGroupId": "grp-13"
+    },
+    {
+      "id": "est-14",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 14,
+      "description": "M.S. Grill gate & ornamental iron work",
+      "quantity": 1.95,
+      "unit": "Sqm",
+      "rate": 1903.4,
+      "amount": 3711.63,
+      "rateReference": "PWD CSR 2014-15 Item 81",
+      "isSalvageEligible": true,
+      "measurementGroupId": "grp-14"
+    },
+    {
+      "id": "est-15",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 15,
+      "description": "Providing Kud wall / bamboo partition thatching",
+      "quantity": 37.84,
+      "unit": "Sqm",
+      "rate": 73.25,
+      "amount": 2771.78,
+      "rateReference": "PWD CSR 2014-15 Item 29",
+      "isSalvageEligible": false,
+      "measurementGroupId": "grp-15"
+    },
+    {
+      "id": "est-16",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 16,
+      "description": "Point wiring for lights, fans & socket outlets",
+      "quantity": 7,
+      "unit": "No.",
+      "rate": 410,
+      "amount": 2870,
+      "rateReference": "PWD CSR 2014-15 Item 95.1",
+      "isSalvageEligible": false,
+      "measurementGroupId": "grp-16"
+    },
+    {
+      "id": "est-17",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 17,
+      "description": "Country teak wood chaukhat frames for doors & windows",
+      "quantity": 0.12,
+      "unit": "Cum",
+      "rate": 96131.6,
+      "amount": 11535.79,
+      "rateReference": "PWD CSR 2014-15 Item 71",
+      "isSalvageEligible": true,
+      "measurementGroupId": "grp-17"
+    },
+    {
+      "id": "est-18",
+      "caseId": "case-jigaon-165",
+      "itemNumber": 18,
+      "description": "Double leaf panelled teak wood door shutters 35mm",
+      "quantity": 13.23,
+      "unit": "Sqm",
+      "rate": 3501.6,
+      "amount": 46326.17,
+      "rateReference": "PWD CSR 2014-15 Item 75",
+      "isSalvageEligible": true,
+      "measurementGroupId": "grp-18"
+    }
+  ],
+  "depreciationCalculations": [
+    {
+      "id": "dep-165",
+      "caseId": "case-jigaon-165",
+      "presentEstimatedCost": 261669,
+      "yearOfConstruction": 2012,
+      "valuationYear": 2016,
+      "presentLife": 4,
+      "futureLife": 41,
+      "totalLife": 45,
+      "futureLifeYpFactor": 13.394,
+      "totalLifeYpFactor": 13.606,
+      "depreciationFactor": 0.9844186,
+      "depreciatedValue": 257592,
+      "formulaText": "Present Cost (2,61,669.00) × Y.P. Future (13.394) ÷ Y.P. Total (13.606)",
+      "updatedAt": "2026-01-02T10:00:00.000Z"
+    }
+  ],
+  "salvageEstimates": [
+    {
+      "id": "salvage-165",
+      "caseId": "case-jigaon-165",
+      "selectedItemIds": [
+        "est-6",
+        "est-10",
+        "est-13",
+        "est-14",
+        "est-17",
+        "est-18"
+      ],
+      "totalSalvageAmount": 192040,
+      "presentLife": 4,
+      "futureLife": 41,
+      "totalLife": 45,
+      "futureLifeYpFactor": 13.394,
+      "totalLifeYpFactor": 13.606,
+      "salvageDepreciatedValue": 183981,
+      "adjustmentPercentage": 10,
+      "adjustmentAmount": 18398.1,
+      "updatedAt": "2026-01-02T10:00:00.000Z"
+    }
+  ],
+  "finalValuations": [
+    {
+      "id": "final-165",
+      "caseId": "case-jigaon-165",
+      "primaryEstimateTotal": 261669,
+      "primaryDepreciatedValue": 257592,
+      "salvageEstimateTotal": 192040,
+      "salvageDepreciatedValue": 189048,
+      "adjustmentPercentage": 10,
+      "adjustmentAmount": 18904.8,
+      "finalValuationAmount": 238687.2,
+      "calculationVersion": 1,
+      "status": "APPROVED",
+      "updatedAt": "2026-01-02T10:00:00.000Z"
+    }
+  ],
+  "documents": [],
+  "auditLogs": [
+    {
+      "id": "log-01",
+      "caseId": "case-jigaon-165",
+      "userId": "usr-eng-01",
+      "userName": "Assistant Engineer (Estimator)",
+      "userRole": "ESTIMATOR",
+      "action": "CASE_INITIALIZED",
+      "entityType": "ValuationCase",
+      "entityId": "case-jigaon-165",
+      "newValue": "Case CASE/2008-09/165 created for Mohan Vishwanath Gai",
+      "timestamp": "2026-01-02T10:00:00.000Z"
+    },
+    {
+      "id": "log-02",
+      "caseId": "case-jigaon-165",
+      "userId": "usr-eng-01",
+      "userName": "Assistant Engineer (Estimator)",
+      "userRole": "ESTIMATOR",
+      "action": "MEASUREMENTS_ENTERED",
+      "entityType": "MeasurementGroup",
+      "entityId": "grp-05",
+      "newValue": "18 Work Item Groups recorded with opening deductions D1, D2, W1, W2",
+      "timestamp": "2026-01-02T11:30:00.000Z"
+    },
+    {
+      "id": "log-03",
+      "caseId": "case-jigaon-165",
+      "userId": "usr-eng-01",
+      "userName": "Assistant Engineer (Estimator)",
+      "userRole": "ESTIMATOR",
+      "action": "ABSTRACT_CALCULATED",
+      "entityType": "EstimateItem",
+      "entityId": "case-jigaon-165",
+      "newValue": "Primary Gross Abstract evaluated at Rs. 2,61,669.00",
+      "timestamp": "2026-01-02T14:15:00.000Z"
+    },
+    {
+      "id": "log-04",
+      "caseId": "case-jigaon-165",
+      "userId": "usr-admin-01",
+      "userName": "Executive Engineer (Admin)",
+      "userRole": "ADMIN",
+      "action": "VALUATION_SANCTIONED",
+      "entityType": "FinalValuation",
+      "entityId": "final-165",
+      "newValue": "Final net payable valuation sanctioned at Rs. 2,38,687.20",
+      "timestamp": "2026-01-15T14:30:00.000Z"
+    }
+  ],
+  "calculationVersions": []
+}
