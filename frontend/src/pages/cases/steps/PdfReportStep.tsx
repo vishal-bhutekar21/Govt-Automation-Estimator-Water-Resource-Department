@@ -89,17 +89,11 @@ export const PdfReportStep: React.FC<PdfReportStepProps> = ({
   const handleDownloadPdf = async () => {
     try {
       setIsDownloading(true);
-      const token = localStorage.getItem('gov_valuation_token') || localStorage.getItem('auth_token');
-      const response = await fetch(
-        `http://localhost:5000/api/v1/cases/${caseData.id}/report/download`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await api.get(`/v1/cases/${caseData.id}/report/download`, {
+        responseType: 'blob',
+      });
 
-      const blob = await response.blob();
+      const blob = new Blob([response.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
