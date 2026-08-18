@@ -6,26 +6,26 @@ import { signToken, AuthRequest } from '../middleware/auth';
 import { User, UserRole } from '../models/types';
 
 // Ensure Super Admin user exists in memory database
+const SUPER_ADMIN_EMAIL = 'vishal.bhutekar1@gmail.com';
+const SUPER_ADMIN_PASSWORD = 'vishal@123';
+
 const ensureSuperAdmin = async () => {
-  const superEmails = ['vishal.bhutekar1@gmai.com', 'vishal.bhutekar1@gmail.com'];
-  for (const email of superEmails) {
-    const existing = db.users.find((u) => u.email.toLowerCase() === email.toLowerCase());
-    if (!existing) {
-      const hash = await bcrypt.hash('Vish@l@123', 10);
-      db.users.push({
-        id: `usr-super-${uuidv4().slice(0, 6)}`,
-        email,
-        name: 'Er. Vishal Bhutekar (Super Admin)',
-        role: 'ADMIN',
-        department: 'Water Resources Department, Maharashtra',
-        designation: 'Super Administrator / Chief System Architect',
-        passwordHash: hash,
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
-      db.save();
-    }
+  const existing = db.users.find((u) => u.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase());
+  if (!existing) {
+    const hash = await bcrypt.hash(SUPER_ADMIN_PASSWORD, 10);
+    db.users.push({
+      id: 'usr-superadmin-vishal',
+      email: SUPER_ADMIN_EMAIL,
+      name: 'Er. Vishal Bhutekar (Super Admin)',
+      role: 'ADMIN',
+      department: 'Water Resources Department, Maharashtra',
+      designation: 'Super Administrator / Chief System Architect',
+      passwordHash: hash,
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+    db.save();
   }
 };
 

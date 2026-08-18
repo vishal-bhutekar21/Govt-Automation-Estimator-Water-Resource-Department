@@ -16,24 +16,13 @@ import {
 } from '../models/types';
 
 export const getSeedUsers = async (): Promise<User[]> => {
-  const superAdminHash = await bcrypt.hash('Vish@l@123', 10);
+  const superAdminHash = await bcrypt.hash('vishal@123', 10);
   const adminHash = await bcrypt.hash('Admin@12345', 10);
   const engineerHash = await bcrypt.hash('Engineer@12345', 10);
 
   return [
     {
-      id: 'usr-superadmin-01',
-      email: 'vishal.bhutekar1@gmai.com',
-      name: 'Er. Vishal Bhutekar (Super Admin)',
-      role: 'ADMIN',
-      department: 'Water Resources Department, Maharashtra',
-      designation: 'Super Administrator / Chief System Architect',
-      passwordHash: superAdminHash,
-      createdAt: '2026-01-01T00:00:00.000Z',
-      updatedAt: '2026-01-01T00:00:00.000Z',
-    },
-    {
-      id: 'usr-superadmin-02',
+      id: 'usr-superadmin-vishal',
       email: 'vishal.bhutekar1@gmail.com',
       name: 'Er. Vishal Bhutekar (Super Admin)',
       role: 'ADMIN',
