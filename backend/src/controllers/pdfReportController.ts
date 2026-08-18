@@ -28,7 +28,8 @@ export const generateValuationPdf = (req: AuthRequest, res: Response): void => {
 
     const doc = new PDFDocument({
       size: 'A4',
-      margins: { top: 35, bottom: 35, left: 35, right: 35 },
+      margins: { top: 25, bottom: 25, left: 30, right: 30 },
+      autoFirstPage: false,
       info: {
         Title: `Valuation_Award_${prop.ownerName.replace(/\s+/g, '_')}_House_${prop.houseNumber}`,
         Author: 'Government of Maharashtra - Water Resources Department',
@@ -44,249 +45,211 @@ export const generateValuationPdf = (req: AuthRequest, res: Response): void => {
 
     doc.pipe(res);
 
-    // Color Palette
-    const C_NAVY = '#0B2545';
-    const C_SLATE_DARK = '#1E293B';
-    const C_SLATE_MID = '#475569';
-    const C_SLATE_LIGHT = '#94A3B8';
-    const C_BG_LIGHT = '#F8FAFC';
-    const C_BG_CARD = '#F1F5F9';
-    const C_GOLD_ACCENT = '#B45309';
-
-    // Helper: Page Running Header & Footer
-    const drawRunningHeaderFooter = (pageNumber: number, totalPages: number, pageTitle: string) => {
-      // Header
-      doc.fontSize(7.5).font('Helvetica-Bold').fillColor(C_NAVY).text(
+    // Helpers
+    const drawPageHeader = (formCode: string, formTitle: string) => {
+      doc.fontSize(8).font('Helvetica-Bold').fillColor('#000000').text(
         'GOVERNMENT OF MAHARASHTRA • WATER RESOURCES DEPARTMENT',
-        35,
-        22,
-        { width: 525, align: 'left' }
+        30,
+        18,
+        { width: 350, align: 'left' }
       );
-      doc.fontSize(7.5).font('Helvetica').fillColor(C_SLATE_MID).text(
-        pageTitle,
-        35,
-        22,
-        { width: 525, align: 'right' }
+      doc.fontSize(8).font('Helvetica-Bold').fillColor('#374151').text(
+        formCode,
+        380,
+        18,
+        { width: 185, align: 'right' }
       );
-      doc.lineWidth(0.5).strokeColor(C_SLATE_LIGHT).moveTo(35, 33).lineTo(560, 33).stroke();
+      doc.lineWidth(0.5).strokeColor('#000000').moveTo(30, 28).lineTo(565, 28).stroke();
+    };
 
-      // Footer
-      doc.lineWidth(0.5).strokeColor(C_SLATE_LIGHT).moveTo(35, 805).lineTo(560, 805).stroke();
-      doc.fontSize(7).font('Helvetica').fillColor(C_SLATE_MID).text(
-        `Jigaon Major Irrigation Project Sub-Division No. 2, Nandura • LA Case: ${prop.laCaseNumber} (House No. ${prop.houseNumber})`,
-        35,
-        812,
-        { width: 400, align: 'left' }
+    const drawPageFooter = (pageNo: number) => {
+      doc.lineWidth(0.5).strokeColor('#000000').moveTo(30, 810).lineTo(565, 810).stroke();
+      doc.fontSize(7.5).font('Helvetica').fillColor('#4B5563').text(
+        `Jigaon Major Irrigation Project Sub-Division No. 2, Nandura • LA Case No.: ${prop.laCaseNumber} (House No. ${prop.houseNumber})`,
+        30,
+        815,
+        { width: 420, align: 'left' }
       );
-      doc.fontSize(7).font('Helvetica-Bold').fillColor(C_NAVY).text(
-        `Page ${pageNumber} of ${totalPages}`,
-        460,
-        812,
-        { width: 100, align: 'right' }
+      doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#000000').text(
+        `Page ${pageNo} of 4`,
+        450,
+        815,
+        { width: 115, align: 'right' }
       );
     };
 
-    // ==========================================
-    // PAGE 1: OFFICIAL COVER & VALUATION CERTIFICATE
-    // ==========================================
-    // Outer Formal Double Border
-    doc.lineWidth(1.25).rect(32, 28, 531, 786).stroke(C_NAVY);
-    doc.lineWidth(0.5).rect(35, 31, 525, 780).stroke(C_SLATE_LIGHT);
+    // =========================================================================
+    // PAGE 1: FORM NO. 1 — OFFICIAL VALUATION CERTIFICATE & REHABILITATION AWARD
+    // =========================================================================
+    doc.addPage({ size: 'A4', margins: { top: 20, bottom: 20, left: 25, right: 25 } });
 
-    // Official Header
-    doc.moveDown(0.5);
-    doc.fontSize(13).font('Helvetica-Bold').fillColor(C_NAVY).text('GOVERNMENT OF MAHARASHTRA', { align: 'center' });
-    doc.fontSize(10.5).font('Helvetica-Bold').fillColor(C_SLATE_DARK).text('WATER RESOURCES DEPARTMENT', { align: 'center' });
-    doc.fontSize(8.5).font('Helvetica-Bold').fillColor(C_SLATE_MID).text('OFFICE OF THE EXECUTIVE ENGINEER, JIGAON PROJECT DIVISION, NANDURA', { align: 'center' });
-    doc.fontSize(7.5).font('Helvetica').fillColor(C_SLATE_MID).text('DISTRICT: BULDHANA • MAHARASHTRA STATE | PWD CSR 2014-15 STANDARD', { align: 'center' });
-    doc.moveDown(0.6);
+    // Formal Government Double Border
+    doc.lineWidth(1.2).strokeColor('#000000').rect(25, 20, 545, 802).stroke();
+    doc.lineWidth(0.5).strokeColor('#4B5563').rect(28, 23, 539, 796).stroke();
 
-    // Decorative Line
-    doc.lineWidth(1).strokeColor(C_NAVY).moveTo(50, 95).lineTo(545, 95).stroke();
+    // Masthead
+    doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000').text('GOVERNMENT OF MAHARASHTRA', 30, 36, { align: 'center' });
+    doc.fontSize(10).font('Helvetica-Bold').fillColor('#111827').text('WATER RESOURCES DEPARTMENT', 30, 52, { align: 'center' });
+    doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#374151').text('OFFICE OF THE EXECUTIVE ENGINEER, JIGAON PROJECT DIVISION, NANDURA', 30, 66, { align: 'center' });
+    doc.fontSize(7.5).font('Helvetica').fillColor('#4B5563').text('DISTRICT: BULDHANA • STATE: MAHARASHTRA | PWD CSR 2014-15 STANDARD', 30, 78, { align: 'center' });
 
-    // Document Title Banner
-    doc.rect(50, 104, 495, 26).fillAndStroke(C_NAVY, C_NAVY);
-    doc.fontSize(10.5).font('Helvetica-Bold').fillColor('#FFFFFF').text('FINAL VALUATION CERTIFICATE & REHABILITATION AWARD', 50, 112, { align: 'center' });
+    // Divider Line
+    doc.lineWidth(0.8).strokeColor('#000000').moveTo(40, 92).lineTo(555, 92).stroke();
 
-    // Property Metadata Table
-    const startY = 138;
-    const tableWidth = 495;
-    const colW1 = 120;
-    const colW2 = 127.5;
-    const colW3 = 120;
-    const colW4 = 127.5;
+    // Document Title
+    doc.rect(40, 100, 515, 22).lineWidth(0.8).strokeColor('#000000').fillAndStroke('#F3F4F6', '#000000');
+    doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000').text('VALUATION CERTIFICATE FOR ACQUIRED IMMOVABLE PROPERTY', 40, 106, { align: 'center' });
 
-    doc.rect(50, startY, tableWidth, 96).fillAndStroke(C_BG_LIGHT, C_SLATE_LIGHT);
+    // Metadata Grid (4 Rows x 2 Cols)
+    const tY = 130;
+    const tW = 515;
+    const tH = 88;
+    doc.rect(40, tY, tW, tH).lineWidth(0.5).strokeColor('#000000').stroke();
 
-    const metaRows = [
-      [
-        { label: 'Project Name:', val: project?.projectName || 'Jigaon Major Irrigation Project' },
-        { label: 'LA Case No.:', val: prop.laCaseNumber },
-      ],
-      [
-        { label: 'Name of Owner:', val: prop.ownerName },
-        { label: 'Gat / Survey No.:', val: prop.surveyNumber || 'N/A' },
-      ],
-      [
-        { label: 'House No. & Village:', val: `House No. ${prop.houseNumber}, ${prop.village}` },
-        { label: 'Taluka & District:', val: `${prop.taluka}, Dist. ${prop.district}` },
-      ],
-      [
-        { label: 'Structure Type:', val: struct?.constructionType || 'Class-B BBM Wall + CGI Roof' },
-        { label: 'Valuation Date:', val: caseRecord.valuationDate },
-      ],
-    ];
+    // Internal dividers
+    doc.moveTo(40, tY + 22).lineTo(40 + tW, tY + 22).stroke();
+    doc.moveTo(40, tY + 44).lineTo(40 + tW, tY + 44).stroke();
+    doc.moveTo(40, tY + 66).lineTo(40 + tW, tY + 66).stroke();
+    doc.moveTo(40 + 257.5, tY).lineTo(40 + 257.5, tY + tH).stroke();
 
-    let rowY = startY;
-    metaRows.forEach((row, rIdx) => {
-      // Horizontal row divider
-      if (rIdx > 0) {
-        doc.lineWidth(0.5).strokeColor(C_SLATE_LIGHT).moveTo(50, rowY).lineTo(545, rowY).stroke();
-      }
+    // Fill metadata cells
+    const drawCell = (x: number, y: number, label: string, val: string, w: number) => {
+      doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#000000').text(label, x + 5, y + 6, { width: 110 });
+      doc.fontSize(7.5).font('Helvetica').fillColor('#111827').text(val, x + 115, y + 6, { width: w - 120, lineBreak: false });
+    };
 
-      // Vertical mid divider
-      doc.lineWidth(0.5).strokeColor(C_SLATE_LIGHT).moveTo(50 + colW1 + colW2, rowY).lineTo(50 + colW1 + colW2, rowY + 24).stroke();
+    drawCell(40, tY, 'Project Name:', project?.projectName || 'Jigaon Major Irrigation Project', 257.5);
+    drawCell(40 + 257.5, tY, 'LA Case No.:', prop.laCaseNumber, 257.5);
 
-      // Col 1 & 2
-      doc.fontSize(7.5).font('Helvetica-Bold').fillColor(C_NAVY).text(row[0].label, 56, rowY + 7, { width: colW1 - 10 });
-      doc.fontSize(7.5).font('Helvetica').fillColor(C_SLATE_DARK).text(row[0].val, 50 + colW1, rowY + 7, { width: colW2 - 8, lineBreak: false });
+    drawCell(40, tY + 22, 'Name of Owner:', prop.ownerName, 257.5);
+    drawCell(40 + 257.5, tY + 22, 'Gat / Survey No.:', prop.surveyNumber || 'N/A', 257.5);
 
-      // Col 3 & 4
-      doc.fontSize(7.5).font('Helvetica-Bold').fillColor(C_NAVY).text(row[1].label, 50 + colW1 + colW2 + 6, rowY + 7, { width: colW3 - 10 });
-      doc.fontSize(7.5).font('Helvetica').fillColor(C_SLATE_DARK).text(row[1].val, 50 + colW1 + colW2 + colW3, rowY + 7, { width: colW4 - 8, lineBreak: false });
+    drawCell(40, tY + 44, 'House No. & Village:', `House No. ${prop.houseNumber}, ${prop.village}`, 257.5);
+    drawCell(40 + 257.5, tY + 44, 'Taluka & District:', `${prop.taluka}, Dist. ${prop.district}`, 257.5);
 
-      rowY += 24;
-    });
+    drawCell(40, tY + 66, 'Structure Type:', struct?.constructionType || 'Class-B BBM Wall + CGI Roof', 257.5);
+    drawCell(40 + 257.5, tY + 66, 'Valuation Date:', caseRecord.valuationDate, 257.5);
 
-    // Formal Certification Statement Card
-    doc.rect(50, 244, 495, 125).fillAndStroke('#FFFFFF', C_SLATE_LIGHT);
-    doc.rect(50, 244, 495, 18).fill(C_BG_CARD);
-    doc.fontSize(8).font('Helvetica-Bold').fillColor(C_NAVY).text('OFFICIAL STATUTORY CERTIFICATION', 58, 249);
+    // Statutory Certification Box
+    doc.rect(40, 228, 515, 115).lineWidth(0.5).strokeColor('#000000').fillAndStroke('#FFFFFF', '#000000');
+    doc.fontSize(8).font('Helvetica-Bold').fillColor('#000000').text('OFFICIAL CERTIFICATION & INSPECTION RECORD:', 48, 236);
 
-    doc.fontSize(8.5).font('Helvetica').fillColor(C_SLATE_DARK);
+    doc.fontSize(8).font('Helvetica').fillColor('#111827');
     doc.text(
-      `1. This is to officially certify that the residential immovable property belonging to Shri/Smt. ${prop.ownerName}, situated at Village ${prop.village}, Taluka ${prop.taluka}, District ${prop.district}, bearing House No. ${prop.houseNumber} (Gat/Survey No. ${prop.surveyNumber}), affected due to full submergence under ${project?.projectName}, has been thoroughly inspected, surveyed, and measured on site by the joint valuation committee.`,
-      60,
-      270,
-      { width: 475, align: 'justify', lineGap: 2.5 }
+      `This is to certify that the residential immovable property belonging to Shri/Smt. ${prop.ownerName}, situated at Village ${prop.village}, Taluka ${prop.taluka}, District ${prop.district}, bearing House No. ${prop.houseNumber} (Gat/Survey No. ${prop.surveyNumber}), affected due to full submergence under ${project?.projectName}, has been jointly inspected, surveyed, and measured on site.`,
+      48,
+      250,
+      { width: 499, align: 'justify', lineGap: 2 }
     );
 
     doc.text(
-      `2. The valuation estimation has been computed strictly in accordance with Public Works Department Common Schedule of Rates (PWD CSR 2014-15) and standard government compound interest Year's Purchase (7% Y.P.) depreciation principles, with applicable salvage adjustments.`,
-      60,
-      325,
-      { width: 475, align: 'justify', lineGap: 2.5 }
+      `The detailed abstract of quantities and valuation rates have been adopted strictly in accordance with Public Works Department Common Schedule of Rates (PWD CSR 2014-15) and standard government 7% compound interest Year's Purchase (Y.P.) depreciation principles, with salvage deductions evaluated as per departmental norms.`,
+      48,
+      292,
+      { width: 499, align: 'justify', lineGap: 2 }
     );
 
-    // Highlighted Final Award Box
-    doc.rect(50, 380, 495, 85).fillAndStroke(C_NAVY, C_NAVY);
-    doc.rect(54, 384, 487, 77).stroke('#FFFFFF');
-    doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#E2E8F0').text('FINAL NET PAYABLE VALUATION & COMPENSATION AMOUNT', 60, 395, { align: 'center' });
-    doc.fontSize(20).font('Helvetica-Bold').fillColor('#FFFFFF').text(
+    // Award Financial Box
+    doc.rect(40, 353, 515, 76).lineWidth(1).strokeColor('#000000').fillAndStroke('#F9FAFB', '#000000');
+    doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#000000').text('FINAL NET SANCTIONED VALUATION AMOUNT:', 40, 363, { align: 'center' });
+    doc.fontSize(18).font('Helvetica-Bold').fillColor('#000000').text(
       `Rs. ${finalValuation.finalValuationAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
-      60,
-      413,
+      40,
+      380,
       { align: 'center' }
     );
-    doc.fontSize(8).font('Helvetica-Oblique').fillColor('#CBD5E1').text(
+    doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#374151').text(
       `(${amountInWords})`,
-      60,
-      441,
-      { align: 'center', width: 475 }
+      40,
+      406,
+      { align: 'center', width: 515 }
     );
 
-    // Summary Comparison Table
-    doc.rect(50, 475, 495, 52).fillAndStroke(C_BG_LIGHT, C_SLATE_LIGHT);
-    doc.fontSize(7.5).font('Helvetica-Bold').fillColor(C_NAVY);
-    doc.text('Cost Component Summary', 58, 482);
-    doc.text('Primary Estimate (CSR):', 58, 498);
-    doc.font('Helvetica').text(`Rs. ${finalValuation.primaryEstimateTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 165, 498);
+    // Cost Breakdown Summary Row
+    doc.rect(40, 439, 515, 48).lineWidth(0.5).strokeColor('#000000').stroke();
+    doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#000000');
+    doc.text('Valuation Component Summary:', 48, 446);
 
-    doc.font('Helvetica-Bold').text('Primary Depreciated:', 260, 498);
-    doc.font('Helvetica').text(`Rs. ${finalValuation.primaryDepreciatedValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 355, 498);
+    doc.font('Helvetica').fillColor('#111827');
+    doc.text(`• Primary Abstract Cost: Rs. ${finalValuation.primaryEstimateTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 48, 460);
+    doc.text(`• Primary Depreciated Cost: Rs. ${finalValuation.primaryDepreciatedValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 48, 472);
 
-    doc.font('Helvetica-Bold').text('Salvage Net Deduction:', 58, 512);
-    doc.font('Helvetica').text(`Rs. ${finalValuation.adjustmentAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })} (${finalValuation.adjustmentPercentage.toFixed(1)}%)`, 165, 512);
+    doc.text(`• Salvage Reusable Total: Rs. ${finalValuation.salvageEstimateTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 290, 460);
+    doc.text(`• Less: Salvage Adjustment (${finalValuation.adjustmentPercentage.toFixed(1)}%): - Rs. ${finalValuation.adjustmentAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 290, 472);
 
-    doc.font('Helvetica-Bold').text('Net Payable Compensation:', 260, 512);
-    doc.font('Helvetica-Bold').fillColor(C_GOLD_ACCENT).text(`Rs. ${finalValuation.finalValuationAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 355, 512);
+    // Official 3-Tier Signatures
+    const sY = 680;
+    doc.lineWidth(0.5).strokeColor('#000000');
 
-    // 3-Tier Official Sanction Signatures
-    const sigY = 675;
-    doc.lineWidth(0.75).strokeColor(C_SLATE_DARK);
+    // Sig 1
+    doc.moveTo(45, sY).lineTo(185, sY).stroke();
+    doc.fontSize(8).font('Helvetica-Bold').fillColor('#000000').text('Sectional Engineer (S.E.)', 45, sY + 4);
+    doc.fontSize(7).font('Helvetica').fillColor('#374151').text('Irrigation Sub-Division No. 2\nNandura, Dist. Buldhana', 45, sY + 15);
+    doc.rect(45, sY + 42, 55, 18).lineWidth(0.5).strokeColor('#9CA3AF').stroke();
+    doc.fontSize(6).font('Helvetica').fillColor('#6B7280').text('OFFICIAL SEAL', 50, sY + 48);
 
-    // Sig Col 1
-    doc.moveTo(55, sigY).lineTo(190, sigY).stroke();
-    doc.fontSize(8).font('Helvetica-Bold').fillColor(C_NAVY).text('Prepared By:', 55, sigY + 5);
-    doc.fontSize(7.5).font('Helvetica').fillColor(C_SLATE_DARK).text('Sectional Engineer (S.E.)', 55, sigY + 17);
-    doc.fontSize(7).font('Helvetica').fillColor(C_SLATE_MID).text('Irrigation Sub-Division No. 2\nNandura, Dist. Buldhana', 55, sigY + 28);
-    doc.rect(55, sigY + 54, 50, 20).stroke(C_SLATE_LIGHT);
-    doc.fontSize(6).font('Helvetica').fillColor(C_SLATE_MID).text('OFFICIAL SEAL', 58, sigY + 61);
+    // Sig 2
+    doc.moveTo(225, sY).lineTo(365, sY).stroke();
+    doc.fontSize(8).font('Helvetica-Bold').fillColor('#000000').text('Assistant Engineer (A.E. Gr-I)', 225, sY + 4);
+    doc.fontSize(7).font('Helvetica').fillColor('#374151').text('Irrigation Sub-Division No. 2\nNandura, Dist. Buldhana', 225, sY + 15);
+    doc.rect(225, sY + 42, 55, 18).lineWidth(0.5).strokeColor('#9CA3AF').stroke();
+    doc.fontSize(6).font('Helvetica').fillColor('#6B7280').text('OFFICIAL SEAL', 230, sY + 48);
 
-    // Sig Col 2
-    doc.moveTo(225, sigY).lineTo(365, sigY).stroke();
-    doc.fontSize(8).font('Helvetica-Bold').fillColor(C_NAVY).text('Checked & Verified By:', 225, sigY + 5);
-    doc.fontSize(7.5).font('Helvetica').fillColor(C_SLATE_DARK).text('Assistant Engineer (A.E. Gr-I)', 225, sigY + 17);
-    doc.fontSize(7).font('Helvetica').fillColor(C_SLATE_MID).text('Irrigation Sub-Division No. 2\nNandura, Dist. Buldhana', 225, sigY + 28);
-    doc.rect(225, sigY + 54, 50, 20).stroke(C_SLATE_LIGHT);
-    doc.fontSize(6).font('Helvetica').fillColor(C_SLATE_MID).text('OFFICIAL SEAL', 228, sigY + 61);
+    // Sig 3
+    doc.moveTo(405, sY).lineTo(545, sY).stroke();
+    doc.fontSize(8).font('Helvetica-Bold').fillColor('#000000').text('Executive Engineer (E.E.)', 405, sY + 4);
+    doc.fontSize(7).font('Helvetica').fillColor('#374151').text('Jigaon Project Division\nNandura, Dist. Buldhana', 405, sY + 15);
+    doc.rect(405, sY + 42, 55, 18).lineWidth(0.5).strokeColor('#9CA3AF').stroke();
+    doc.fontSize(6).font('Helvetica').fillColor('#6B7280').text('OFFICIAL SEAL', 410, sY + 48);
 
-    // Sig Col 3
-    doc.moveTo(400, sigY).lineTo(540, sigY).stroke();
-    doc.fontSize(8).font('Helvetica-Bold').fillColor(C_NAVY).text('Sanctioned & Approved By:', 400, sigY + 5);
-    doc.fontSize(7.5).font('Helvetica').fillColor(C_SLATE_DARK).text('Executive Engineer (E.E.)', 400, sigY + 17);
-    doc.fontSize(7).font('Helvetica').fillColor(C_SLATE_MID).text('Jigaon Project Division\nNandura, Dist. Buldhana', 400, sigY + 28);
-    doc.rect(400, sigY + 54, 50, 20).stroke(C_SLATE_LIGHT);
-    doc.fontSize(6).font('Helvetica').fillColor(C_SLATE_MID).text('OFFICIAL SEAL', 403, sigY + 61);
+    // =========================================================================
+    // PAGE 2: FORM NO. 2 (FC SHEET) — DETAILED STRUCTURAL SPECIFICATIONS
+    // =========================================================================
+    doc.addPage({ size: 'A4', margins: { top: 25, bottom: 25, left: 30, right: 30 } });
+    drawPageHeader('FORM FC-01 (PROPERTY SPECIFICATIONS)', 'PAGE 2');
+    drawPageFooter(2);
 
-    // ==========================================
-    // PAGE 2: FC SHEET - DETAILED STRUCTURAL PARTICULARS
-    // ==========================================
-    doc.addPage();
-    drawRunningHeaderFooter(2, 4, 'ANNEXURE-I: FC SHEET (STRUCTURAL PARTICULARS)');
-
-    doc.fontSize(11).font('Helvetica-Bold').fillColor(C_NAVY).text(
-      'ANNEXURE-I: STRUCTURAL PARTICULARS & LIFECYCLE VALUATION (FC SHEET)',
-      35,
-      45,
-      { underline: false }
+    doc.fontSize(10.5).font('Helvetica-Bold').fillColor('#000000').text(
+      'STATEMENT SHOWING PROPERTY PARTICULARS & STRUCTURAL SPECIFICATIONS (FC SHEET)',
+      30,
+      38
     );
-    doc.fontSize(7.5).font('Helvetica').fillColor(C_SLATE_MID).text(
-      `Detailed technical specifications recorded during joint field inspection for House No. ${prop.houseNumber}`,
-      35,
-      59
+    doc.fontSize(7.5).font('Helvetica').fillColor('#4B5563').text(
+      `Joint field measurements recorded on site for House No. ${prop.houseNumber}, Village ${prop.village}`,
+      30,
+      50
     );
 
-    // Section 1: Property Location Particulars Table
-    let curY = 75;
-    doc.rect(35, curY, 525, 18).fill(C_NAVY);
-    doc.fontSize(8).font('Helvetica-Bold').fillColor('#FFFFFF').text('1. PROPERTY LOCATION & CADASTRAL PARTICULARS', 42, curY + 5);
-    curY += 18;
+    // Table 1: Location & Cadastral
+    let y2 = 66;
+    doc.rect(30, y2, 535, 16).fillAndStroke('#E5E7EB', '#000000');
+    doc.fontSize(8).font('Helvetica-Bold').fillColor('#000000').text('1. LOCATION & CADASTRAL PARTICULARS', 36, y2 + 4);
+    y2 += 16;
 
-    const propSpecs = [
+    const locData = [
       ['Owner Full Name', prop.ownerName, 'Contact Number', prop.contactNumber || 'Recorded on File'],
       ['Village / Settlement', prop.village, 'Taluka & District', `${prop.taluka}, Dist. ${prop.district}`],
       ['Property Identification', `House No. ${prop.houseNumber}`, 'Cadastral Reference', `Gat/Survey No. ${prop.surveyNumber}`],
       ['Submergence Category', prop.submergenceType, 'Inspection Date', caseRecord.valuationDate],
     ];
 
-    propSpecs.forEach((r, idx) => {
-      doc.rect(35, curY, 525, 20).fillAndStroke(idx % 2 === 0 ? '#FFFFFF' : C_BG_LIGHT, C_SLATE_LIGHT);
-      doc.fontSize(7.5).font('Helvetica-Bold').fillColor(C_NAVY).text(r[0], 42, curY + 6, { width: 110 });
-      doc.fontSize(7.5).font('Helvetica').fillColor(C_SLATE_DARK).text(r[1], 155, curY + 6, { width: 130, lineBreak: false });
-      doc.fontSize(7.5).font('Helvetica-Bold').fillColor(C_NAVY).text(r[2], 295, curY + 6, { width: 110 });
-      doc.fontSize(7.5).font('Helvetica').fillColor(C_SLATE_DARK).text(r[3], 410, curY + 6, { width: 140, lineBreak: false });
-      curY += 20;
+    locData.forEach((row) => {
+      doc.rect(30, y2, 535, 18).lineWidth(0.5).strokeColor('#000000').stroke();
+      doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#000000').text(row[0], 36, y2 + 5, { width: 110 });
+      doc.fontSize(7.5).font('Helvetica').fillColor('#111827').text(row[1], 150, y2 + 5, { width: 130, lineBreak: false });
+      doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#000000').text(row[2], 295, y2 + 5, { width: 110 });
+      doc.fontSize(7.5).font('Helvetica').fillColor('#111827').text(row[3], 410, y2 + 5, { width: 145, lineBreak: false });
+      y2 += 18;
     });
 
-    curY += 12;
+    y2 += 10;
 
-    // Section 2: Construction & Architectural Particulars Table
-    doc.rect(35, curY, 525, 18).fill(C_NAVY);
-    doc.fontSize(8).font('Helvetica-Bold').fillColor('#FFFFFF').text('2. CONSTRUCTION & STRUCTURAL ENGINEERING SPECIFICATIONS', 42, curY + 5);
-    curY += 18;
+    // Table 2: Engineering Construction Particulars
+    doc.rect(30, y2, 535, 16).fillAndStroke('#E5E7EB', '#000000');
+    doc.fontSize(8).font('Helvetica-Bold').fillColor('#000000').text('2. CONSTRUCTION & STRUCTURAL ENGINEERING SPECIFICATIONS', 36, y2 + 4);
+    y2 += 16;
 
-    const structSpecs = [
+    const engData = [
       ['Structure Classification', struct?.constructionType || 'Class-B BBM Wall with CGI Roof'],
       ['Plinth Area (Measured)', `${struct?.plinthArea || 80.5} Sq.m (${((struct?.plinthArea || 80.5) * 10.7639).toFixed(2)} Sq.ft)`],
       ['Built-up Carpet Area', `${struct?.builtUpArea || 73.01} Sq.m (${((struct?.builtUpArea || 73.01) * 10.7639).toFixed(2)} Sq.ft)`],
@@ -298,227 +261,218 @@ export const generateValuationPdf = (req: AuthRequest, res: Response): void => {
       ['Doors, Windows & Fittings', 'Country Wood Frames with Teak Paneled Shutters & MS Safety Iron Fixtures'],
     ];
 
-    structSpecs.forEach((r, idx) => {
-      doc.rect(35, curY, 525, 20).fillAndStroke(idx % 2 === 0 ? '#FFFFFF' : C_BG_LIGHT, C_SLATE_LIGHT);
-      doc.fontSize(7.5).font('Helvetica-Bold').fillColor(C_NAVY).text(r[0], 42, curY + 6, { width: 160 });
-      doc.fontSize(7.5).font('Helvetica').fillColor(C_SLATE_DARK).text(r[1], 205, curY + 6, { width: 345, lineBreak: false });
-      curY += 20;
+    engData.forEach((row) => {
+      doc.rect(30, y2, 535, 18).lineWidth(0.5).strokeColor('#000000').stroke();
+      doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#000000').text(row[0], 36, y2 + 5, { width: 160 });
+      doc.fontSize(7.5).font('Helvetica').fillColor('#111827').text(row[1], 205, y2 + 5, { width: 350, lineBreak: false });
+      y2 += 18;
     });
 
-    curY += 12;
+    y2 += 10;
 
-    // Section 3: Compound Interest 7% Y.P. Depreciation Table
-    doc.rect(35, curY, 525, 18).fill(C_NAVY);
-    doc.fontSize(8).font('Helvetica-Bold').fillColor('#FFFFFF').text("3. STRUCTURE LIFECYCLE & 7% COMPOUND INTEREST YEAR'S PURCHASE (Y.P.) DEPRECIATION", 42, curY + 5);
-    curY += 18;
+    // Table 3: 7% Y.P. Lifecycle & Depreciation
+    doc.rect(30, y2, 535, 16).fillAndStroke('#E5E7EB', '#000000');
+    doc.fontSize(8).font('Helvetica-Bold').fillColor('#000000').text("3. STRUCTURE LIFECYCLE & 7% COMPOUND INTEREST YEAR'S PURCHASE (Y.P.) DEPRECIATION", 36, y2 + 4);
+    y2 += 16;
 
-    const depRows = [
+    const depData = [
       ['Year of Construction', String(dep.yearOfConstruction), 'Valuation Year', String(dep.valuationYear)],
       ['Present Age of Structure (d)', `${dep.presentLife} Years`, 'Total Estimated Useful Life (D)', `${dep.totalLife} Years`],
       ['Balance Future Life (r = D - d)', `${dep.futureLife} Years`, 'Standard Rate of Interest', '7.00% per annum (Govt. Standard)'],
       ['Y.P. Factor for Future Life (41 yrs)', String(dep.futureLifeYpFactor), 'Y.P. Factor for Total Life (45 yrs)', String(dep.totalLifeYpFactor)],
     ];
 
-    depRows.forEach((r, idx) => {
-      doc.rect(35, curY, 525, 20).fillAndStroke(idx % 2 === 0 ? '#FFFFFF' : C_BG_LIGHT, C_SLATE_LIGHT);
-      doc.fontSize(7.5).font('Helvetica-Bold').fillColor(C_NAVY).text(r[0], 42, curY + 6, { width: 150 });
-      doc.fontSize(7.5).font('Helvetica').fillColor(C_SLATE_DARK).text(r[1], 195, curY + 6, { width: 85 });
-      doc.fontSize(7.5).font('Helvetica-Bold').fillColor(C_NAVY).text(r[2], 295, curY + 6, { width: 155 });
-      doc.fontSize(7.5).font('Helvetica').fillColor(C_SLATE_DARK).text(r[3], 455, curY + 6, { width: 95 });
-      curY += 20;
+    depData.forEach((row) => {
+      doc.rect(30, y2, 535, 18).lineWidth(0.5).strokeColor('#000000').stroke();
+      doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#000000').text(row[0], 36, y2 + 5, { width: 150 });
+      doc.fontSize(7.5).font('Helvetica').fillColor('#111827').text(row[1], 195, y2 + 5, { width: 85 });
+      doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#000000').text(row[2], 295, y2 + 5, { width: 155 });
+      doc.fontSize(7.5).font('Helvetica').fillColor('#111827').text(row[3], 455, y2 + 5, { width: 95 });
+      y2 += 18;
     });
 
-    // Formula Explanation Card
-    curY += 6;
-    doc.rect(35, curY, 525, 48).fillAndStroke(C_BG_CARD, C_SLATE_LIGHT);
-    doc.fontSize(7.5).font('Helvetica-Bold').fillColor(C_NAVY).text('Government Valuation Formula Applied:', 42, curY + 6);
-    doc.fontSize(7.5).font('Helvetica').fillColor(C_SLATE_DARK).text(
+    // Formula Box
+    y2 += 8;
+    doc.rect(30, y2, 535, 42).lineWidth(0.5).strokeColor('#000000').fillAndStroke('#F9FAFB', '#000000');
+    doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#000000').text('Standard Government Depreciation Formula Applied:', 36, y2 + 5);
+    doc.fontSize(7.5).font('Helvetica').fillColor('#111827').text(
       `Depreciation Ratio = Y.P. (Future Life ${dep.futureLife} yrs @ 7%) ÷ Y.P. (Total Life ${dep.totalLife} yrs @ 7%) = ${dep.futureLifeYpFactor} ÷ ${dep.totalLifeYpFactor} = ${dep.depreciationFactor.toFixed(7)}`,
-      42,
-      curY + 18
+      36,
+      y2 + 16
     );
-    doc.fontSize(7.5).font('Helvetica-Bold').fillColor(C_GOLD_ACCENT).text(
+    doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#000000').text(
       `Primary Depreciated Value = Present Construction Cost (Rs. ${dep.presentEstimatedCost.toLocaleString('en-IN')}) × ${dep.depreciationFactor.toFixed(7)} = Rs. ${dep.depreciatedValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
-      42,
-      curY + 31
+      36,
+      y2 + 28
     );
 
-    // ==========================================
-    // PAGE 3: AB SHEET - ABSTRACT ESTIMATE (CSR 2014-15)
-    // ==========================================
-    doc.addPage();
-    drawRunningHeaderFooter(3, 4, 'ANNEXURE-II: AB SHEET (ABSTRACT ESTIMATE)');
+    // =========================================================================
+    // PAGE 3: FORM NO. 3 (AB SHEET) — DETAILED ABSTRACT ESTIMATE (CSR 2014-15)
+    // =========================================================================
+    doc.addPage({ size: 'A4', margins: { top: 25, bottom: 25, left: 30, right: 30 } });
+    drawPageHeader('FORM AB-01 (ABSTRACT ESTIMATE)', 'PAGE 3');
+    drawPageFooter(3);
 
-    doc.fontSize(11).font('Helvetica-Bold').fillColor(C_NAVY).text(
-      'ANNEXURE-II: DETAILED ABSTRACT ESTIMATE OF CONSTRUCTION (AB SHEET)',
-      35,
-      45
+    doc.fontSize(10.5).font('Helvetica-Bold').fillColor('#000000').text(
+      'ABSTRACT ESTIMATE OF RESIDENTIAL STRUCTURE (AB SHEET)',
+      30,
+      38
     );
-    doc.fontSize(7.5).font('Helvetica').fillColor(C_SLATE_MID).text(
+    doc.fontSize(7.5).font('Helvetica').fillColor('#4B5563').text(
       'Work item measurements priced strictly in accordance with Public Works Department CSR 2014-15 (Amravati / Buldhana Circle)',
-      35,
-      59
+      30,
+      50
     );
 
     // Table Header
-    curY = 75;
-    const colX = {
-      sr: 35,
-      desc: 65,
-      qty: 335,
-      unit: 380,
-      rate: 430,
-      amt: 490,
-      end: 560,
-    };
+    let y3 = 66;
+    const colX3 = { sr: 30, desc: 58, qty: 335, unit: 380, rate: 430, amt: 490, end: 565 };
 
-    doc.rect(35, curY, 525, 20).fill(C_NAVY);
-    doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#FFFFFF');
-    doc.text('Item', colX.sr + 4, curY + 6);
-    doc.text('Standard Description of Work Item (CSR 2014-15)', colX.desc + 4, curY + 6);
-    doc.text('Quantity', colX.qty, curY + 6, { width: 40, align: 'right' });
-    doc.text('Unit', colX.unit + 8, curY + 6);
-    doc.text('Rate (Rs)', colX.rate, curY + 6, { width: 55, align: 'right' });
-    doc.text('Amount (Rs)', colX.amt, curY + 6, { width: 65, align: 'right' });
+    doc.rect(30, y3, 535, 18).fillAndStroke('#E5E7EB', '#000000');
+    doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#000000');
+    doc.text('Item', colX3.sr + 4, y3 + 5);
+    doc.text('Standard Description of Work Item (PWD CSR 2014-15)', colX3.desc + 4, y3 + 5);
+    doc.text('Quantity', colX3.qty, y3 + 5, { width: 40, align: 'right' });
+    doc.text('Unit', colX3.unit + 6, y3 + 5);
+    doc.text('Rate (Rs)', colX3.rate, y3 + 5, { width: 55, align: 'right' });
+    doc.text('Amount (Rs)', colX3.amt, y3 + 5, { width: 70, align: 'right' });
+    y3 += 18;
 
-    curY += 20;
+    // Table Rows (All 18 items fit cleanly on one single page)
+    estimateItems.forEach((item) => {
+      const rH = 18.5;
+      doc.rect(30, y3, 535, rH).lineWidth(0.5).strokeColor('#9CA3AF').stroke();
 
-    // Items Loop
-    estimateItems.forEach((item, idx) => {
-      const rowHeight = 22;
-      const isAlt = idx % 2 === 1;
+      doc.fontSize(7).font('Helvetica-Bold').fillColor('#000000').text(String(item.itemNumber), colX3.sr + 4, y3 + 5);
+      doc.fontSize(7).font('Helvetica').fillColor('#111827').text(item.description, colX3.desc + 4, y3 + 5, { width: 270, lineBreak: false });
+      doc.text(item.quantity.toFixed(2), colX3.qty, y3 + 5, { width: 40, align: 'right' });
+      doc.text(item.unit, colX3.unit + 6, y3 + 5);
+      doc.text(item.rate.toFixed(2), colX3.rate, y3 + 5, { width: 55, align: 'right' });
+      doc.font('Helvetica-Bold').text(item.amount.toFixed(2), colX3.amt, y3 + 5, { width: 70, align: 'right' });
 
-      doc.rect(35, curY, 525, rowHeight).fillAndStroke(isAlt ? C_BG_LIGHT : '#FFFFFF', C_SLATE_LIGHT);
-
-      doc.fontSize(7).font('Helvetica-Bold').fillColor(C_NAVY).text(String(item.itemNumber), colX.sr + 6, curY + 6);
-      doc.fontSize(7).font('Helvetica').fillColor(C_SLATE_DARK).text(item.description, colX.desc + 4, curY + 6, { width: 260, lineBreak: false });
-      doc.text(item.quantity.toFixed(2), colX.qty, curY + 6, { width: 40, align: 'right' });
-      doc.text(item.unit, colX.unit + 8, curY + 6);
-      doc.text(item.rate.toFixed(2), colX.rate, curY + 6, { width: 55, align: 'right' });
-      doc.font('Helvetica-Bold').text(item.amount.toFixed(2), colX.amt, curY + 6, { width: 65, align: 'right' });
-
-      curY += rowHeight;
+      y3 += rH;
     });
 
-    // Grand Total Row
-    doc.rect(35, curY, 525, 24).fillAndStroke(C_NAVY, C_NAVY);
-    doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#FFFFFF').text('GRAND TOTAL OF PRIMARY ABSTRACT ESTIMATE (CSR 2014-15):', 45, curY + 7);
-    doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#FFFFFF').text(
+    // Grand Total
+    doc.rect(30, y3, 535, 22).lineWidth(1).strokeColor('#000000').fillAndStroke('#F3F4F6', '#000000');
+    doc.fontSize(8).font('Helvetica-Bold').fillColor('#000000').text('GRAND TOTAL OF PRIMARY ABSTRACT ESTIMATE (CSR 2014-15):', 40, y3 + 6);
+    doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#000000').text(
       `Rs. ${dep.presentEstimatedCost.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
-      colX.amt - 20,
-      curY + 7,
-      { width: 85, align: 'right' }
+      colX3.amt - 20,
+      y3 + 6,
+      { width: 90, align: 'right' }
     );
 
-    curY += 32;
-    doc.rect(35, curY, 525, 30).fillAndStroke(C_BG_CARD, C_SLATE_LIGHT);
-    doc.fontSize(7.5).font('Helvetica-Bold').fillColor(C_NAVY).text('Amount in Words:', 42, curY + 6);
-    doc.fontSize(7.5).font('Helvetica-Oblique').fillColor(C_SLATE_DARK).text(
+    y3 += 28;
+    doc.rect(30, y3, 535, 24).lineWidth(0.5).strokeColor('#000000').fillAndStroke('#FFFFFF', '#000000');
+    doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#000000').text('Amount in Words:', 36, y3 + 4);
+    doc.fontSize(7.5).font('Helvetica').fillColor('#111827').text(
       numberToIndianWords(dep.presentEstimatedCost),
-      42,
-      curY + 17,
-      { width: 510 }
+      36,
+      y3 + 13,
+      { width: 520 }
     );
 
-    // ==========================================
-    // PAGE 4: RA SHEET - RECAPITULATION & PANCHANAMA
-    // ==========================================
-    doc.addPage();
-    drawRunningHeaderFooter(4, 4, 'ANNEXURE-III: RA SHEET (RECAPITULATION & PANCHANAMA)');
+    // =========================================================================
+    // PAGE 4: FORM NO. 4 (RA SHEET) — RECAPITULATION & SPOT PANCHANAMA
+    // =========================================================================
+    doc.addPage({ size: 'A4', margins: { top: 25, bottom: 25, left: 30, right: 30 } });
+    drawPageHeader('FORM RA-01 (RECAPITULATION & PANCHANAMA)', 'PAGE 4');
+    drawPageFooter(4);
 
-    doc.fontSize(11).font('Helvetica-Bold').fillColor(C_NAVY).text(
-      'ANNEXURE-III: MASTER RECAPITULATION STATEMENT & SPOT PANCHANAMA (RA SHEET)',
-      35,
-      45
+    doc.fontSize(10.5).font('Helvetica-Bold').fillColor('#000000').text(
+      'MASTER RECAPITULATION STATEMENT & SPOT PANCHANAMA (FINAL RA SHEET)',
+      30,
+      38
     );
-    doc.fontSize(7.5).font('Helvetica').fillColor(C_SLATE_MID).text(
+    doc.fontSize(7.5).font('Helvetica').fillColor('#4B5563').text(
       'Comprehensive final valuation statement summarizing depreciated structural value, salvage materials, and witness endorsements',
-      35,
-      59
+      30,
+      50
     );
 
-    // Section 1: Recapitulation Table
-    curY = 75;
-    doc.rect(35, curY, 525, 18).fill(C_NAVY);
-    doc.fontSize(8).font('Helvetica-Bold').fillColor('#FFFFFF');
-    doc.text('Sr.', 42, curY + 5);
-    doc.text('Valuation Step & Work Category Description', 70, curY + 5);
-    doc.text('Amount in Rs.', 460, curY + 5, { width: 90, align: 'right' });
-    curY += 18;
+    // Recapitulation Table
+    let y4 = 66;
+    doc.rect(30, y4, 535, 16).fillAndStroke('#E5E7EB', '#000000');
+    doc.fontSize(8).font('Helvetica-Bold').fillColor('#000000');
+    doc.text('Sr.', 36, y4 + 4);
+    doc.text('Valuation Step & Work Category Description', 65, y4 + 4);
+    doc.text('Amount in Rs.', 465, y4 + 4, { width: 95, align: 'right' });
+    y4 += 16;
 
-    const recapRows = [
+    const recapData = [
       { sr: '1', desc: 'Primary Abstract Cost of Construction (18 Items priced @ PWD CSR 2014-15)', amt: `Rs. ${finalValuation.primaryEstimateTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` },
-      { sr: '2', desc: `Primary Depreciated Structure Value [Cost × YP(41y: 13.394) ÷ YP(45y: 13.606)]`, amt: `Rs. ${finalValuation.primaryDepreciatedValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` },
+      { sr: '2', desc: 'Primary Depreciated Structure Value [Cost × YP(41y: 13.394) ÷ YP(45y: 13.606)]', amt: `Rs. ${finalValuation.primaryDepreciatedValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` },
       { sr: '3', desc: 'Second Valuation (Salvage / Reusable Materials Abstract Total)', amt: `Rs. ${finalValuation.salvageEstimateTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` },
       { sr: '4', desc: 'Salvage Depreciated Structure Value [Salvage Cost × 13.394 ÷ 13.606]', amt: `Rs. ${finalValuation.salvageDepreciatedValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` },
       { sr: '5', desc: `Less: Configured Salvage Adjustment Deduction (${finalValuation.adjustmentPercentage.toFixed(1)}% of Salvage Depreciated)`, amt: `- Rs. ${finalValuation.adjustmentAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` },
     ];
 
-    recapRows.forEach((row, idx) => {
-      doc.rect(35, curY, 525, 22).fillAndStroke(idx % 2 === 0 ? '#FFFFFF' : C_BG_LIGHT, C_SLATE_LIGHT);
-      doc.fontSize(7.5).font('Helvetica-Bold').fillColor(C_NAVY).text(row.sr, 42, curY + 6);
-      doc.fontSize(7.5).font('Helvetica').fillColor(C_SLATE_DARK).text(row.desc, 70, curY + 6, { width: 380 });
-      doc.font('Helvetica-Bold').text(row.amt, 440, curY + 6, { width: 110, align: 'right' });
-      curY += 22;
+    recapData.forEach((row) => {
+      doc.rect(30, y4, 535, 20).lineWidth(0.5).strokeColor('#000000').stroke();
+      doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#000000').text(row.sr, 36, y4 + 5);
+      doc.fontSize(7.5).font('Helvetica').fillColor('#111827').text(row.desc, 65, y4 + 5, { width: 380 });
+      doc.font('Helvetica-Bold').text(row.amt, 445, y4 + 5, { width: 115, align: 'right' });
+      y4 += 20;
     });
 
     // Final Net Award Row
-    doc.rect(35, curY, 525, 26).fillAndStroke(C_NAVY, C_NAVY);
-    doc.fontSize(9).font('Helvetica-Bold').fillColor('#FFFFFF').text('FINAL NET PAYABLE VALUATION & REHABILITATION AWARD:', 50, curY + 8);
-    doc.fontSize(10).font('Helvetica-Bold').fillColor('#FFFFFF').text(
+    doc.rect(30, y4, 535, 24).lineWidth(1).strokeColor('#000000').fillAndStroke('#F3F4F6', '#000000');
+    doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#000000').text('FINAL NET PAYABLE VALUATION & REHABILITATION AWARD:', 40, y4 + 7);
+    doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000').text(
       `Rs. ${finalValuation.finalValuationAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
-      430,
-      curY + 8,
-      { width: 120, align: 'right' }
+      425,
+      y4 + 7,
+      { width: 135, align: 'right' }
     );
 
-    curY += 36;
+    y4 += 32;
 
-    // Section 2: Spot Panchanama Statement
-    doc.rect(35, curY, 525, 18).fill(C_NAVY);
-    doc.fontSize(8).font('Helvetica-Bold').fillColor('#FFFFFF').text('2. SPOT PANCHANAMA & FIELD VERIFICATION STATEMENT', 42, curY + 5);
-    curY += 18;
+    // Spot Panchanama
+    doc.rect(30, y4, 535, 16).fillAndStroke('#E5E7EB', '#000000');
+    doc.fontSize(8).font('Helvetica-Bold').fillColor('#000000').text('2. SPOT PANCHANAMA & FIELD INSPECTION STATEMENT', 36, y4 + 4);
+    y4 += 16;
 
-    doc.rect(35, curY, 525, 60).fillAndStroke('#FFFFFF', C_SLATE_LIGHT);
-    doc.fontSize(8).font('Helvetica').fillColor(C_SLATE_DARK).text(
+    doc.rect(30, y4, 535, 52).lineWidth(0.5).strokeColor('#000000').fillAndStroke('#FFFFFF', '#000000');
+    doc.fontSize(7.5).font('Helvetica').fillColor('#111827').text(
       panchanama.generalRemarks || panchanama.remarks ||
       `Today on ${caseRecord.valuationDate}, the joint valuation inspection of House No. ${prop.houseNumber} belonging to Shri/Smt. ${prop.ownerName} was conducted at Village ${prop.village} in the presence of the undersigned panchas and village authorities. All room measurements, structural timber, roofing sheets, masonry conditions, and salvageable elements have been recorded accurately and agreed upon without dispute.`,
-      42,
-      curY + 8,
-      { width: 510, align: 'justify', lineGap: 2 }
+      36,
+      y4 + 6,
+      { width: 520, align: 'justify', lineGap: 2 }
     );
 
-    curY += 68;
+    y4 += 60;
 
-    // Section 3: Panchas / Witness Endorsement Table
-    doc.rect(35, curY, 525, 18).fill(C_NAVY);
-    doc.fontSize(8).font('Helvetica-Bold').fillColor('#FFFFFF').text('3. PANCHAS & LOCAL WITNESS ATTESTATION', 42, curY + 5);
-    curY += 18;
+    // Panchas Attestation Table
+    doc.rect(30, y4, 535, 16).fillAndStroke('#E5E7EB', '#000000');
+    doc.fontSize(8).font('Helvetica-Bold').fillColor('#000000').text('3. PANCHAS & LOCAL WITNESS ATTESTATION', 36, y4 + 4);
+    y4 += 16;
 
     panchanama.panchas.forEach((p: any, idx: number) => {
-      doc.rect(35, curY, 525, 24).fillAndStroke(idx % 2 === 0 ? '#FFFFFF' : C_BG_LIGHT, C_SLATE_LIGHT);
-      doc.fontSize(7.5).font('Helvetica-Bold').fillColor(C_NAVY).text(`Witness ${idx + 1}:`, 42, curY + 7);
-      doc.fontSize(7.5).font('Helvetica').fillColor(C_SLATE_DARK).text(`${p.name}, Residing at: ${p.address}`, 100, curY + 7, { width: 330 });
-      doc.fontSize(7).font('Helvetica-Bold').fillColor(C_NAVY).text('[ Signed & Attested ]', 445, curY + 7, { width: 105, align: 'right' });
-      curY += 24;
+      doc.rect(30, y4, 535, 20).lineWidth(0.5).strokeColor('#000000').stroke();
+      doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#000000').text(`Witness ${idx + 1}:`, 36, y4 + 5);
+      doc.fontSize(7.5).font('Helvetica').fillColor('#111827').text(`${p.name}, Residing at: ${p.address}`, 100, y4 + 5, { width: 330 });
+      doc.fontSize(7).font('Helvetica-Bold').fillColor('#000000').text('[ Signed on Site ]', 450, y4 + 5, { width: 110, align: 'right' });
+      y4 += 20;
     });
 
-    curY += 25;
+    y4 += 30;
 
     // Signatures Block
-    doc.lineWidth(0.75).strokeColor(C_SLATE_DARK);
+    doc.lineWidth(0.5).strokeColor('#000000');
 
-    doc.moveTo(45, curY).lineTo(180, curY).stroke();
-    doc.fontSize(7.5).font('Helvetica-Bold').fillColor(C_NAVY).text('Sectional Engineer (S.E.)', 45, curY + 5);
-    doc.fontSize(7).font('Helvetica').fillColor(C_SLATE_MID).text('Prepared on Site', 45, curY + 16);
+    doc.moveTo(40, y4).lineTo(180, y4).stroke();
+    doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#000000').text('Sectional Engineer (S.E.)', 40, y4 + 4);
+    doc.fontSize(7).font('Helvetica').fillColor('#4B5563').text('Prepared on Site', 40, y4 + 14);
 
-    doc.moveTo(225, curY).lineTo(360, curY).stroke();
-    doc.fontSize(7.5).font('Helvetica-Bold').fillColor(C_NAVY).text('Assistant Engineer (A.E. Gr-I)', 225, curY + 5);
-    doc.fontSize(7).font('Helvetica').fillColor(C_SLATE_MID).text('Verified & Checked', 225, curY + 16);
+    doc.moveTo(225, y4).lineTo(365, y4).stroke();
+    doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#000000').text('Assistant Engineer (A.E. Gr-I)', 225, y4 + 4);
+    doc.fontSize(7).font('Helvetica').fillColor('#4B5563').text('Verified & Checked', 225, y4 + 14);
 
-    doc.moveTo(405, curY).lineTo(545, curY).stroke();
-    doc.fontSize(7.5).font('Helvetica-Bold').fillColor(C_NAVY).text('Executive Engineer (E.E.)', 405, curY + 5);
-    doc.fontSize(7).font('Helvetica').fillColor(C_SLATE_MID).text('Sanctioned & Sanction Authority', 405, curY + 16);
+    doc.moveTo(410, y4).lineTo(550, y4).stroke();
+    doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#000000').text('Executive Engineer (E.E.)', 410, y4 + 4);
+    doc.fontSize(7).font('Helvetica').fillColor('#4B5563').text('Sanctioned & Sanction Authority', 410, y4 + 14);
 
     doc.end();
   } catch (err: any) {
