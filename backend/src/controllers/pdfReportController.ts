@@ -28,7 +28,7 @@ export const generateValuationPdf = (req: AuthRequest, res: Response): void => {
 
     const doc = new PDFDocument({
       size: 'A4',
-      margins: { top: 25, bottom: 25, left: 30, right: 30 },
+      margins: { top: 15, bottom: 15, left: 25, right: 25 },
       autoFirstPage: false,
       info: {
         Title: `Valuation_Award_${prop.ownerName.replace(/\s+/g, '_')}_House_${prop.houseNumber}`,
@@ -49,39 +49,39 @@ export const generateValuationPdf = (req: AuthRequest, res: Response): void => {
     const drawPageHeader = (formCode: string, formTitle: string) => {
       doc.fontSize(8).font('Helvetica-Bold').fillColor('#000000').text(
         'GOVERNMENT OF MAHARASHTRA • WATER RESOURCES DEPARTMENT',
-        30,
+        25,
         18,
-        { width: 350, align: 'left' }
+        { width: 350, align: 'left', lineBreak: false }
       );
       doc.fontSize(8).font('Helvetica-Bold').fillColor('#374151').text(
         formCode,
         380,
         18,
-        { width: 185, align: 'right' }
+        { width: 190, align: 'right', lineBreak: false }
       );
-      doc.lineWidth(0.5).strokeColor('#000000').moveTo(30, 28).lineTo(565, 28).stroke();
+      doc.lineWidth(0.5).strokeColor('#000000').moveTo(25, 28).lineTo(570, 28).stroke();
     };
 
     const drawPageFooter = (pageNo: number) => {
-      doc.lineWidth(0.5).strokeColor('#000000').moveTo(30, 810).lineTo(565, 810).stroke();
+      doc.lineWidth(0.5).strokeColor('#000000').moveTo(25, 800).lineTo(570, 800).stroke();
       doc.fontSize(7.5).font('Helvetica').fillColor('#4B5563').text(
         `Jigaon Major Irrigation Project Sub-Division No. 2, Nandura • LA Case No.: ${prop.laCaseNumber} (House No. ${prop.houseNumber})`,
-        30,
-        815,
-        { width: 420, align: 'left' }
+        25,
+        804,
+        { width: 420, align: 'left', lineBreak: false }
       );
       doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#000000').text(
         `Page ${pageNo} of 5`,
         450,
-        815,
-        { width: 115, align: 'right' }
+        804,
+        { width: 120, align: 'right', lineBreak: false }
       );
     };
 
     // =========================================================================
     // PAGE 1: FORM NO. 1 — OFFICIAL VALUATION CERTIFICATE & REHABILITATION AWARD
     // =========================================================================
-    doc.addPage({ size: 'A4', margins: { top: 20, bottom: 20, left: 25, right: 25 } });
+    doc.addPage({ size: 'A4', margins: { top: 15, bottom: 15, left: 25, right: 25 } });
 
     // Formal Government Double Border
     doc.lineWidth(1.2).strokeColor('#000000').rect(25, 20, 545, 802).stroke();
@@ -205,7 +205,7 @@ export const generateValuationPdf = (req: AuthRequest, res: Response): void => {
     // =========================================================================
     // PAGE 2: FORM NO. 2 (FC SHEET) — DETAILED STRUCTURAL SPECIFICATIONS
     // =========================================================================
-    doc.addPage({ size: 'A4', margins: { top: 25, bottom: 25, left: 30, right: 30 } });
+    doc.addPage({ size: 'A4', margins: { top: 15, bottom: 15, left: 25, right: 25 } });
     drawPageHeader('FORM FC-01 (PROPERTY SPECIFICATIONS)', 'PAGE 2');
     drawPageFooter(2);
 
@@ -309,7 +309,7 @@ export const generateValuationPdf = (req: AuthRequest, res: Response): void => {
     // =========================================================================
     // PAGE 3: FORM NO. 3 (AB SHEET) — DETAILED ABSTRACT ESTIMATE (CSR 2014-15)
     // =========================================================================
-    doc.addPage({ size: 'A4', margins: { top: 25, bottom: 25, left: 30, right: 30 } });
+    doc.addPage({ size: 'A4', margins: { top: 15, bottom: 15, left: 25, right: 25 } });
     drawPageHeader('FORM AB-01 (ABSTRACT ESTIMATE)', 'PAGE 3');
     drawPageFooter(3);
 
@@ -376,7 +376,7 @@ export const generateValuationPdf = (req: AuthRequest, res: Response): void => {
     // =========================================================================
     // PAGE 4: FORM NO. 4 (RA SHEET) — RECAPITULATION & SPOT PANCHANAMA
     // =========================================================================
-    doc.addPage({ size: 'A4', margins: { top: 25, bottom: 25, left: 30, right: 30 } });
+    doc.addPage({ size: 'A4', margins: { top: 15, bottom: 15, left: 25, right: 25 } });
     drawPageHeader('FORM RA-01 (RECAPITULATION & PANCHANAMA)', 'PAGE 4');
     drawPageFooter(4);
 
@@ -507,7 +507,7 @@ export const generateValuationPdf = (req: AuthRequest, res: Response): void => {
       },
     ];
 
-    doc.addPage({ size: 'A4', margins: { top: 25, bottom: 25, left: 30, right: 30 } });
+    doc.addPage({ size: 'A4', margins: { top: 15, bottom: 15, left: 25, right: 25 } });
     drawPageHeader('FORM PE-01 (PHOTOGRAPHIC EVIDENCE)', 'PAGE 5');
     drawPageFooter(5);
 
