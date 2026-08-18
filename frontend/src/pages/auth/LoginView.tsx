@@ -2,10 +2,52 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import iconUrl from '../../assets/icon.png';
+import { ShieldCheck, Award, Briefcase, ChevronRight, Sparkles } from 'lucide-react';
+
+interface RolePreset {
+  id: string;
+  name: string;
+  badge: string;
+  email: string;
+  pass: string;
+  designation: string;
+  color: string;
+}
+
+const ROLE_PRESETS: RolePreset[] = [
+  {
+    id: 'superadmin',
+    name: 'Super Admin',
+    badge: 'STATE LEVEL',
+    email: 'vishal.bhutekar1@gmail.com',
+    pass: 'vishal@123',
+    designation: 'Chief System Architect',
+    color: 'amber',
+  },
+  {
+    id: 'admin',
+    name: 'Executive Engineer',
+    badge: 'DIVISION LEVEL',
+    email: 'admin@jigaon.gov.in',
+    pass: 'Admin@12345',
+    designation: 'Sanctioning & Approval Authority',
+    color: 'blue',
+  },
+  {
+    id: 'estimator',
+    name: 'Assistant Engineer',
+    badge: 'SUB-DIVISION',
+    email: 'engineer@jigaon.gov.in',
+    pass: 'Engineer@12345',
+    designation: 'Valuation & Measurement Estimator',
+    color: 'teal',
+  },
+];
 
 export const LoginView: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -15,15 +57,22 @@ export const LoginView: React.FC = () => {
   const navigate = useNavigate();
 
   const loadingMessages = [
-    'Verifying credentials...',
-    'Establishing secure session...',
-    'Loading Jigaon Registry...',
+    'Verifying departmental credentials...',
+    'Establishing encrypted session...',
+    'Loading Jigaon Project database...',
   ];
+
+  const handleSelectPreset = (preset: RolePreset) => {
+    setSelectedRole(preset.id);
+    setEmail(preset.email);
+    setPassword(preset.pass);
+    setError(null);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password.trim()) {
-      setError('Please enter your email ID and password.');
+      setError('Please enter your official email ID and password.');
       return;
     }
 
@@ -33,15 +82,15 @@ export const LoginView: React.FC = () => {
 
     const stageTimer = setInterval(() => {
       setLoadingStage((prev) => (prev < 2 ? prev + 1 : prev));
-    }, 600);
+    }, 500);
 
     try {
       await login(email.trim(), password);
       clearInterval(stageTimer);
-      setTimeout(() => navigate('/dashboard'), 400);
+      setTimeout(() => navigate('/dashboard'), 350);
     } catch (err: any) {
       clearInterval(stageTimer);
-      setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
+      setError(err.response?.data?.message || 'Invalid institutional credentials. Please try again.');
       setIsLoading(false);
     }
   };
@@ -53,22 +102,22 @@ export const LoginView: React.FC = () => {
     >
       {/* Left Decorative Panel */}
       <div
-        className="hidden lg:flex lg:w-5/12 flex-col justify-between p-10 relative overflow-hidden"
+        className="hidden lg:flex lg:w-5/12 flex-col justify-between p-10 relative overflow-hidden shrink-0"
         style={{
           background: 'linear-gradient(160deg, #0c1a2f 0%, #0f2a4a 60%, #0d3a5c 100%)',
         }}
       >
         {/* Decorative background circles */}
         <div
-          className="absolute top-[-80px] right-[-80px] w-[320px] h-[320px] rounded-full opacity-10"
+          className="absolute top-[-80px] right-[-80px] w-[320px] h-[320px] rounded-full opacity-10 pointer-events-none"
           style={{ background: 'radial-gradient(circle, #e09f3e 0%, transparent 70%)' }}
         />
         <div
-          className="absolute bottom-[-60px] left-[-60px] w-[260px] h-[260px] rounded-full opacity-10"
+          className="absolute bottom-[-60px] left-[-60px] w-[260px] h-[260px] rounded-full opacity-10 pointer-events-none"
           style={{ background: 'radial-gradient(circle, #0f766e 0%, transparent 70%)' }}
         />
         <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full opacity-5"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full opacity-5 pointer-events-none"
           style={{ background: 'radial-gradient(circle, #ffffff 0%, transparent 70%)' }}
         />
 
@@ -76,13 +125,12 @@ export const LoginView: React.FC = () => {
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-8">
             <div
-              className="p-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20"
-              style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}
+              className="p-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 shadow-soft-md"
             >
               <img src={iconUrl} alt="Maharashtra Govt" className="w-10 h-10 object-contain" />
             </div>
             <div>
-              <div className="text-[10px] font-bold uppercase tracking-widest text-amber-400">
+              <div className="text-[10px] font-extrabold uppercase tracking-widest text-amber-400">
                 Government of Maharashtra
               </div>
               <div className="text-white text-sm font-extrabold leading-tight">
@@ -92,23 +140,23 @@ export const LoginView: React.FC = () => {
           </div>
 
           <h2 className="text-3xl font-black text-white leading-tight mb-3">
-            Jigaon Irrigation
+            Jigaon Major Irrigation
             <br />
-            <span className="text-amber-400">Valuation Portal</span>
+            <span className="text-amber-400">Valuation Engine</span>
           </h2>
           <p className="text-slate-300 text-sm leading-relaxed">
-            Digital property valuation & estimation management system for rural submergence
-            rehabilitation and land acquisition.
+            Deterministic digital valuation & estimation management system for rural submergence
+            dwellings and rehabilitation compensation.
           </p>
         </div>
 
         {/* Feature pills */}
         <div className="relative z-10 space-y-3">
           {[
-            { icon: '🏛️', text: '10-Step PWD CSR Valuation Workflow' },
-            { icon: '📐', text: '7% Compound Y.P. Depreciation Engine' },
-            { icon: '📄', text: 'Official Government PDF Certificate' },
-            { icon: '🔒', text: 'Role-Based Secure Access Control' },
+            { icon: '🏛️', text: 'PWD CSR 2014-15 Standard Abstract Estimation' },
+            { icon: '📐', text: '7% Compound Interest Compound Y.P. Depreciation' },
+            { icon: '📄', text: 'Official 4-Page Executive Sanction Certificate' },
+            { icon: '🔒', text: 'Role-Based Authentication & Clearance Control' },
           ].map(({ icon, text }) => (
             <div
               key={text}
@@ -122,15 +170,15 @@ export const LoginView: React.FC = () => {
 
         {/* Bottom Tagline */}
         <div className="relative z-10">
-          <p className="text-slate-500 text-[11px]">
-            Sub-Division No. 2, Nandura, Dist. Buldhana
+          <p className="text-slate-400 text-[11px]">
+            Jigaon Major Project Sub-Division No. 2, Nandura • Buldhana Division
           </p>
         </div>
       </div>
 
       {/* Right Login Form Panel */}
-      <div className="flex-1 flex flex-col justify-center items-center p-6 sm:p-10">
-        <div className="w-full max-w-md space-y-7">
+      <div className="flex-1 flex flex-col justify-center items-center p-4 sm:p-8 md:p-12 overflow-y-auto">
+        <div className="w-full max-w-md space-y-6 my-auto">
           {/* Mobile Logo */}
           <div className="lg:hidden text-center space-y-2">
             <img
@@ -138,7 +186,7 @@ export const LoginView: React.FC = () => {
               alt="Maharashtra Govt"
               className="w-14 h-14 object-contain mx-auto"
             />
-            <div className="text-[10px] font-bold text-amber-600 uppercase tracking-widest">
+            <div className="text-[10px] font-extrabold text-amber-600 uppercase tracking-widest">
               Government of Maharashtra • Water Resources Department
             </div>
           </div>
@@ -146,21 +194,61 @@ export const LoginView: React.FC = () => {
           {/* Heading */}
           <div>
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-              Officer Sign In
+              Officer Portal Sign In
             </h1>
-            <p className="text-sm text-slate-500 mt-1">
-              Enter your official credentials to access the valuation portal
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              Select your officer role or enter authorized institutional credentials
             </p>
+          </div>
+
+          {/* User Type / Role Selector Cards */}
+          <div className="space-y-2">
+            <div className="text-[11px] font-bold text-slate-600 uppercase tracking-wider flex items-center justify-between">
+              <span>Quick Select Institutional Role</span>
+              <span className="text-[10px] text-gov-teal font-semibold flex items-center gap-1">
+                <Sparkles className="w-3 h-3" /> Auto-Fill Demo Credentials
+              </span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              {ROLE_PRESETS.map((preset) => {
+                const isSelected = selectedRole === preset.id;
+                return (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => handleSelectPreset(preset)}
+                    className={`p-2.5 rounded-xl text-left border transition-all duration-150 flex flex-col justify-between ${
+                      isSelected
+                        ? 'bg-slate-900 border-slate-900 text-white shadow-soft-sm ring-2 ring-slate-900/20'
+                        : 'bg-white border-slate-200 text-slate-800 hover:border-slate-300 hover:bg-slate-50 shadow-soft-xs'
+                    }`}
+                  >
+                    <div>
+                      <div className="text-[9px] font-extrabold uppercase tracking-wider mb-1 opacity-70">
+                        {preset.badge}
+                      </div>
+                      <div className="text-xs font-black leading-snug">
+                        {preset.name}
+                      </div>
+                    </div>
+                    <div className="text-[9px] mt-1.5 opacity-60 truncate">
+                      {preset.designation}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Login Card */}
           <div
-            className="bg-white rounded-2xl p-7 space-y-5"
-            style={{ boxShadow: '0 8px 40px rgba(12,26,47,0.10), 0 2px 8px rgba(12,26,47,0.06)' }}
+            className="bg-white rounded-2xl p-6 sm:p-7 space-y-5 border border-slate-200/80"
+            style={{ boxShadow: '0 8px 32px rgba(12,26,47,0.08), 0 2px 8px rgba(12,26,47,0.04)' }}
           >
             {/* Error Message */}
             {error && (
-              <div className="flex items-start gap-2.5 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium animate-fadeIn">
+              <div className="flex items-start gap-2.5 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium">
                 <svg className="w-4 h-4 text-red-500 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
@@ -170,21 +258,21 @@ export const LoginView: React.FC = () => {
 
             {isLoading ? (
               /* Premium Loading State */
-              <div className="py-10 flex flex-col items-center space-y-5">
-                <div className="relative w-16 h-16">
+              <div className="py-8 flex flex-col items-center space-y-4">
+                <div className="relative w-14 h-14">
                   {/* Spinning rings */}
-                  <svg className="w-16 h-16 animate-spin absolute inset-0" viewBox="0 0 64 64" fill="none">
+                  <svg className="w-14 h-14 animate-spin absolute inset-0" viewBox="0 0 64 64" fill="none">
                     <circle cx="32" cy="32" r="28" stroke="#e2e8f0" strokeWidth="4" />
                     <path d="M32 4a28 28 0 0 1 28 28" stroke="#0c1a2f" strokeWidth="4" strokeLinecap="round" />
                   </svg>
                   {/* Center Emblem */}
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <img src={iconUrl} alt="" className="w-8 h-8 object-contain" />
+                    <img src={iconUrl} alt="" className="w-7 h-7 object-contain" />
                   </div>
                 </div>
                 <div className="text-center">
                   <div className="text-sm font-bold text-slate-900">{loadingMessages[loadingStage]}</div>
-                  <div className="text-xs text-slate-400 mt-1">Please wait a moment</div>
+                  <div className="text-xs text-slate-400 mt-0.5">Please wait a moment</div>
                 </div>
                 {/* Progress Dots */}
                 <div className="flex gap-1.5">
@@ -217,9 +305,12 @@ export const LoginView: React.FC = () => {
                       type="email"
                       required
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setSelectedRole(null);
+                      }}
                       placeholder="officer@jigaon.gov.in"
-                      className="w-full pl-10 pr-4 py-2.5 text-sm border-2 border-slate-200 rounded-xl focus:border-gov-navy focus:ring-0 outline-none text-slate-900 transition-all placeholder:text-slate-400"
+                      className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm border-2 border-slate-200 rounded-xl focus:border-gov-navy focus:ring-0 outline-none text-slate-900 transition-all placeholder:text-slate-400"
                       style={{ background: '#fafafa' }}
                     />
                   </div>
@@ -243,9 +334,12 @@ export const LoginView: React.FC = () => {
                       type={showPassword ? 'text' : 'password'}
                       required
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        setSelectedRole(null);
+                      }}
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-10 py-2.5 text-sm border-2 border-slate-200 rounded-xl focus:border-gov-navy focus:ring-0 outline-none text-slate-900 transition-all font-mono"
+                      className="w-full pl-10 pr-10 py-2.5 text-xs sm:text-sm border-2 border-slate-200 rounded-xl focus:border-gov-navy focus:ring-0 outline-none text-slate-900 transition-all font-mono"
                       style={{ background: '#fafafa' }}
                     />
                     <button
@@ -270,16 +364,13 @@ export const LoginView: React.FC = () => {
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  className="w-full py-3 rounded-xl text-sm font-bold text-white tracking-wide transition-all duration-200 flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.99]"
+                  className="w-full py-3 rounded-xl text-xs sm:text-sm font-bold text-white tracking-wide transition-all duration-200 flex items-center justify-center gap-2 hover:opacity-95 active:scale-[0.99] shadow-soft-md"
                   style={{
-                    background: 'linear-gradient(135deg, #0c1a2f 0%, #1a3a5c 100%)',
-                    boxShadow: '0 4px 16px rgba(12,26,47,0.35)',
+                    background: 'linear-gradient(135deg, #0c1a2f 0%, #16375c 100%)',
                   }}
                 >
-                  Sign In to Portal
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
+                  <span>Sign In to Valuation Portal</span>
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </form>
             )}
@@ -289,13 +380,11 @@ export const LoginView: React.FC = () => {
           <div className="text-center">
             <Link
               to="/super-admin/login"
-              className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-gov-navy transition-colors group"
+              className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-gov-navy transition-colors group p-2 rounded-xl hover:bg-slate-200/60"
             >
-              <svg className="w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-              </svg>
+              <ShieldCheck className="w-4 h-4 text-amber-600" />
               <span className="group-hover:underline underline-offset-2">
-                Super Admin Portal →
+                Super Admin Master Authorization Portal →
               </span>
             </Link>
           </div>
