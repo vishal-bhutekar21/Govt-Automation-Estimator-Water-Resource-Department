@@ -48,8 +48,10 @@ app.get('/api/health', (req: Request, res: Response) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`🏛️  Government House Valuation Engine running on http://localhost:${PORT}`);
-});
+if (process.env.VERCEL !== '1' && process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`🏛️  Government House Valuation Engine running on http://localhost:${PORT}`);
+  });
+}
 
 export default app;

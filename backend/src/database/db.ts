@@ -21,6 +21,7 @@ import {
   EvidencePhoto,
 } from '../models/types';
 import {
+  getSyncSeedUsers,
   getSeedUsers,
   seedProjects,
   seedCases,
@@ -62,45 +63,42 @@ const DB_DIR = path.resolve(__dirname, '../../data');
 const DB_FILE = path.join(DB_DIR, 'db.json');
 
 class DatabaseManager {
+  // Pre-seed in memory so data is ALWAYS present, even on read-only serverless runtimes
   private data: DatabaseSchema = {
-    users: [],
-    projects: [],
-    cases: [],
-    properties: [],
-    structures: [],
-    rateSchedules: [],
-    rateItems: [],
-    depreciationFactors: [],
-    measurementGroups: [],
-    estimateItems: [],
-    depreciationCalculations: [],
-    salvageEstimates: [],
-    finalValuations: [],
+    users: getSyncSeedUsers(),
+    projects: [...seedProjects],
+    cases: [...seedCases],
+    properties: [...seedProperties],
+    structures: [...seedStructures],
+    rateSchedules: [...seedRateSchedules],
+    rateItems: [...seedRateItems],
+    depreciationFactors: [...seedYpFactors],
+    measurementGroups: [...seedMeasurementGroups],
+    estimateItems: [...seedEstimateItems],
+    depreciationCalculations: [{ ...seedDepreciationCalculation }],
+    salvageEstimates: [{ ...seedSalvageEstimate }],
+    finalValuations: [{ ...seedFinalValuation }],
     documents: [],
-    auditLogs: [],
+    auditLogs: [...seedAuditLogs],
     calculationVersions: [],
   };
 
   private isInitialized = false;
 
-  async init(): Promise<void> {
+  init(): void {
     if (this.isInitialized) return;
 
-    if (!fs.existsSync(DB_DIR)) {
-      fs.mkdirSync(DB_DIR, { recursive: true });
-    }
-
-    if (fs.existsSync(DB_FILE)) {
-      try {
+    try {
+      if (fs.existsSync(DB_FILE)) {
         const raw = fs.readFileSync(DB_FILE, 'utf-8');
-        this.data = JSON.parse(raw);
-        console.log('📦 Database loaded from disk:', DB_FILE);
-      } catch (err) {
-        console.error('Error reading database file, re-initializing seed data:', err);
-        await this.seed();
+        const parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.cases) && parsed.cases.length > 0) {
+          this.data = parsed;
+          console.log('📦 Database loaded from disk:', DB_FILE);
+        }
       }
-    } else {
-      await this.seed();
+    } catch (err) {
+      console.warn('Note: Running with default in-memory dataset:', err);
     }
 
     this.isInitialized = true;
@@ -119,15 +117,15 @@ class DatabaseManager {
       depreciationFactors: [...seedYpFactors],
       measurementGroups: [...seedMeasurementGroups],
       estimateItems: [...seedEstimateItems],
-      depreciationCalculations: [seedDepreciationCalculation],
-      salvageEstimates: [seedSalvageEstimate],
-      finalValuations: [seedFinalValuation],
+      depreciationCalculations: [{ ...seedDepreciationCalculation }],
+      salvageEstimates: [{ ...seedSalvageEstimate }],
+      finalValuations: [{ ...seedFinalValuation }],
       documents: [],
       auditLogs: [...seedAuditLogs],
       calculationVersions: [],
     };
     this.save();
-    console.log('🌱 Seed database successfully created with Golden Sample Case (Mohan Vishwanath Gai).');
+    console.log('🌱 Seed database initialized with Golden Sample Case (Mohan Vishwanath Gai).');
   }
 
   save(): void {
@@ -137,7 +135,7 @@ class DatabaseManager {
       }
       fs.writeFileSync(DB_FILE, JSON.stringify(this.data, null, 2), 'utf-8');
     } catch (err) {
-      console.error('Failed to persist database:', err);
+      // In serverless / read-only environments, disk writes may fail; in-memory data persists for request lifetime
     }
   }
 

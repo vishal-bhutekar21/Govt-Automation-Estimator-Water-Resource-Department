@@ -15,10 +15,10 @@ import {
   FinalValuation,
 } from '../models/types';
 
-export const getSeedUsers = async (): Promise<User[]> => {
-  const superAdminHash = await bcrypt.hash('vishal@123', 10);
-  const adminHash = await bcrypt.hash('Admin@12345', 10);
-  const engineerHash = await bcrypt.hash('Engineer@12345', 10);
+export const getSyncSeedUsers = (): User[] => {
+  const superAdminHash = bcrypt.hashSync('vishal@123', 10);
+  const adminHash = bcrypt.hashSync('Admin@12345', 10);
+  const engineerHash = bcrypt.hashSync('Engineer@12345', 10);
 
   return [
     {
@@ -55,6 +55,10 @@ export const getSeedUsers = async (): Promise<User[]> => {
       updatedAt: '2026-01-01T00:00:00.000Z',
     },
   ];
+};
+
+export const getSeedUsers = async (): Promise<User[]> => {
+  return getSyncSeedUsers();
 };
 
 export const seedProjects: Project[] = [
