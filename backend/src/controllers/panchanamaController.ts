@@ -34,7 +34,54 @@ export const getCasePanchanama = (caseId: string): { panchanama: PanchanamaDetai
     db.save();
   }
 
-  const photos = db.evidencePhotos?.filter((p) => p.caseId === caseId) || [];
+  if (!db.evidencePhotos) {
+    db.evidencePhotos = [];
+  }
+
+  let photos = db.evidencePhotos.filter((p) => p.caseId === caseId);
+
+  if (photos.length === 0 && caseId === 'case-jigaon-165') {
+    photos = [
+      {
+        id: 'photo-jig-165-01',
+        caseId: 'case-jigaon-165',
+        title: 'Front Elevation View (House No. 165)',
+        category: 'FRONT_ELEVATION',
+        description: 'Frontal view of single-storey residential dwelling with Burnt Brick Masonry walls, entrance door, and CGI roof slope.',
+        photoUrl: 'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=800&q=80',
+        capturedAt: '2016-04-12T10:30:00.000Z',
+      },
+      {
+        id: 'photo-jig-165-02',
+        caseId: 'case-jigaon-165',
+        title: 'Plinth & UCR Stone Masonry Foundation',
+        category: 'OTHER',
+        description: 'Uncoursed rubble stone masonry in plinth with cement concrete 1:4:8 bedding and measured height verification.',
+        photoUrl: 'https://images.unsplash.com/photo-1541888946425-d0fbb18015f6?auto=format&fit=crop&w=800&q=80',
+        capturedAt: '2016-04-12T11:00:00.000Z',
+      },
+      {
+        id: 'photo-jig-165-03',
+        caseId: 'case-jigaon-165',
+        title: 'Superstructure BBM Walls & Verandah Frame',
+        category: 'DOORS_WINDOWS',
+        description: 'Burnt brick masonry superstructure in CM 1:6 and front verandah country wood posts supporting eave purlins.',
+        photoUrl: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80',
+        capturedAt: '2016-04-12T11:30:00.000Z',
+      },
+      {
+        id: 'photo-jig-165-04',
+        caseId: 'case-jigaon-165',
+        title: 'Roof Timber Framework & CGI Sheets',
+        category: 'ROOF_STRUCTURE',
+        description: 'Interior view of seasoned country teak wood roof trusses, purlins, rafters, and corrugated galvanized iron sheets.',
+        photoUrl: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=800&q=80',
+        capturedAt: '2016-04-12T12:00:00.000Z',
+      },
+    ];
+    db.evidencePhotos.push(...photos);
+    db.save();
+  }
 
   return { panchanama: panchanama!, photos };
 };

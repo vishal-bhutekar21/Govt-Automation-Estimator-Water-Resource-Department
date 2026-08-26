@@ -17,12 +17,12 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ currentCaseNumber, curre
       </div>
 
       {/* Main Workspace Area (Fixed Sidebar + Scrollable Content) */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden min-w-0">
         {/* Fixed Left Sidebar (Never scrolls away) */}
         <Sidebar />
 
         {/* Scrollable Main Content Area */}
-        <main className="flex-1 h-full overflow-y-auto p-6 md:p-8 max-w-7xl mx-auto w-full scrollbar-thin">
+        <main className="flex-1 min-w-0 h-full overflow-y-auto p-4 sm:p-6 md:p-8 max-w-7xl mx-auto w-full scrollbar-thin">
           <Outlet />
         </main>
       </div>
