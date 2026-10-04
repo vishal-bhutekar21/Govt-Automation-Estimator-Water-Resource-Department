@@ -124,6 +124,15 @@ export const createCase = (req: AuthRequest, res: Response): void => {
       return;
     }
 
+    const project = db.projects.find((item) => item.id === projectId);
+    if (!project) {
+      res.status(400).json({
+        error: 'VALIDATION_ERROR',
+        message: 'Choose a project from the list. The selected project was not found.',
+      });
+      return;
+    }
+
     const existing = db.cases.find((c) => c.caseNumber.toLowerCase() === caseNumber.toLowerCase().trim());
     if (existing) {
       res.status(400).json({

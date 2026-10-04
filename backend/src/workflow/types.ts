@@ -34,7 +34,29 @@ export type BlockStatus =
   | 'EXCLUDED'
   | 'ACCEPTED';
 
-export type RuleStatus = 'DRAFT' | 'VALIDATED_RULE';
+export type RuleStatus = 'DRAFT' | 'VALIDATED_RULE' | 'REPLAY_ONLY' | 'DISABLED';
+
+export type MeasurementRuleStatus = RuleStatus;
+
+export type StructureKind = 'MAIN_HOUSE' | 'GI_SHED' | 'OPEN_SHED' | 'PORCH' | 'STORE' | 'OTHER';
+export type AttachedSide = 'FRONT' | 'REAR' | 'LEFT' | 'RIGHT';
+export type WallSegmentKind = 'OUTER' | 'INTERNAL' | 'PARTITION' | 'LOW_WALL' | 'OTHER';
+export type FactSource = 'INHERITED' | 'OVERRIDE';
+export type VerticalZoneKind = 'MASONRY' | 'MESH' | 'OTHER';
+
+export interface OpenSidesFact {
+  front: boolean;
+  rear: boolean;
+  left: boolean;
+  right: boolean;
+}
+
+export interface VerticalZoneFact {
+  id: string;
+  kind: VerticalZoneKind;
+  heightM: number | null;
+  notes?: string;
+}
 
 export interface BuildingStructure {
   id: string;
@@ -43,6 +65,7 @@ export interface BuildingStructure {
   sortOrder: number;
   participation: 'INCLUDED' | 'EXCLUDED';
   exclusionReason?: string;
+  structureKind?: StructureKind;
   structureTypeText: string;
   wallMaterialText: string;
   wallThicknessM: number | null;
@@ -54,6 +77,26 @@ export interface BuildingStructure {
   roofFinish: string;
   externalFinish: string;
   internalFinish: string;
+  shape?: 'RECTANGLE' | null;
+  /** Room/grid spans are clear (internal) dimensions. Wall thickness is separate. */
+  dimensionConvention?: 'CLEAR_INTERNAL';
+  overallLengthM?: number | null;
+  overallBreadthM?: number | null;
+  gridColumns?: number | null;
+  gridRows?: number | null;
+  spanMode?: 'EQUAL' | 'UNEQUAL' | null;
+  columnSpansM?: number[] | null;
+  rowSpansM?: number[] | null;
+  geometryStatus?: 'NONE' | 'DRAFT_GENERATED' | 'CONFIRMED' | null;
+  geometryConfirmedAt?: string | null;
+  openSides?: OpenSidesFact | null;
+  attachedToStructureId?: string | null;
+  attachedSide?: AttachedSide | null;
+  foundationWidthM?: number | null;
+  groundBeamDepthM?: number | null;
+  solingDepthM?: number | null;
+  evidenceConflictNotes?: string;
+  planNotes?: string;
   updatedAt: string;
 }
 
@@ -65,7 +108,14 @@ export interface RoomFact {
   breadthM: number | null;
   rowIndex: number | null;
   bayIndex: number | null;
-  enclosure: 'ENCLOSED' | 'OPEN' | 'UNKNOWN';
+  enclosure: 'ENCLOSED' | 'OPEN' | 'PARTIALLY_OPEN' | 'UNKNOWN';
+  generated?: boolean;
+  boundaryWallIds?: {
+    north: string;
+    south: string;
+    east: string;
+    west: string;
+  };
 }
 
 export interface WallRunFact {
@@ -73,14 +123,23 @@ export interface WallRunFact {
   structureId: string;
   origin: 'CANDIDATE' | 'ENGINEER_CONFIRMED' | 'MANUAL';
   kind: 'SHARED' | 'EXTERNAL' | 'OTHER';
+  segmentKind?: WallSegmentKind;
   label: string;
   count: number;
   lengthM: number;
   breadthM: number | null;
   depthM: number | null;
+  thicknessM?: number | null;
+  heightM?: number | null;
+  thicknessSource?: FactSource;
+  heightSource?: FactSource;
+  verticalZones?: VerticalZoneFact[];
   sourceRoomIds: string[];
   confirmedBy?: string;
   confirmedAt?: string;
+  generated?: boolean;
+  axis?: 'LONG' | 'SHORT';
+  role?: string;
 }
 
 export interface OpeningFact {
@@ -92,6 +151,7 @@ export interface OpeningFact {
   widthM: number | null;
   heightM: number | null;
   hostWallRunId: string | null;
+  roomId?: string | null;
 }
 
 export interface MemberFact {

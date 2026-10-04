@@ -26,17 +26,36 @@ export const CaseCreationModal: React.FC<CaseCreationModalProps> = ({ isOpen, on
   const [valuationDate, setValuationDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [projectsLoading, setProjectsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isOpen) {
-      api.get<{ projects: Project[] }>('/v1/projects').then((res) => {
-        setProjects(res.data.projects);
-        if (res.data.projects.length > 0) {
-          setProjectId(res.data.projects[0].id);
+    if (!isOpen) return;
+    let cancelled = false;
+    setProjectsLoading(true);
+    setError(null);
+    api.get<{ projects: Project[] }>('/v1/projects')
+      .then((res) => {
+        if (cancelled) return;
+        const list = res.data.projects || [];
+        setProjects(list);
+        if (list.length > 0) {
+          setProjectId((current) => current && list.some((item) => item.id === current) ? current : list[0].id);
+        } else {
+          setProjectId('');
+          setError('No projects are registered yet. Open Projects Registry and add one, then try again.');
         }
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setProjects([]);
+        setProjectId('');
+        setError('Could not load the project list. Check that the API is running, then open this form again.');
+      })
+      .finally(() => {
+        if (!cancelled) setProjectsLoading(false);
       });
-    }
+    return () => { cancelled = true; };
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -47,6 +66,12 @@ export const CaseCreationModal: React.FC<CaseCreationModalProps> = ({ isOpen, on
     setError(null);
 
     try {
+      if (!projectId) {
+        setError('Choose an associated project before initializing the case.');
+        setIsLoading(false);
+        return;
+      }
+
       const res = await api.post('/v1/cases', {
         projectId,
         caseNumber,
@@ -100,16 +125,22 @@ export const CaseCreationModal: React.FC<CaseCreationModalProps> = ({ isOpen, on
               <label className="font-bold text-slate-700 uppercase">Associated Project *</label>
               <select
                 required
+                disabled={projectsLoading || projects.length === 0}
                 value={projectId}
                 onChange={(e) => setProjectId(e.target.value)}
-                className="w-full px-3 py-2 rounded-gov-md border border-slate-300 focus:ring-2 focus:ring-gov-navy outline-none bg-white"
+                className="w-full px-3 py-2 rounded-gov-md border border-slate-300 focus:ring-2 focus:ring-gov-navy outline-none bg-white disabled:bg-slate-50"
               >
+                {projectsLoading && <option value="">Loading projects…</option>}
+                {!projectsLoading && projects.length === 0 && <option value="">No projects available</option>}
                 {projects.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.projectName} ({p.projectCode})
                   </option>
                 ))}
               </select>
+              {!projectsLoading && projects.length > 0 && (
+                <p className="text-[11px] text-slate-500">Choose the project this valuation belongs to.</p>
+              )}
             </div>
 
             <div className="space-y-1.5">

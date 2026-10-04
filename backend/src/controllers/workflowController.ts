@@ -11,7 +11,6 @@ import {
   acceptedNet,
   applicabilityFor,
   applyDecision,
-  buildDraftBlock,
   depreciateStructures,
   emptyStructureBlockers,
   hashBody,
@@ -20,7 +19,13 @@ import {
   proposeWallRuns,
   sourceReplay,
 } from '../workflow/engine';
+import { analyzeStructure, caseAttention, itemChoiceReadiness, searchCatalogue } from '../workflow/guidance';
+import { generateRectangularGrid, generateSimpleRectanglePlan } from '../workflow/gridGeometry';
+import { generateMeasurementForStructure } from '../workflow/measurementGenerate';
+import { writeValuationReportPdf } from '../workflow/valuationReportPdf';
+import { buildValuationWorkbook } from '../workflow/valuationWorkbookExport';
 import {
+  AttachedSide,
   BuildingStructure,
   CalculationSnapshotRecord,
   CatalogueItemRecord,
@@ -30,6 +35,10 @@ import {
   MemberKind,
   OpeningFact,
   RoomFact,
+  StructureKind,
+  VerticalZoneFact,
+  WallRunFact,
+  WallSegmentKind,
 } from '../workflow/types';
 
 const EVIDENCE_DIR = path.resolve(__dirname, '../../data/evidence');
@@ -89,6 +98,33 @@ function bundle(caseId: string) {
     depreciationDecision: db.depreciationDecisions.find((d) => d.caseId === caseId) || null,
     rateScheduleVersions: db.rateScheduleVersions,
     ypTables: db.ypTables.map((table) => ({ id: table.id, name: table.name, citation: table.citation, legacy: table.legacy, years: table.rows.length })),
+    guidance: guidanceFor(caseId, structures),
+  };
+}
+
+function guidanceFor(caseId: string, structures: BuildingStructure[]) {
+  const valuationCase = db.cases.find((c) => c.id === caseId);
+  const property = db.properties.find((p) => p.caseId === caseId);
+  const analyzed = structures.map((structure) => analyzeStructure({
+    structure,
+    rooms: db.rooms.filter((room) => room.structureId === structure.id),
+    walls: db.wallRuns.filter((wall) => wall.structureId === structure.id),
+    openings: db.openings.filter((opening) => opening.structureId === structure.id),
+    members: db.members.filter((member) => member.structureId === structure.id),
+  }));
+  return {
+    structures: analyzed,
+    attention: caseAttention({
+      ownerName: property?.ownerName,
+      surveyNumber: property?.surveyNumber,
+      village: property?.village,
+      evidenceCount: db.caseEvidence.filter((item) => item.caseId === caseId).length,
+      rateScheduleVersionId: valuationCase?.rateScheduleVersionId,
+      ypTableVersionId: valuationCase?.ypTableVersionId,
+      structures: analyzed,
+      depreciationAccepted: db.depreciationDecisions.find((item) => item.caseId === caseId)?.status === 'ACCEPTED',
+      hasSnapshot: db.calculationSnapshots.some((item) => item.caseId === caseId && item.label === 'PLATFORM'),
+    }),
   };
 }
 
@@ -119,6 +155,7 @@ export const updateIdentity = (req: AuthRequest, res: Response): void => {
   if (req.body.conflictingIdentifierNotes !== undefined) {
     valuationCase.conflictingIdentifierNotes = String(req.body.conflictingIdentifierNotes);
   }
+  const previousSchedule = valuationCase.rateScheduleVersionId || null;
   if (req.body.rateScheduleVersionId !== undefined) {
     valuationCase.rateScheduleVersionId = req.body.rateScheduleVersionId || null;
   }
@@ -128,8 +165,17 @@ export const updateIdentity = (req: AuthRequest, res: Response): void => {
   }
   property.updatedAt = new Date().toISOString();
   valuationCase.updatedAt = property.updatedAt;
+  let rebound = 0;
+  if (valuationCase.rateScheduleVersionId && valuationCase.rateScheduleVersionId !== previousSchedule) {
+    rebound = rebindRatesForCase(valuationCase.id);
+  }
   db.save();
-  res.status(200).json(bundle(valuationCase.id));
+  res.status(200).json({
+    ...bundle(valuationCase.id),
+    note: rebound
+      ? `Identity saved. Bound catalogue rates on ${rebound} measurement line(s) from the pinned schedule.`
+      : undefined,
+  });
 };
 
 function resetDepreciation(caseId: string): void {
@@ -144,7 +190,8 @@ export const addStructure = (req: AuthRequest, res: Response): void => {
   if (!canWrite(req, res)) return;
   const valuationCase = requireBuildingCase(req.params.caseId, res);
   if (!valuationCase) return;
-  const name = String(req.body.name || '').trim();
+  const structureKind = normalizeStructureKind(req.body.structureKind) || kindFromName(String(req.body.name || ''));
+  const name = String(req.body.name || defaultNameForKind(structureKind)).trim();
   if (!name) {
     fail(res, 400, 'VALIDATION_ERROR', 'A structure needs a name, such as main house or tin shed.');
     return;
@@ -155,7 +202,8 @@ export const addStructure = (req: AuthRequest, res: Response): void => {
     name,
     sortOrder: db.buildingStructures.filter((s) => s.caseId === valuationCase.id).length + 1,
     participation: 'INCLUDED',
-    structureTypeText: '',
+    structureKind,
+    structureTypeText: name,
     wallMaterialText: '',
     wallThicknessM: null,
     storeyHeightM: null,
@@ -166,11 +214,88 @@ export const addStructure = (req: AuthRequest, res: Response): void => {
     roofFinish: '',
     externalFinish: '',
     internalFinish: '',
+    shape: 'RECTANGLE',
+    dimensionConvention: 'CLEAR_INTERNAL',
+    overallLengthM: null,
+    overallBreadthM: null,
+    gridColumns: null,
+    gridRows: null,
+    spanMode: 'EQUAL',
+    columnSpansM: null,
+    rowSpansM: null,
+    geometryStatus: 'NONE',
+    geometryConfirmedAt: null,
+    openSides: { front: false, rear: false, left: false, right: false },
+    attachedToStructureId: null,
+    attachedSide: null,
+    foundationWidthM: null,
+    groundBeamDepthM: null,
+    solingDepthM: null,
+    evidenceConflictNotes: '',
+    planNotes: '',
     updatedAt: new Date().toISOString(),
   };
   db.buildingStructures.push(structure);
   db.save();
   res.status(201).json({ structure, bundle: bundle(valuationCase.id) });
+};
+
+export const removeStructure = (req: AuthRequest, res: Response): void => {
+  if (!canWrite(req, res)) return;
+  db.ensureWorkflowCollections();
+  const structure = db.buildingStructures.find((s) => s.id === req.params.id);
+  if (!structure) {
+    fail(res, 404, 'NOT_FOUND', 'Structure not found.');
+    return;
+  }
+  const caseId = structure.caseId;
+  const valuationCase = requireBuildingCase(caseId, res);
+  if (!valuationCase) return;
+
+  let reopened = false;
+  db.calculationSnapshots
+    .filter((snapshot) => snapshot.caseId === caseId && snapshot.status === 'FINALIZED' && snapshot.label === 'PLATFORM')
+    .forEach((snapshot) => {
+      snapshot.status = 'DRAFT';
+      snapshot.finalizedAt = null;
+      snapshot.finalizedBy = null;
+      reopened = true;
+    });
+  if (reopened && valuationCase.status === 'COMPLETED') {
+    valuationCase.status = 'REVIEW';
+    valuationCase.updatedAt = new Date().toISOString();
+  }
+
+  const structureId = structure.id;
+  db.buildingStructures.splice(0, db.buildingStructures.length, ...db.buildingStructures.filter((item) => item.id !== structureId));
+  db.rooms.splice(0, db.rooms.length, ...db.rooms.filter((room) => room.structureId !== structureId));
+  db.wallRuns.splice(0, db.wallRuns.length, ...db.wallRuns.filter((wall) => wall.structureId !== structureId));
+  db.openings.splice(0, db.openings.length, ...db.openings.filter((opening) => opening.structureId !== structureId));
+  db.members.splice(0, db.members.length, ...db.members.filter((member) => member.structureId !== structureId));
+  db.measurementBlocks.splice(0, db.measurementBlocks.length, ...db.measurementBlocks.filter((block) => block.structureId !== structureId));
+  db.buildingStructures
+    .filter((item) => item.caseId === caseId && item.attachedToStructureId === structureId)
+    .forEach((item) => {
+      item.attachedToStructureId = null;
+      item.attachedSide = null;
+      item.updatedAt = new Date().toISOString();
+    });
+  db.buildingStructures
+    .filter((item) => item.caseId === caseId)
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .forEach((item, index) => {
+      item.sortOrder = index + 1;
+    });
+  resetDepreciation(caseId);
+  db.save();
+  res.status(200).json({
+    removedId: structureId,
+    reopened,
+    note: reopened
+      ? `${structure.name} removed. Finalization was cleared so the case can be edited again.`
+      : `${structure.name} removed from this case.`,
+    bundle: bundle(caseId),
+  });
 };
 
 export const updateStructureProfile = (req: AuthRequest, res: Response): void => {
@@ -187,8 +312,17 @@ export const updateStructureProfile = (req: AuthRequest, res: Response): void =>
   if (body.name !== undefined) structure.name = String(body.name);
   if (body.participation === 'EXCLUDED' || body.participation === 'INCLUDED') structure.participation = body.participation;
   if (body.exclusionReason !== undefined) structure.exclusionReason = String(body.exclusionReason);
+  if (body.structureKind !== undefined) {
+    const kind = normalizeStructureKind(body.structureKind);
+    if (kind) structure.structureKind = kind;
+  }
   if (body.structureTypeText !== undefined) structure.structureTypeText = String(body.structureTypeText);
   if (body.wallMaterialText !== undefined) structure.wallMaterialText = String(body.wallMaterialText);
+  if (body.evidenceConflictNotes !== undefined) structure.evidenceConflictNotes = String(body.evidenceConflictNotes || '');
+  if (body.planNotes !== undefined) structure.planNotes = String(body.planNotes || '');
+  if (body.foundationWidthM !== undefined) structure.foundationWidthM = numberOrNull(body.foundationWidthM);
+  if (body.groundBeamDepthM !== undefined) structure.groundBeamDepthM = numberOrNull(body.groundBeamDepthM);
+  if (body.solingDepthM !== undefined) structure.solingDepthM = numberOrNull(body.solingDepthM);
   if (body.wallThicknessM !== undefined) structure.wallThicknessM = body.wallThicknessM === null || body.wallThicknessM === '' ? null : Number(body.wallThicknessM);
   if (body.storeyHeightM !== undefined) structure.storeyHeightM = body.storeyHeightM === null || body.storeyHeightM === '' ? null : Number(body.storeyHeightM);
   if (body.constructionYear !== undefined) structure.constructionYear = body.constructionYear === null || body.constructionYear === '' ? null : Number(body.constructionYear);
@@ -200,6 +334,19 @@ export const updateStructureProfile = (req: AuthRequest, res: Response): void =>
     if (body[key] !== undefined) structure[key] = String(body[key]);
   }
   structure.updatedAt = new Date().toISOString();
+  if (beforeThickness !== structure.wallThicknessM) {
+    db.wallRuns.filter((wall) => wall.structureId === structure.id && (wall.thicknessSource || 'INHERITED') === 'INHERITED').forEach((wall) => {
+      wall.thicknessM = structure.wallThicknessM;
+      wall.breadthM = structure.wallThicknessM;
+      wall.thicknessSource = 'INHERITED';
+    });
+  }
+  if (body.storeyHeightM !== undefined) {
+    db.wallRuns.filter((wall) => wall.structureId === structure.id && (wall.heightSource || 'INHERITED') === 'INHERITED').forEach((wall) => {
+      wall.heightM = structure.storeyHeightM;
+      wall.heightSource = 'INHERITED';
+    });
+  }
   let impact: MeasurementBlockFact[] = [];
   if (beforeThickness !== structure.wallThicknessM || beforeYear !== structure.constructionYear || beforeLife !== structure.usefulLifeYears) {
     const next = markBlocksForReview(db.measurementBlocks, structure.id);
@@ -218,6 +365,333 @@ export const updateStructureProfile = (req: AuthRequest, res: Response): void =>
 function replaceBlocks(caseId: string, next: MeasurementBlockFact[]): void {
   const others = db.measurementBlocks.filter((b) => b.caseId !== caseId);
   db.measurementBlocks.splice(0, db.measurementBlocks.length, ...others, ...next.filter((b) => b.caseId === caseId));
+}
+
+export const applyStructureLayout = (req: AuthRequest, res: Response): void => {
+  if (!canWrite(req, res)) return;
+  const structure = db.buildingStructures.find((s) => s.id === req.params.id);
+  if (!structure) {
+    fail(res, 404, 'NOT_FOUND', 'Structure not found.');
+    return;
+  }
+  const body = req.body || {};
+  const overallLengthM = Number(body.overallLengthM);
+  const overallBreadthM = Number(body.overallBreadthM);
+  const gridColumns = Number(body.gridColumns);
+  const gridRows = Number(body.gridRows);
+  const spanMode = body.spanMode === 'UNEQUAL' ? 'UNEQUAL' : 'EQUAL';
+  const confirm = Boolean(body.confirm);
+  const acknowledgeRegenerate = Boolean(body.acknowledgeRegenerate);
+
+  if (structure.geometryStatus === 'CONFIRMED' && !acknowledgeRegenerate && !confirm) {
+    fail(res, 409, 'GEOMETRY_CONFIRMED', 'Changing the structure layout will regenerate rooms and walls. Review the structure before continuing, then acknowledge regeneration.');
+    return;
+  }
+  if (structure.geometryStatus === 'CONFIRMED' && !acknowledgeRegenerate && confirm && layoutChanged(structure, {
+    overallLengthM, overallBreadthM, gridColumns, gridRows, spanMode,
+    columnSpansM: body.columnSpansM, rowSpansM: body.rowSpansM,
+  })) {
+    fail(res, 409, 'GEOMETRY_CONFIRMED', 'Changing the structure layout will regenerate rooms and walls. Acknowledge regeneration before confirming again.');
+    return;
+  }
+
+  const generated = generateRectangularGrid({
+    structureId: structure.id,
+    overallLengthM,
+    overallBreadthM,
+    gridColumns,
+    gridRows,
+    spanMode,
+    columnSpansM: Array.isArray(body.columnSpansM) ? body.columnSpansM.map(Number) : null,
+    rowSpansM: Array.isArray(body.rowSpansM) ? body.rowSpansM.map(Number) : null,
+    wallThicknessM: structure.wallThicknessM,
+  });
+  if ('error' in generated) {
+    fail(res, 400, 'VALIDATION_ERROR', generated.error);
+    return;
+  }
+
+  structure.shape = 'RECTANGLE';
+  structure.dimensionConvention = 'CLEAR_INTERNAL';
+  structure.overallLengthM = generated.columnSpansM.reduce((sum, span) => sum + span, 0);
+  structure.overallBreadthM = generated.rowSpansM.reduce((sum, span) => sum + span, 0);
+  structure.gridColumns = gridColumns;
+  structure.gridRows = gridRows;
+  structure.spanMode = spanMode;
+  structure.columnSpansM = generated.columnSpansM;
+  structure.rowSpansM = generated.rowSpansM;
+  structure.geometryStatus = confirm ? 'CONFIRMED' : 'DRAFT_GENERATED';
+  structure.geometryConfirmedAt = confirm ? new Date().toISOString() : null;
+  if (body.evidenceConflictNotes !== undefined) structure.evidenceConflictNotes = String(body.evidenceConflictNotes || '');
+  if (body.planNotes !== undefined) structure.planNotes = String(body.planNotes || '');
+  if (body.foundationWidthM !== undefined) structure.foundationWidthM = numberOrNull(body.foundationWidthM);
+  if (body.groundBeamDepthM !== undefined) structure.groundBeamDepthM = numberOrNull(body.groundBeamDepthM);
+  if (body.solingDepthM !== undefined) structure.solingDepthM = numberOrNull(body.solingDepthM);
+  structure.updatedAt = new Date().toISOString();
+
+  const previousRooms = db.rooms.filter((room) => room.structureId === structure.id);
+  const rooms: RoomFact[] = generated.rooms.map((room) => {
+    const previous = previousRooms.find((item) => item.code === room.code);
+    return {
+      id: room.id,
+      structureId: room.structureId,
+      code: room.code,
+      lengthM: room.lengthM,
+      breadthM: room.breadthM,
+      rowIndex: room.rowIndex,
+      bayIndex: room.bayIndex,
+      enclosure: previous?.enclosure || room.enclosure,
+      generated: true,
+      boundaryWallIds: room.boundaryWallIds,
+    };
+  });
+  const keptRooms = db.rooms.filter((room) => room.structureId !== structure.id);
+  db.rooms.splice(0, db.rooms.length, ...keptRooms, ...rooms);
+
+  const walls: WallRunFact[] = generated.walls.map((wall) => ({
+    id: wall.id,
+    structureId: wall.structureId,
+    origin: confirm ? 'ENGINEER_CONFIRMED' : 'CANDIDATE',
+    kind: wall.kind,
+    segmentKind: wall.segmentKind,
+    label: wall.label,
+    count: wall.count,
+    lengthM: wall.lengthM,
+    breadthM: wall.breadthM,
+    depthM: wall.depthM,
+    thicknessM: wall.thicknessM,
+    heightM: structure.storeyHeightM,
+    thicknessSource: 'INHERITED',
+    heightSource: 'INHERITED',
+    verticalZones: [],
+    sourceRoomIds: wall.sourceRoomIds,
+    generated: true,
+    axis: wall.axis,
+    role: wall.role,
+    confirmedBy: confirm ? req.user?.name : undefined,
+    confirmedAt: confirm ? new Date().toISOString() : undefined,
+  }));
+  const keptWalls = db.wallRuns.filter((wall) => wall.structureId !== structure.id || wall.origin === 'MANUAL');
+  db.wallRuns.splice(0, db.wallRuns.length, ...keptWalls, ...walls);
+
+  const next = markBlocksForReview(db.measurementBlocks, structure.id);
+  replaceBlocks(structure.caseId, next);
+  db.save();
+  res.status(200).json({
+    structure,
+    summary: generated.summary,
+    rooms,
+    wallRuns: walls,
+    note: confirm
+      ? 'Structure confirmed. Generated walls are available for downstream wall work after review.'
+      : 'Generated structure saved as a draft check sketch. Confirm before treating walls as quantities.',
+    bundle: bundle(structure.caseId),
+  });
+};
+
+function layoutChanged(structure: BuildingStructure, next: {
+  overallLengthM: number;
+  overallBreadthM: number;
+  gridColumns: number;
+  gridRows: number;
+  spanMode: string;
+  columnSpansM?: number[];
+  rowSpansM?: number[];
+}): boolean {
+  if (structure.overallLengthM !== next.overallLengthM) return true;
+  if (structure.overallBreadthM !== next.overallBreadthM) return true;
+  if (structure.gridColumns !== next.gridColumns) return true;
+  if (structure.gridRows !== next.gridRows) return true;
+  if ((structure.spanMode || 'EQUAL') !== next.spanMode) return true;
+  if (next.spanMode === 'UNEQUAL') {
+    const cols = (structure.columnSpansM || []).join('|');
+    const rows = (structure.rowSpansM || []).join('|');
+    const nextCols = (next.columnSpansM || []).join('|');
+    const nextRows = (next.rowSpansM || []).join('|');
+    if (cols !== nextCols || rows !== nextRows) return true;
+  }
+  return false;
+}
+
+export const applySimplePlan = (req: AuthRequest, res: Response): void => {
+  if (!canWrite(req, res)) return;
+  const structure = db.buildingStructures.find((s) => s.id === req.params.id);
+  if (!structure) {
+    fail(res, 404, 'NOT_FOUND', 'Structure not found.');
+    return;
+  }
+  const body = req.body || {};
+  const overallLengthM = Number(body.overallLengthM);
+  const overallBreadthM = Number(body.overallBreadthM);
+  const confirm = Boolean(body.confirm);
+  const acknowledgeRegenerate = Boolean(body.acknowledgeRegenerate);
+  if (structure.geometryStatus === 'CONFIRMED' && !acknowledgeRegenerate && (
+    structure.overallLengthM !== overallLengthM || structure.overallBreadthM !== overallBreadthM
+  )) {
+    fail(res, 409, 'GEOMETRY_CONFIRMED', 'Changing the plan will regenerate walls. Acknowledge regeneration before continuing.');
+    return;
+  }
+
+  const openSides = {
+    front: Boolean(body.openSides?.front),
+    rear: Boolean(body.openSides?.rear),
+    left: Boolean(body.openSides?.left),
+    right: Boolean(body.openSides?.right),
+  };
+  const generated = generateSimpleRectanglePlan({
+    structureId: structure.id,
+    overallLengthM,
+    overallBreadthM,
+    wallThicknessM: numberOrNull(body.wallThicknessM) ?? structure.wallThicknessM,
+    openSides,
+  });
+  if ('error' in generated) {
+    fail(res, 400, 'VALIDATION_ERROR', generated.error);
+    return;
+  }
+
+  if (body.storeyHeightM !== undefined) structure.storeyHeightM = numberOrNull(body.storeyHeightM);
+  if (body.wallThicknessM !== undefined) structure.wallThicknessM = numberOrNull(body.wallThicknessM);
+  structure.dimensionConvention = 'CLEAR_INTERNAL';
+  structure.shape = 'RECTANGLE';
+  structure.overallLengthM = generated.overallLengthM;
+  structure.overallBreadthM = generated.overallBreadthM;
+  structure.gridColumns = null;
+  structure.gridRows = null;
+  structure.spanMode = null;
+  structure.columnSpansM = null;
+  structure.rowSpansM = null;
+  structure.openSides = openSides;
+  structure.attachedToStructureId = body.attachedToStructureId ? String(body.attachedToStructureId) : structure.attachedToStructureId || null;
+  structure.attachedSide = normalizeAttachedSide(body.attachedSide) || structure.attachedSide || null;
+  structure.geometryStatus = confirm ? 'CONFIRMED' : 'DRAFT_GENERATED';
+  structure.geometryConfirmedAt = confirm ? new Date().toISOString() : null;
+  structure.updatedAt = new Date().toISOString();
+
+  // Sheds and porches do not invent rooms.
+  const keptRooms = db.rooms.filter((room) => room.structureId !== structure.id);
+  db.rooms.splice(0, db.rooms.length, ...keptRooms);
+
+  const walls: WallRunFact[] = generated.walls.map((wall) => ({
+    id: wall.id,
+    structureId: wall.structureId,
+    origin: confirm ? 'ENGINEER_CONFIRMED' : 'CANDIDATE',
+    kind: wall.kind,
+    segmentKind: wall.segmentKind,
+    label: wall.label,
+    count: wall.count,
+    lengthM: wall.lengthM,
+    breadthM: wall.breadthM,
+    depthM: wall.depthM,
+    thicknessM: wall.thicknessM,
+    heightM: structure.storeyHeightM,
+    thicknessSource: 'INHERITED',
+    heightSource: 'INHERITED',
+    verticalZones: [],
+    sourceRoomIds: [],
+    generated: true,
+    axis: wall.axis,
+    role: wall.role,
+    confirmedBy: confirm ? req.user?.name : undefined,
+    confirmedAt: confirm ? new Date().toISOString() : undefined,
+  }));
+  const keptWalls = db.wallRuns.filter((wall) => wall.structureId !== structure.id || wall.origin === 'MANUAL');
+  db.wallRuns.splice(0, db.wallRuns.length, ...keptWalls, ...walls);
+  db.save();
+  res.status(200).json({
+    structure,
+    wallRuns: walls,
+    note: confirm ? 'Simple plan confirmed.' : 'Simple plan saved as a draft check sketch.',
+    bundle: bundle(structure.caseId),
+  });
+};
+
+export const patchWallRun = (req: AuthRequest, res: Response): void => {
+  if (!canWrite(req, res)) return;
+  const wall = db.wallRuns.find((item) => item.id === req.params.id);
+  if (!wall) {
+    fail(res, 404, 'NOT_FOUND', 'Wall run not found.');
+    return;
+  }
+  const structure = db.buildingStructures.find((item) => item.id === wall.structureId);
+  const body = req.body || {};
+  if (body.label !== undefined) wall.label = String(body.label);
+  if (body.segmentKind) wall.segmentKind = normalizeSegmentKind(body.segmentKind) || wall.segmentKind;
+  if (body.thicknessM !== undefined) {
+    wall.thicknessM = numberOrNull(body.thicknessM);
+    wall.breadthM = wall.thicknessM;
+    wall.thicknessSource = wall.thicknessM === null || wall.thicknessM === structure?.wallThicknessM ? 'INHERITED' : 'OVERRIDE';
+  }
+  if (body.heightM !== undefined) {
+    wall.heightM = numberOrNull(body.heightM);
+    wall.heightSource = wall.heightM === null || wall.heightM === structure?.storeyHeightM ? 'INHERITED' : 'OVERRIDE';
+  }
+  if (Array.isArray(body.verticalZones)) {
+    wall.verticalZones = body.verticalZones.map((zone: Partial<VerticalZoneFact>, index: number) => ({
+      id: zone.id || `zone-${wall.id}-${index + 1}`,
+      kind: zone.kind === 'MESH' || zone.kind === 'OTHER' ? zone.kind : 'MASONRY',
+      heightM: numberOrNull(zone.heightM),
+      notes: zone.notes ? String(zone.notes) : '',
+    }));
+  }
+  db.save();
+  res.status(200).json({ wallRun: wall, bundle: bundle(structure?.caseId || '') });
+};
+
+export const patchRoom = (req: AuthRequest, res: Response): void => {
+  if (!canWrite(req, res)) return;
+  const room = db.rooms.find((item) => item.id === req.params.id);
+  if (!room) {
+    fail(res, 404, 'NOT_FOUND', 'Room not found.');
+    return;
+  }
+  const enclosure = req.body?.enclosure;
+  if (enclosure === 'ENCLOSED' || enclosure === 'OPEN' || enclosure === 'PARTIALLY_OPEN' || enclosure === 'UNKNOWN') {
+    room.enclosure = enclosure;
+  }
+  if (req.body?.code !== undefined) room.code = String(req.body.code).trim() || room.code;
+  const structure = db.buildingStructures.find((item) => item.id === room.structureId);
+  db.save();
+  res.status(200).json({ room, bundle: bundle(structure?.caseId || '') });
+};
+
+function normalizeStructureKind(value: unknown): StructureKind | null {
+  const kind = String(value || '').toUpperCase();
+  if (kind === 'MAIN_HOUSE' || kind === 'GI_SHED' || kind === 'OPEN_SHED' || kind === 'PORCH' || kind === 'STORE' || kind === 'OTHER') {
+    return kind;
+  }
+  return null;
+}
+
+function kindFromName(name: string): StructureKind {
+  const lower = name.toLowerCase();
+  if (lower.includes('gi') || lower.includes('tin')) return 'GI_SHED';
+  if (lower.includes('open shed')) return 'OPEN_SHED';
+  if (lower.includes('porch') || lower.includes('veranda')) return 'PORCH';
+  if (lower.includes('store')) return 'STORE';
+  if (lower.includes('house') || lower.includes('main')) return 'MAIN_HOUSE';
+  return 'OTHER';
+}
+
+function defaultNameForKind(kind: StructureKind): string {
+  if (kind === 'MAIN_HOUSE') return 'Main house';
+  if (kind === 'GI_SHED') return 'Tin / GI shed';
+  if (kind === 'OPEN_SHED') return 'Open shed';
+  if (kind === 'PORCH') return 'Porch / Veranda';
+  if (kind === 'STORE') return 'Store';
+  return 'Other structure';
+}
+
+function normalizeAttachedSide(value: unknown): AttachedSide | null {
+  const side = String(value || '').toUpperCase();
+  if (side === 'FRONT' || side === 'REAR' || side === 'LEFT' || side === 'RIGHT') return side;
+  return null;
+}
+
+function normalizeSegmentKind(value: unknown): WallSegmentKind | null {
+  const kind = String(value || '').toUpperCase();
+  if (kind === 'OUTER' || kind === 'INTERNAL' || kind === 'PARTITION' || kind === 'LOW_WALL' || kind === 'OTHER') return kind;
+  return null;
 }
 
 export const replaceRooms = (req: AuthRequest, res: Response): void => {
@@ -404,23 +878,86 @@ export const createDraftLine = (req: AuthRequest, res: Response): void => {
     fail(res, 404, 'NOT_FOUND', 'Structure not found.');
     return;
   }
-  const built = buildDraftBlock({
-    ruleId: String(req.body.ruleId || ''),
+  const ruleId = String(req.body.ruleId || '');
+  const valuationCase = db.cases.find((item) => item.id === structure.caseId);
+  const catalogue = valuationCase?.rateScheduleVersionId
+    ? db.catalogueItems.filter((item) => item.scheduleVersionId === valuationCase.rateScheduleVersionId)
+    : [];
+  const generated = generateMeasurementForStructure({
     structure,
     rooms: db.rooms.filter((r) => r.structureId === structure.id),
     walls: db.wallRuns.filter((w) => w.structureId === structure.id),
     openings: db.openings.filter((o) => o.structureId === structure.id),
     members: db.members.filter((m) => m.structureId === structure.id),
-    blockId: `blk-${uuidv4().slice(0, 8)}`,
-    caseId: structure.caseId,
+    catalogue,
+    existingBlocks: db.measurementBlocks.filter((b) => b.caseId === structure.caseId),
+    ruleId,
   });
-  if ('error' in built) {
-    fail(res, 400, 'INPUT_REQUIRED', built.error);
+  if (!generated.created.length && !generated.updated.length) {
+    const reason = generated.skipped[0]?.reason || 'No draft quantity could be created for that rule.';
+    fail(res, 400, 'INPUT_REQUIRED', reason);
     return;
   }
-  db.measurementBlocks.push(built.block);
+  replaceBlocks(structure.caseId, generated.nextBlocks);
   db.save();
-  res.status(201).json({ block: built.block, bundle: bundle(structure.caseId) });
+  const block = generated.created[0] || generated.updated[0];
+  res.status(201).json({
+    block,
+    note: 'Draft line created from the rule registry. It is not a validated production rule until accepted.',
+    bundle: bundle(structure.caseId),
+  });
+};
+
+export const generateMeasurementSheet = (req: AuthRequest, res: Response): void => {
+  if (!canWrite(req, res)) return;
+  const structure = db.buildingStructures.find((s) => s.id === req.params.id);
+  if (!structure) {
+    fail(res, 404, 'NOT_FOUND', 'Structure not found.');
+    return;
+  }
+  const valuationCase = db.cases.find((item) => item.id === structure.caseId);
+  const catalogue = valuationCase?.rateScheduleVersionId
+    ? db.catalogueItems.filter((item) => item.scheduleVersionId === valuationCase.rateScheduleVersionId)
+    : [];
+  const rooms = db.rooms.filter((r) => r.structureId === structure.id);
+  const walls = db.wallRuns.filter((w) => w.structureId === structure.id);
+  const openings = db.openings.filter((o) => o.structureId === structure.id);
+  const members = db.members.filter((m) => m.structureId === structure.id);
+  // Gut-193 Eknath sheets use eknath.* only. Ordinary cases use the fact-driven draft.* residential pack.
+  const generated = generateMeasurementForStructure({
+    structure,
+    rooms,
+    walls,
+    openings,
+    members,
+    catalogue,
+    existingBlocks: db.measurementBlocks.filter((b) => b.caseId === structure.caseId),
+    includeGeneric: req.body?.includeGeneric !== false,
+  });
+  replaceBlocks(structure.caseId, generated.nextBlocks);
+  const rebound = rebindRatesForCase(structure.caseId);
+  db.save();
+  const schedulePinned = Boolean(valuationCase?.rateScheduleVersionId);
+  res.status(200).json({
+    created: generated.created.length,
+    updated: generated.updated.length,
+    skipped: generated.skipped,
+    rebound,
+    evaluations: generated.evaluations.map((item) => ({
+      ruleId: item.ruleId,
+      name: item.name,
+      status: item.status,
+      applicability: item.applicability,
+      reason: item.reason,
+      derivedNet: item.quantity?.derivedNet ?? null,
+      unit: item.unit,
+      catalogueItemNumber: item.catalogueItemNumber,
+    })),
+    note: schedulePinned
+      ? `Draft measurement lines written for review (${rebound} rate(s) bound). Accept only after checking quantities — source-profile formulas stay DRAFT.`
+      : 'Draft quantities were written, but no rate schedule is pinned on Screen 1. Pin CASE-193-RA-UI-GUIDE (Gut 193) and Year’s Purchase before Accept / Prepare abstract, or present cost stays 0.',
+    bundle: bundle(structure.caseId),
+  });
 };
 
 export const decideBlock = (req: AuthRequest, res: Response): void => {
@@ -467,24 +1004,29 @@ export const addManualBlock = (req: AuthRequest, res: Response): void => {
     return;
   }
   if (!req.body.reason || !String(req.body.reason).trim()) {
-    fail(res, 400, 'VALIDATION_ERROR', 'A manual line needs a reason.');
+    fail(res, 400, 'VALIDATION_ERROR', 'Say where this quantity was measured.');
     return;
   }
   const quantity = Number(req.body.quantity);
-  if (!Number.isFinite(quantity)) {
-    fail(res, 400, 'VALIDATION_ERROR', 'A manual line needs a quantity.');
+  if (!(quantity > 0)) {
+    fail(res, 400, 'VALIDATION_ERROR', 'The measured quantity must be greater than zero.');
+    return;
+  }
+  const chosen = chosenCatalogueItem(structure.caseId, req.body.catalogueItemId);
+  if (chosen.error) {
+    fail(res, 400, 'VALIDATION_ERROR', chosen.error);
     return;
   }
   const block: MeasurementBlockFact = {
     id: `blk-${uuidv4().slice(0, 8)}`,
     structureId: structure.id,
     caseId: structure.caseId,
-    title: String(req.body.title || 'Manual item'),
-    unit: String(req.body.unit || 'cum'),
+    title: chosen.item?.description || String(req.body.title || 'Measured item'),
+    unit: chosen.item?.unit || String(req.body.unit || ''),
     ruleId: 'manual',
     ruleStatus: 'DRAFT',
     status: 'MANUAL',
-    formulaText: 'Entered by the engineer',
+    formulaText: chosen.item ? 'Measured quantity. Unit and rate come from the selected catalogue row.' : 'Entered by the engineer',
     sourceFactIds: [],
     evidenceIds: [],
     derivedNet: null,
@@ -492,12 +1034,53 @@ export const addManualBlock = (req: AuthRequest, res: Response): void => {
     overrideReason: String(req.body.reason).trim(),
     decidedBy: req.user?.name,
     decidedAt: new Date().toISOString(),
-    rateMatch: 'UNMAPPED',
+    rateItemId: chosen.item?.id,
+    rateMatch: chosen.item ? 'UNIQUE' : 'UNMAPPED',
     lines: [],
   };
+  if (!block.unit) {
+    fail(res, 400, 'VALIDATION_ERROR', 'Choose a catalogue item so the unit is known.');
+    return;
+  }
   db.measurementBlocks.push(block);
   db.save();
   res.status(201).json({ block, bundle: bundle(structure.caseId) });
+};
+
+function chosenCatalogueItem(caseId: string, catalogueItemId: unknown): { item?: CatalogueItemRecord; error?: string } {
+  if (!catalogueItemId) return {};
+  const valuationCase = db.cases.find((item) => item.id === caseId);
+  if (!valuationCase?.rateScheduleVersionId) {
+    return { error: 'Pin a rate schedule on the case before choosing an item.' };
+  }
+  const items = db.catalogueItems.filter((item) => item.scheduleVersionId === valuationCase.rateScheduleVersionId);
+  const item = items.find((row) => row.id === catalogueItemId);
+  if (!item) return { error: 'That item is not in the rate schedule pinned on this case.' };
+  return { item };
+}
+
+export const searchCaseCatalogue = (req: AuthRequest, res: Response): void => {
+  const valuationCase = requireBuildingCase(req.params.caseId, res);
+  if (!valuationCase) return;
+  if (!valuationCase.rateScheduleVersionId) {
+    res.status(200).json({
+      readiness: 'MISSING_DATA',
+      reason: 'Choose a rate schedule on the case before searching items.',
+      results: [],
+      ambiguousItemNumbers: [],
+    });
+    return;
+  }
+  const items = db.catalogueItems.filter((item) => item.scheduleVersionId === valuationCase.rateScheduleVersionId);
+  const found = searchCatalogue(items, String(req.query.q || ''));
+  res.status(200).json({
+    readiness: found.ambiguousItemNumbers.length ? 'AMBIGUOUS' : 'MANUAL',
+    reason: found.ambiguousItemNumbers.length
+      ? 'More than one catalogue row shares an item number in these results. Choose the row. Nothing is selected automatically.'
+      : itemChoiceReadiness({ pinned: true, item: null, sameNumberCount: 0 }).reason,
+    results: found.results.map(publicItem),
+    ambiguousItemNumbers: found.ambiguousItemNumbers,
+  });
 };
 
 export const pinRate = (req: AuthRequest, res: Response): void => {
@@ -676,6 +1259,49 @@ function buildPlatformSnapshot(caseId: string, actor: string): CalculationSnapsh
     blockers.push('Depreciation is calculated and still needs the engineer to accept it before finalizing.');
   }
 
+  const measurementSheet = blocks
+    .filter((block) => block.status !== 'EXCLUDED')
+    .map((block) => {
+      const rateItem = scheduleItems.find((item) => item.id === block.rateItemId);
+      return {
+        title: block.title,
+        unit: block.unit,
+        ruleId: block.ruleId,
+        itemNumber: rateItem?.itemNumber
+          || (block.ruleId.startsWith('eknath.') ? catalogueItemFromRule(block.ruleId) : null),
+        derivedNet: block.derivedNet,
+        engineerNet: block.engineerNet,
+        status: block.status,
+        lines: block.lines.map((line) => ({
+          label: line.label,
+          count: line.count,
+          lengthM: line.lengthM,
+          breadthM: line.breadthM,
+          depthOrHeightM: line.depthOrHeightM,
+          sign: line.sign,
+          quantity: line.quantity,
+          formulaText: line.formulaText,
+        })),
+      };
+    });
+
+  const depreciationView = {
+    ...depreciation,
+    structures: depreciation.parts.map((part) => {
+      const structure = structures.find((item) => item.id === part.structureId);
+      return {
+        name: structure?.name || part.structureId,
+        presentCost: structureCosts.get(part.structureId) || 0,
+        depreciatedValue: part.depreciated,
+        ageYears: part.presentLife,
+        remainingLifeYears: part.futureLife,
+        ypFuture: part.ypFuture,
+        ypTotal: part.ypTotal,
+      };
+    }),
+  };
+
+  const primary = structures[0];
   const body = {
     label: 'PLATFORM',
     owner: property?.ownerName,
@@ -690,8 +1316,12 @@ function buildPlatformSnapshot(caseId: string, actor: string): CalculationSnapsh
     ypTableVersionId: valuationCase.ypTableVersionId || null,
     roundingProfileId: 'UNVALIDATED_HALF_UP_RUPEE',
     salvage: null,
+    structureTypeText: primary?.structureTypeText || primary?.wallMaterialText || '',
+    constructionYear: primary?.constructionYear ?? null,
+    usefulLifeYears: primary?.usefulLifeYears ?? null,
     abstract,
-    depreciation,
+    measurementSheet,
+    depreciation: depreciationView,
     presentCost: depreciation.presentCost,
     depreciatedValue: depreciation.depreciatedValue,
   };
@@ -792,7 +1422,61 @@ export const runSourceReplay = (req: AuthRequest, res: Response): void => {
   const valuationCase = requireBuildingCase(req.params.caseId, res);
   if (!valuationCase) return;
   const replay = sourceReplay();
-  const body = { ...replay, note: 'SOURCE_REPLAY fixture. Not the production specification.' };
+  const property = db.properties.find((p) => p.caseId === valuationCase.id);
+  const body = {
+    ...replay,
+    note: 'SOURCE_REPLAY fixture. Not the production specification.',
+    owner: property?.ownerName,
+    gutNumber: property?.surveyNumber || property?.houseNumber,
+    village: property?.village,
+    taluka: property?.taluka,
+    district: property?.district,
+    laCaseNumber: property?.laCaseNumber,
+    conflictingIdentifierNotes: valuationCase.conflictingIdentifierNotes || '',
+    abstract: replay.lines.map((line) => ({
+      title: line.description,
+      quantity: Number(line.quantity),
+      unit: line.unit,
+      rate: Number(line.rate),
+      amount: line.amount,
+      itemNumber: line.itemNumber,
+      ruleId: 'SOURCE_REPLAY',
+      ruleStatus: 'REPLAY_ONLY',
+    })),
+    measurementSheet: replay.lines.map((line) => ({
+      title: line.description,
+      unit: line.unit,
+      ruleId: 'SOURCE_REPLAY',
+      itemNumber: line.itemNumber,
+      derivedNet: Number(line.quantity),
+      engineerNet: Number(line.quantity),
+      status: 'ACCEPTED',
+      lines: [{
+        label: line.description,
+        count: 1,
+        lengthM: Number(line.quantity),
+        breadthM: 1,
+        depthOrHeightM: 1,
+        sign: 1,
+        quantity: Number(line.quantity),
+        formulaText: 'SOURCE_REPLAY workbook net',
+      }],
+    })),
+    depreciation: {
+      formula: replay.formula,
+      presentCost: replay.presentCost,
+      depreciatedValue: replay.depreciatedValue,
+      structures: [{
+        name: 'Main house (source replay)',
+        presentCost: replay.presentCost,
+        depreciatedValue: replay.depreciatedValue,
+        ypFuture: 5.389,
+        ypTotal: 7.024,
+      }],
+    },
+    presentCost: replay.presentCost,
+    depreciatedValue: replay.depreciatedValue,
+  };
   const snapshot: CalculationSnapshotRecord = {
     id: `snap-${uuidv4().slice(0, 8)}`,
     caseId: valuationCase.id,
@@ -860,6 +1544,92 @@ export const uploadEvidence = (req: AuthRequest, res: Response): void => {
   res.status(201).json({ evidence: db.caseEvidence.filter((e) => e.caseId === valuationCase.id) });
 };
 
+export const acceptAllDraftBlocks = (req: AuthRequest, res: Response): void => {
+  if (!canWrite(req, res)) return;
+  const valuationCase = requireBuildingCase(req.params.caseId, res);
+  if (!valuationCase) return;
+  const structureId = req.body?.structureId ? String(req.body.structureId) : null;
+  let accepted = 0;
+  let skippedUnmapped = 0;
+  db.measurementBlocks.forEach((block, index) => {
+    if (block.caseId !== valuationCase.id) return;
+    if (structureId && block.structureId !== structureId) return;
+    if (block.ruleId.startsWith('draft.')) return;
+    if (block.status !== 'REQUIRES_CONFIRMATION' && block.status !== 'REQUIRES_REVIEW' && block.status !== 'APPLICABLE') return;
+    if (block.rateMatch !== 'UNIQUE' && block.rateMatch !== 'MANUAL') {
+      skippedUnmapped += 1;
+      return;
+    }
+    const result = applyDecision(block, 'ACCEPT', { id: req.user!.id, name: req.user!.name });
+    if (!('error' in result)) {
+      db.measurementBlocks[index] = result.block;
+      accepted += 1;
+    }
+  });
+  db.save();
+  res.status(200).json({
+    accepted,
+    skippedUnmapped,
+    note: skippedUnmapped
+      ? `${accepted} line(s) accepted. ${skippedUnmapped} still need a unique catalogue rate — pin CASE-193-RA-UI-GUIDE (or the matching schedule) on Screen 1, then Bind rates.`
+      : 'Draft lines with unique rates were accepted for abstract calculation.',
+    bundle: bundle(valuationCase.id),
+  });
+};
+
+/** Re-match catalogue item numbers onto existing measurement lines after a schedule is pinned. */
+export const bindCaseRates = (req: AuthRequest, res: Response): void => {
+  if (!canWrite(req, res)) return;
+  const valuationCase = requireBuildingCase(req.params.caseId, res);
+  if (!valuationCase) return;
+  if (!valuationCase.rateScheduleVersionId) {
+    fail(res, 400, 'INPUT_REQUIRED', 'Pin a rate schedule on Screen 1 first (for Gut 193 use CASE-193-RA-UI-GUIDE).');
+    return;
+  }
+  const rebound = rebindRatesForCase(valuationCase.id);
+  db.save();
+  res.status(200).json({
+    rebound,
+    note: rebound
+      ? `Bound rates on ${rebound} line(s). Exclude generic helper lines if they are still accepted without rates, then Prepare abstract.`
+      : 'No lines could be matched. Confirm the pinned schedule uses item numbers 1, 4, 21, 19.1, 68, etc.',
+    bundle: bundle(valuationCase.id),
+  });
+};
+
+/** Exclude generic draft.* helper lines so they do not block the workbook abstract. */
+export const excludeHelperBlocks = (req: AuthRequest, res: Response): void => {
+  if (!canWrite(req, res)) return;
+  const valuationCase = requireBuildingCase(req.params.caseId, res);
+  if (!valuationCase) return;
+  const structureId = req.body?.structureId ? String(req.body.structureId) : null;
+  let excluded = 0;
+  db.measurementBlocks.forEach((block, index) => {
+    if (block.caseId !== valuationCase.id) return;
+    if (structureId && block.structureId !== structureId) return;
+    if (!block.ruleId.startsWith('draft.')) return;
+    if (block.status === 'EXCLUDED') return;
+    const result = applyDecision(
+      block,
+      'EXCLUDE',
+      { id: req.user!.id, name: req.user!.name },
+      'Generic helper line — not part of the workbook abstract.'
+    );
+    if (!('error' in result)) {
+      db.measurementBlocks[index] = result.block;
+      excluded += 1;
+    }
+  });
+  db.save();
+  res.status(200).json({
+    excluded,
+    note: excluded
+      ? `Excluded ${excluded} helper line(s). Bind rates on the Eknath lines, then Prepare abstract.`
+      : 'No helper lines left to exclude.',
+    bundle: bundle(valuationCase.id),
+  });
+};
+
 export const exportSnapshotPdf = (req: AuthRequest, res: Response): void => {
   if (!canExport(req, res)) return;
   const snapshot = db.calculationSnapshots.find((s) => s.id === req.params.id);
@@ -867,65 +1637,112 @@ export const exportSnapshotPdf = (req: AuthRequest, res: Response): void => {
     fail(res, 404, 'NOT_FOUND', 'Snapshot not found.');
     return;
   }
-  const doc = new PDFDocument({ margin: 48, compress: false });
+  if (snapshot.status !== 'FINALIZED') {
+    fail(res, 409, 'NOT_FINALIZED', 'Finalize the valuation first. Only the finalized PDF can be downloaded.');
+    return;
+  }
+  const valuationCase = db.cases.find((item) => item.id === snapshot.caseId);
+  const catalogueItems = valuationCase?.rateScheduleVersionId
+    ? db.catalogueItems.filter((item) => item.scheduleVersionId === valuationCase.rateScheduleVersionId)
+    : [];
+  const enriched = enrichSnapshotForReport(snapshot, catalogueItems);
+  const doc = new PDFDocument({ margin: 36, size: 'A4', compress: false, autoFirstPage: true });
   res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', `attachment; filename="${snapshot.id}.pdf"`);
+  res.setHeader('Content-Disposition', `attachment; filename="Valuation_Report_${snapshot.caseId}.pdf"`);
   doc.pipe(res);
-  writeSnapshotText(snapshot, (line) => doc.text(line));
+  writeValuationReportPdf(enriched, doc);
   doc.end();
 };
 
-export const exportSnapshotXls = (req: AuthRequest, res: Response): void => {
+export const exportSnapshotXls = async (req: AuthRequest, res: Response): Promise<void> => {
   if (!canExport(req, res)) return;
   const snapshot = db.calculationSnapshots.find((s) => s.id === req.params.id);
   if (!snapshot) {
     fail(res, 404, 'NOT_FOUND', 'Snapshot not found.');
     return;
   }
-  const lines: string[] = [];
-  writeSnapshotText(snapshot, (line) => lines.push(line));
-  const rows = lines.map((line) => `<Row><Cell><Data ss:Type="String">${escapeXml(line)}</Data></Cell></Row>`).join('');
-  const xml = `<?xml version="1.0"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
-<Worksheet ss:Name="Snapshot"><Table>${rows}</Table></Worksheet>
-</Workbook>`;
-  res.setHeader('Content-Type', 'application/vnd.ms-excel');
-  res.setHeader('Content-Disposition', `attachment; filename="${snapshot.id}.xls"`);
-  res.status(200).send(xml);
+  if (snapshot.status !== 'FINALIZED') {
+    fail(res, 409, 'NOT_FINALIZED', 'Finalize the valuation first. Only the finalized Excel workbook can be downloaded.');
+    return;
+  }
+  try {
+    const valuationCase = db.cases.find((item) => item.id === snapshot.caseId);
+    const structure = db.buildingStructures.find((item) => item.caseId === snapshot.caseId && item.participation === 'INCLUDED');
+    const catalogueItems = valuationCase?.rateScheduleVersionId
+      ? db.catalogueItems.filter((item) => item.scheduleVersionId === valuationCase.rateScheduleVersionId)
+      : [];
+    const ypTable = valuationCase?.ypTableVersionId
+      ? db.ypTables.find((table) => table.id === valuationCase.ypTableVersionId) || null
+      : null;
+    const valuationYear = valuationCase?.valuationDate ? Number(String(valuationCase.valuationDate).slice(0, 4)) : null;
+    const buffer = await buildValuationWorkbook(snapshot, {
+      catalogueItems,
+      ypTable,
+      structureTypeText: structure?.structureTypeText || structure?.wallMaterialText || '',
+      constructionYear: structure?.constructionYear ?? null,
+      usefulLifeYears: structure?.usefulLifeYears ?? null,
+      valuationYear,
+    });
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="Valuation_Workbook_${snapshot.caseId}.xlsx"`);
+    res.status(200).send(buffer);
+  } catch (error) {
+    fail(res, 500, 'EXPORT_FAILED', error instanceof Error ? error.message : 'Workbook export failed.');
+  }
 };
 
-function writeSnapshotText(snapshot: CalculationSnapshotRecord, write: (line: string) => void): void {
-  const body = snapshot.body as {
-    owner?: string;
-    gutNumber?: string;
-    village?: string;
-    laCaseNumber?: string;
-    conflictingIdentifierNotes?: string;
-    abstract?: { title: string; quantity: number; unit: string; rate: number | null; amount: number | null; itemNumber: string | null }[];
-    salvage?: null;
-    depreciation?: { formula?: string };
-  };
-  write(`Snapshot ${snapshot.id} (${snapshot.label}, ${snapshot.status})`);
-  write(`Owner: ${body.owner || ''}`);
-  write(`Gut: ${body.gutNumber || ''}`);
-  write(`Village: ${body.village || ''}`);
-  write(`LA case: ${body.laCaseNumber || ''}`);
-  write(`Identity notes: ${body.conflictingIdentifierNotes || ''}`);
-  write(`Rounding profile: ${snapshot.roundingProfileId}`);
-  write(`Present cost: ${snapshot.presentCost ?? 'blocked'}`);
-  write(`Depreciated value: ${snapshot.depreciatedValue ?? 'blocked'}`);
-  write(`Formula: ${snapshot.depreciationFormula}`);
-  write('Salvage: none');
-  write('Abstract');
-  for (const line of body.abstract || []) {
-    write(`${line.itemNumber || '—'} ${line.title} ${line.quantity} ${line.unit} rate ${line.rate ?? '—'} amount ${line.amount ?? '—'}`);
-  }
-  if (snapshot.blockers.length) {
-    write('Blockers / conflicts');
-    snapshot.blockers.forEach((blocker) => write(blocker));
-  }
+function enrichSnapshotForReport(
+  snapshot: CalculationSnapshotRecord,
+  catalogueItems: { itemNumber: string; description: string }[]
+): CalculationSnapshotRecord {
+  const body = { ...(snapshot.body as Record<string, unknown>) };
+  const abstract = Array.isArray(body.abstract) ? [...body.abstract] as { title: string; itemNumber: string | null; ruleId?: string }[] : [];
+  body.abstract = abstract.map((row) => {
+    if (!row.itemNumber) return row;
+    const hit = catalogueItems.find((item) => String(item.itemNumber).trim() === String(row.itemNumber).trim());
+    return hit ? { ...row, title: hit.description } : row;
+  });
+  return { ...snapshot, body };
 }
 
-function escapeXml(value: string): string {
-  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+function catalogueItemFromRule(ruleId: string): string | null {
+  const map: Record<string, string> = {
+    'eknath.excavation.v1': '1',
+    'eknath.soling.v1': '4',
+    'eknath.rcc-beam.v1': '21',
+    'eknath.tmt-steel.v1': '121',
+    'eknath.aac-masonry.v1': '19.1',
+    'eknath.rcc-column.v1': '6',
+    'eknath.jungle-wood.v1': '68',
+    'eknath.ceramic-floor.v1': '112',
+    'eknath.ceiling.v1': '98',
+    'eknath.external-plaster.v1': '30',
+    'eknath.internal-plaster.v1': '29',
+    'eknath.wood-frames.v1': '97',
+  };
+  return map[ruleId] || null;
 }
+
+function rebindRatesForCase(caseId: string): number {
+  const valuationCase = db.cases.find((item) => item.id === caseId);
+  if (!valuationCase?.rateScheduleVersionId) return 0;
+  const items = db.catalogueItems.filter((item) => item.scheduleVersionId === valuationCase.rateScheduleVersionId);
+  let rebound = 0;
+  db.measurementBlocks.forEach((block, index) => {
+    if (block.caseId !== caseId) return;
+    if (block.ruleId.startsWith('draft.')) return;
+    const itemNumber = catalogueItemFromRule(block.ruleId);
+    if (!itemNumber) return;
+    const matched = matchCatalogue(items, itemNumber);
+    if (matched.status !== 'UNIQUE' || !matched.matches[0]) return;
+    if (block.rateItemId === matched.matches[0].id && block.rateMatch === 'UNIQUE') return;
+    db.measurementBlocks[index] = {
+      ...block,
+      rateItemId: matched.matches[0].id,
+      rateMatch: 'UNIQUE',
+    };
+    rebound += 1;
+  });
+  return rebound;
+}
+

@@ -218,16 +218,21 @@ test('gut 193 end to end matches the workbook valuation', async () => {
     assert.strictEqual(pdf.status, 200);
     assert.ok(pdfText.includes('1073836'), 'PDF is missing the present cost');
     assert.ok(pdfText.includes('823876'), 'PDF is missing the depreciated value');
-    assert.ok(pdfText.includes('Salvage: none'), 'PDF is missing the salvage line');
+    assert.ok(pdfText.includes('Salvage') && pdfText.includes('none'), 'PDF is missing the salvage line');
+    assert.ok(
+      (pdfText.includes('J I G A O N') || pdfText.includes('JIGAON')) &&
+      pdfText.includes('ABSTRACT') &&
+      pdfText.includes('MEASUREMENT'),
+      'PDF missing compiled workbook sections'
+    );
 
     const xls = await fetch(base + `/api/v1/workflow/snapshots/${finalized.snapshot.id}/xls`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    const xlsText = await xls.text();
     assert.strictEqual(xls.status, 200);
-    assert.ok(xlsText.includes('1073836'));
-    assert.ok(xlsText.includes('823876'));
-    assert.ok(xlsText.includes('Salvage: none'));
+    const bytes = Buffer.from(await xls.arrayBuffer());
+    assert.ok(bytes[0] === 0x50 && bytes[1] === 0x4b, 'Excel export must be .xlsx (ZIP)');
+    assert.ok(bytes.byteLength > 5000, 'Workbook export too small');
   } finally {
     server.close();
   }

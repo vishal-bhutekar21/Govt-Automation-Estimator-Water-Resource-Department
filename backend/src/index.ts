@@ -16,7 +16,7 @@ import auditRoutes from './routes/auditRoutes';
 import workflowRoutes from './routes/workflowRoutes';
 
 const app: Express = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5055;
 
 // Initialize persistent database
 db.init();

@@ -364,6 +364,99 @@ Unchanged from the list above. In code these stay draft, blocked, or confined to
 - Official documents for a new case exist only after a snapshot is calculated.
 - The detailed engineering specification `.docx` named in the request was not in the workspace, so it was not applied.
 
+## UX correction after the first building screens
+
+The first building screens still asked the engineer to fill blank text, type an item number, and guess which fact a calculation needed. `UX_DATA_ENTRY_AUDIT.md` records each field.
+
+What the code does now:
+
+- Case attention is returned with the workflow bundle. It does not write quantities.
+- `analyzeStructure` reports `MISSING_DATA`, `NOT_APPLICABLE`, or `DRAFT_RULE`. It does not return `READY` while `VALIDATED_RULES` is empty.
+- Room area, wall volume, opening area, and member volume can be previewed from facts already saved. The preview is not a measurement-sheet line.
+- Catalogue search is `GET /api/v1/workflow/cases/:caseId/catalogue?q=`. Selecting a row sends `catalogueItemId`. The unit is taken from that row.
+- Duplicate item numbers are listed and are not auto-selected.
+- Openings and members are entered with count and sizes. A missing count is still not zero.
+- Gut 193 source replay is unchanged.
+
+`Government_Building_Valuation_Detailed_Engineering_Derivation_Spec.docx` is still not in the repository. Plaster, steel, centre-line, salvage, and useful life remain unvalidated.
+
+Checked in the browser against a temporary case (readonly database):
+
+- Case completeness chips and per-structure chips (profile, rooms, wall confirmation, openings, members) are visible.
+- Building definition uses millimetres for wall thickness, metres for height and room sizes, and a derived room area. Enclosed / Open / Not sure stay readable on a narrow column.
+- Catalogue search for “excavation” returned the pinned seed row. Selecting it locked the unit to Cum and did not ask for an item number. Adding 10.33 Cum with a measurement note created a measured line.
+- Screen 3 does not write a quantity. With no rooms or walls it reports that there is nothing on this structure to measure.
+- Evidence types are labelled in ordinary words. The finalize screen shows the schedule name, not the stored id.
+
+## Grid structure input and 2D check sketch
+
+### CURRENT IMPLEMENTATION
+
+Building Definition (`BuildingGuide.tsx` / unused `BuildingScreen`) asks for rooms one by one: code, length, breadth, optional row/bay. Walls come from `POST .../geometry/candidates` via `proposeWallRuns`, which invents a candidate per room face and can duplicate shared boundaries. There is no overall long/short input, no columns×rows grid, and no live 2D sketch. Auth, roles, legacy `CASE/2008-09/165`, and gut-193 source replay stay outside this screen.
+
+### TARGET IMPLEMENTATION
+
+Engineer enters long side, short side, columns, and rows (equal grid by default; optional unequal spans). The UI draws a check sketch immediately. Source layout facts are stored on the structure. Generated rooms and non-duplicated wall runs persist through `PUT .../structure-layout`. Confirm marks walls `ENGINEER_CONFIRMED`. No new valuation formulas.
+
+### FILES TO CHANGE
+
+- `IMPLEMENTATION_CHANGE_MAP.md` (this section)
+- `backend/src/workflow/types.ts` — layout source fields; room/wall generated metadata
+- `backend/src/controllers/workflowController.ts` — apply layout endpoint; structure create defaults
+- `backend/src/routes/workflowRoutes.ts` — route
+- `frontend/src/pages/valuation/BuildingGuide.tsx` — structure-first UI
+- `frontend/src/pages/valuation/ValuationWorkspace.tsx` — wire save/confirm layout
+- `docs/BUILDING_WORKFLOW.md` — describe the structure workflow
+
+### FILES TO ADD
+
+- `backend/src/workflow/gridGeometry.ts` — deterministic generator (authoritative)
+- `backend/test/grid_geometry.test.ts`
+- `frontend/src/pages/valuation/gridGeometry.ts` — same algorithm for live preview
+- `frontend/src/pages/valuation/StructureSketch.tsx` — SVG check sketch
+
+### SCHEMA / MODEL CHANGES
+
+`BuildingStructure` gains: `shape`, `overallLengthM`, `overallBreadthM`, `gridColumns`, `gridRows`, `spanMode`, `columnSpansM`, `rowSpansM`, `geometryStatus` (`NONE` | `DRAFT_GENERATED` | `CONFIRMED`).
+
+`RoomFact` gains: `generated`, `boundaryWallIds` `{ north, south, east, west }`.
+
+`WallRunFact` gains: `generated`, optional `axis` (`LONG` | `SHORT`), optional `role`.
+
+Existing room/wall collections remain. Legacy cases have no building structures.
+
+### API CHANGES
+
+`PUT /api/v1/workflow/structures/:id/structure-layout`
+
+Body: layout source + `confirm` + optional `acknowledgeRegenerate` when already confirmed.
+
+Writes structure source fields, replaces that structure’s rooms, replaces non-manual walls with generated runs. Confirmed → wall origin `ENGINEER_CONFIRMED`; draft → `CANDIDATE`. Marks dependent measurement blocks for review when regenerating after confirmation.
+
+### UI CHANGES
+
+Structure Information first: shape Rectangle, long/short metres, columns×rows, live total rooms, live SVG check sketch, derived room table. Construction facts below. Room-by-room primary entry removed for grid structures. Manual wall add remains for exceptions.
+
+### GEOMETRY GENERATION LOGIC
+
+Equal: `columnSpan = L/C`, `rowSpan = B/R`. Unequal: spans must sum to L and B within tolerance. Walls: 2 outer long + 2 outer short + (C−1) full-height vertical shared + (R−1) full-width horizontal shared. Adjacent rooms share one wall id. Room codes R1… row-major.
+
+### SAVE / LOAD IMPACT
+
+Preview is client-side. Persist only through the layout endpoint. Reload from case bundle. Changing confirmed layout requires acknowledgement.
+
+### LEGACY COMPATIBILITY
+
+`workflow !== 'BUILDING'` still rejected by workflow routes. Case 165 unchanged. Auth/roles/deploy unchanged. No valuation rule promotion.
+
+### TEST PLAN
+
+Grid counts for 4×2, 1×4, 4×1, 1×1; unequal span sums; invalid inputs; regeneration; shared wall identity; save/load via API; legacy case still opens.
+
+### RISKS
+
+Frontend and backend generators can drift if edited separately — tests lock the backend; frontend copies the same formulas. Huge grids capped. Existing hand-entered rooms on a structure are replaced when a layout is saved.
+
 ## Next required actions
 
 1. An engineer or the office decides the open items in the domain-validation list before any of them become `VALIDATED_RULE`.

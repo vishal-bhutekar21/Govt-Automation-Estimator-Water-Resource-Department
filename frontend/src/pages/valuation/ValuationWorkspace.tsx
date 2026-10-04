@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { BuildingGuide, MeasurementGuide, RuleGuidance } from './BuildingGuide';
 
 type Screen = 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -10,6 +11,7 @@ interface StructureRow {
   name: string;
   participation: 'INCLUDED' | 'EXCLUDED';
   exclusionReason?: string;
+  structureKind?: string | null;
   structureTypeText: string;
   wallMaterialText: string;
   wallThicknessM: number | null;
@@ -21,6 +23,21 @@ interface StructureRow {
   roofFinish: string;
   externalFinish: string;
   internalFinish: string;
+  overallLengthM?: number | null;
+  overallBreadthM?: number | null;
+  gridColumns?: number | null;
+  gridRows?: number | null;
+  spanMode?: 'EQUAL' | 'UNEQUAL' | null;
+  columnSpansM?: number[] | null;
+  rowSpansM?: number[] | null;
+  geometryStatus?: 'NONE' | 'DRAFT_GENERATED' | 'CONFIRMED' | null;
+  openSides?: { front?: boolean; rear?: boolean; left?: boolean; right?: boolean } | null;
+  attachedToStructureId?: string | null;
+  attachedSide?: string | null;
+  foundationWidthM?: number | null;
+  groundBeamDepthM?: number | null;
+  solingDepthM?: number | null;
+  evidenceConflictNotes?: string;
 }
 
 interface RoomRow {
@@ -30,7 +47,8 @@ interface RoomRow {
   breadthM: number | null;
   rowIndex: number | null;
   bayIndex: number | null;
-  enclosure: 'ENCLOSED' | 'OPEN' | 'UNKNOWN';
+  enclosure: 'ENCLOSED' | 'OPEN' | 'PARTIALLY_OPEN' | 'UNKNOWN';
+  boundaryWallIds?: { north: string; south: string; east: string; west: string };
 }
 
 interface WallRow {
@@ -41,6 +59,13 @@ interface WallRow {
   count: number;
   lengthM: number;
   breadthM: number | null;
+  thicknessM?: number | null;
+  heightM?: number | null;
+  thicknessSource?: string;
+  heightSource?: string;
+  segmentKind?: string;
+  verticalZones?: { id: string; kind: string; heightM: number | null }[];
+  sourceRoomIds?: string[];
 }
 
 interface BlockRow {
@@ -88,6 +113,10 @@ interface Bundle {
   depreciationDecision: { status: string } | null;
   rateScheduleVersions: { id: string; versionLabel: string; name: string; legacy: boolean }[];
   ypTables: { id: string; name: string; legacy: boolean; citation: string }[];
+  guidance?: {
+    structures: { structureId: string; derived: { label: string; quantity: number | null; unit: string; source: string; note: string }[]; profile: { id: string; label: string; state: string; detail: string }[]; rules: RuleGuidance[] }[];
+    attention: { label: string; state: 'done' | 'attention'; detail: string }[];
+  };
 }
 
 const SCREENS: { id: Screen; label: string }[] = [
@@ -99,8 +128,6 @@ const SCREENS: { id: Screen; label: string }[] = [
   { id: 6, label: 'Documents' },
 ];
 
-const emptyRoom = (): RoomRow => ({ code: '', lengthM: null, breadthM: null, rowIndex: null, bayIndex: null, enclosure: 'UNKNOWN' });
-
 export const ValuationWorkspace: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -110,51 +137,78 @@ export const ValuationWorkspace: React.FC = () => {
   const [structureId, setStructureId] = useState<string>('');
   const [message, setMessage] = useState<string>('');
   const [error, setError] = useState<string>('');
-  const [applicability, setApplicability] = useState<{ ruleId: string; title: string; state: string; reason: string; ruleStatus: string }[]>([]);
+  const [focus, setFocus] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   const canWrite = user?.role === 'ADMIN' || user?.role === 'ESTIMATOR';
   const canFinalize = user?.role === 'ADMIN';
 
   const load = async () => {
     const res = await api.get<Bundle>(`/v1/workflow/cases/${id}`);
     setBundle(res.data);
-    setStructureId((current) => current || res.data.structures[0]?.id || '');
+    setStructureId((current) => {
+      if (current && res.data.structures.some((structure) => structure.id === current)) return current;
+      return res.data.structures[0]?.id || '';
+    });
   };
 
   useEffect(() => {
-    load().catch(() => setError('The case could not be loaded.'));
+    setLoading(true);
+    load()
+      .catch(() => setError('The case could not be loaded.'))
+      .finally(() => setLoading(false));
   }, [id]);
 
   const run = async (work: () => Promise<void>) => {
+    if (saving) return;
     setError('');
     setMessage('');
+    setSaving(true);
     try {
       await work();
       await load();
     } catch (err: unknown) {
       const apiError = err as { response?: { data?: { message?: string } } };
       setError(apiError.response?.data?.message || 'The request was not saved.');
+    } finally {
+      setSaving(false);
     }
   };
 
-  if (!bundle) return <div className="p-8 text-sm text-slate-500">Loading the valuation…</div>;
+  if (loading && !bundle) {
+    return (
+      <div className="p-10 flex items-center gap-3 text-sm text-slate-600">
+        <span className="inline-block h-4 w-4 rounded-full border-2 border-gov-navy border-t-transparent animate-spin" />
+        Loading valuation…
+      </div>
+    );
+  }
+  if (!bundle) return <div className="p-8 text-sm text-red-700">The case could not be loaded.</div>;
 
   const structure = bundle.structures.find((s) => s.id === structureId) || null;
   const rooms = bundle.rooms.filter((r) => r.structureId === structureId);
   const walls = bundle.wallRuns.filter((w) => w.structureId === structureId);
   const blocks = bundle.blocks.filter((b) => !structureId || b.structureId === structureId || screen >= 4);
   const latest = [...bundle.snapshots].reverse().find((snapshot) => snapshot.label === 'PLATFORM') || bundle.snapshots[bundle.snapshots.length - 1];
+  const attention = (bundle.guidance?.attention || []).filter((item) => item.state === 'attention');
+  const doneCount = (bundle.guidance?.attention || []).filter((item) => item.state === 'done').length;
+  const totalChecks = (bundle.guidance?.attention || []).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 max-w-6xl">
       <div className="flex items-start justify-between gap-4">
         <div>
           <button className="text-xs font-semibold text-gov-navy" onClick={() => navigate('/cases')}>Back to cases</button>
-          <h1 className="text-2xl font-extrabold text-slate-900 mt-1">{bundle.property?.ownerName || 'Valuation'} · {bundle.case.caseNumber}</h1>
-          <p className="text-sm text-slate-500">Enter the building once. Review every derived quantity before it enters the abstract.</p>
+          <h1 className="text-2xl font-bold text-slate-900 mt-1 tracking-tight">{bundle.property?.ownerName || 'Valuation'} · {bundle.case.caseNumber}</h1>
         </div>
-        <div className="text-xs text-slate-500 text-right">
-          <div>{user?.role}</div>
-          {!canWrite && <div>This login can read the case. It cannot change measurements.</div>}
+        <div className="text-right space-y-1">
+          {saving && (
+            <div className="inline-flex items-center gap-2 text-xs font-semibold text-gov-navy bg-slate-50 border border-slate-200 rounded-full px-3 py-1">
+              <span className="inline-block h-3 w-3 rounded-full border-2 border-gov-navy border-t-transparent animate-spin" />
+              Saving…
+            </div>
+          )}
+          <div className="text-xs text-slate-500">{user?.role}</div>
         </div>
       </div>
 
@@ -163,54 +217,125 @@ export const ValuationWorkspace: React.FC = () => {
           <button
             key={item.id}
             onClick={() => setScreen(item.id)}
-            className={`px-3 py-2 rounded-gov-md text-sm font-semibold ${screen === item.id ? 'bg-gov-navy text-white' : 'bg-white border border-slate-200 text-slate-700'}`}
+            className={`px-3 py-2 rounded-gov-md text-sm font-semibold transition-colors ${screen === item.id ? 'bg-gov-navy text-white' : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300'}`}
           >
             {item.id}. {item.label}
           </button>
         ))}
       </div>
 
+      {bundle.guidance && (
+        <div className="bg-white border border-slate-200 rounded-gov-lg px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold text-slate-900">Progress · {doneCount}/{totalChecks || 0} ready</p>
+            {attention.length > 0 ? (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {attention.map((item) => (
+                  <span key={item.label} className="text-xs rounded-full px-3 py-1 bg-amber-50 text-amber-900" title={item.detail}>
+                    {item.label}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-teal-800 mt-1">Ready for this stage.</p>
+            )}
+          </div>
+          <div className="flex gap-2">
+            {screen > 1 && (
+              <button className="border border-slate-200 rounded-gov-md px-3 py-2 text-sm" onClick={() => setScreen((screen - 1) as Screen)}>Back</button>
+            )}
+            {screen < 6 && (
+              <button className="bg-gov-navy text-white rounded-gov-md px-3 py-2 text-sm font-semibold" onClick={() => setScreen((screen + 1) as Screen)}>Continue</button>
+            )}
+          </div>
+        </div>
+      )}
+
       {error && <div className="rounded-gov-md bg-red-50 text-red-800 text-sm px-4 py-3">{error}</div>}
       {message && <div className="rounded-gov-md bg-teal-50 text-teal-900 text-sm px-4 py-3">{message}</div>}
 
       {screen === 1 && (
-        <IdentityScreen bundle={bundle} canWrite={canWrite} onSave={(body) => run(async () => { await api.put(`/v1/workflow/cases/${id}/identity`, body); setMessage('Case identity saved.'); })} onAdd={(name) => run(async () => { await api.post(`/v1/workflow/cases/${id}/structures`, { name }); setMessage(`${name} added as its own structure.`); })} onEvidence={(form) => run(async () => { await api.post(`/v1/workflow/cases/${id}/evidence`, form); setMessage('Evidence stored as a new version.'); })} />
+        <IdentityScreen
+          bundle={bundle}
+          canWrite={canWrite}
+          busy={saving}
+          onSave={(body) => run(async () => { await api.put(`/v1/workflow/cases/${id}/identity`, body); setMessage('Case identity saved.'); })}
+          onAdd={(name, structureKind) => run(async () => {
+            const res = await api.post(`/v1/workflow/cases/${id}/structures`, { name, structureKind });
+            const createdId = res.data?.structure?.id as string | undefined;
+            if (createdId) setStructureId(createdId);
+            setMessage(`${name} added.`);
+            setScreen(2);
+          })}
+          onRemove={(structureIdToRemove) => run(async () => {
+            const res = await api.delete(`/v1/workflow/structures/${structureIdToRemove}`);
+            setMessage(res.data.note || 'Structure removed.');
+          })}
+          onEvidence={(form) => run(async () => { await api.post(`/v1/workflow/cases/${id}/evidence`, form); setMessage('Evidence attached.'); })}
+        />
       )}
       {screen === 2 && structure && (
-        <BuildingScreen
+        <BuildingGuide
           structure={structure}
           structures={bundle.structures}
           rooms={rooms}
           walls={walls}
           openings={bundle.openings.filter((o) => o.structureId === structureId)}
           members={bundle.members.filter((m) => m.structureId === structureId)}
+          derived={bundle.guidance?.structures.find((item) => item.structureId === structure.id)?.derived || []}
+          profileChecks={bundle.guidance?.structures.find((item) => item.structureId === structure.id)?.profile || []}
+          focus={focus}
           canWrite={canWrite}
+          busy={saving}
           onSelect={setStructureId}
+          onRemoveStructure={(structureIdToRemove) => run(async () => {
+            const res = await api.delete(`/v1/workflow/structures/${structureIdToRemove}`);
+            setMessage(res.data.note || 'Structure removed.');
+          })}
           onProfile={(body) => run(async () => {
             const res = await api.put(`/v1/workflow/structures/${structure.id}`, body);
             const impact = res.data.impact || [];
-            setMessage(impact.length ? `${impact.length} accepted line(s) now need review. Previous values were kept.` : 'Building facts saved.');
+            setMessage(impact.length ? `${impact.length} accepted line(s) now need review. Previous values were kept.` : 'Construction saved.');
           })}
-          onRooms={(next) => run(async () => { await api.put(`/v1/workflow/structures/${structure.id}/rooms`, { rooms: next }); setMessage('Rooms saved.'); })}
-          onCandidates={() => run(async () => { const res = await api.post(`/v1/workflow/structures/${structure.id}/geometry/candidates`); setMessage(res.data.note); })}
-          onConfirm={(wallId, body) => run(async () => { await api.post(`/v1/workflow/wall-runs/${wallId}/confirm`, body); setMessage('Wall run updated.'); })}
-          onManualWall={(body) => run(async () => { await api.post(`/v1/workflow/structures/${structure.id}/wall-runs`, body); setMessage('Manual wall added.'); })}
-          onOpenings={(openings) => run(async () => { await api.put(`/v1/workflow/structures/${structure.id}/openings`, { openings }); })}
-          onMembers={(members) => run(async () => { await api.put(`/v1/workflow/structures/${structure.id}/members`, { members }); })}
+          onLayout={(body) => run(async () => {
+            const res = await api.put(`/v1/workflow/structures/${structure.id}/structure-layout`, body);
+            setMessage(res.data.note || 'Structure layout saved.');
+          })}
+          onSimplePlan={(body) => run(async () => {
+            const res = await api.put(`/v1/workflow/structures/${structure.id}/simple-plan`, body);
+            setMessage(res.data.note || 'Simple plan saved.');
+          })}
+          onPatchRoom={(roomId, body) => run(async () => { await api.patch(`/v1/workflow/rooms/${roomId}`, body); setMessage('Room updated.'); })}
+          onPatchWall={(wallId, body) => run(async () => { await api.patch(`/v1/workflow/wall-runs/${wallId}`, body); setMessage('Wall fact updated.'); })}
+          onConfirm={(wallId, body) => run(async () => { await api.post(`/v1/workflow/wall-runs/${wallId}/confirm`, body); setMessage('Wall updated.'); })}
+          onManualWall={(body) => run(async () => { await api.post(`/v1/workflow/structures/${structure.id}/wall-runs`, body); setMessage('Measured wall added.'); })}
+          onOpenings={(openings) => run(async () => { await api.put(`/v1/workflow/structures/${structure.id}/openings`, { openings }); setMessage('Openings saved.'); })}
+          onMembers={(members) => run(async () => { await api.put(`/v1/workflow/structures/${structure.id}/members`, { members }); setMessage('Members saved.'); })}
         />
       )}
-      {screen === 2 && !structure && <p className="text-sm text-slate-600">Add a structure on the first screen. A shed is not created from the house.</p>}
-      {screen === 3 && structure && (
-        <GeneratedScreen
-          applicability={applicability}
-          blocks={bundle.blocks.filter((b) => b.structureId === structure.id)}
-          canWrite={canWrite}
-          onGenerate={() => run(async () => {
-            const res = await api.post(`/v1/workflow/structures/${structure.id}/generate`);
-            setApplicability(res.data.applicability);
-            setMessage(res.data.note);
+      {screen === 2 && !structure && <p className="text-sm text-slate-600">Add a structure on Screen 1 to continue.</p>}
+      {screen === 3 && (
+        <MeasurementGuide
+          rules={(bundle.guidance?.structures.find((item) => item.structureId === structureId)?.rules || []).filter((rule) => {
+            const all = bundle.guidance?.structures.find((item) => item.structureId === structureId)?.rules || [];
+            const eknathProfile = all.some((item) => item.ruleId.startsWith('eknath.') && item.readiness !== 'NOT_APPLICABLE');
+            // Gut-193 profile: show eknath.* only. Ordinary cases: show draft.* residential pack.
+            if (eknathProfile) return rule.ruleId.startsWith('eknath.');
+            return rule.ruleId.startsWith('draft.') || rule.readiness !== 'NOT_APPLICABLE';
           })}
-          onDraft={(ruleId) => run(async () => { await api.post(`/v1/workflow/structures/${structure.id}/draft-lines`, { ruleId }); setMessage('Draft suggestion created. It is not a validated rule until you accept it.'); })}
+          canWrite={canWrite}
+          busy={saving}
+          schedulePinned={Boolean(bundle.case.rateScheduleVersionId)}
+          onDraft={(ruleId) => run(async () => { await api.post(`/v1/workflow/structures/${structureId}/draft-lines`, { ruleId }); setMessage('Draft line created.'); })}
+          onGenerateSheet={() => run(async () => {
+            const res = await api.post(`/v1/workflow/structures/${structureId}/generate-measurement`, {});
+            const written = (res.data.created || 0) + (res.data.updated || 0);
+            setMessage(written
+              ? `Generated ${written} measurement line(s) from saved facts.`
+              : (res.data.note || 'No lines were ready. Complete construction facts and confirm the plan first.'));
+            if (written) setScreen(4);
+          })}
+          onGo={(target) => { setFocus(target); setScreen(2); }}
         />
       )}
       {screen === 4 && (
@@ -218,11 +343,19 @@ export const ValuationWorkspace: React.FC = () => {
           bundle={bundle}
           canWrite={canWrite}
           onDecision={(blockId, body) => run(async () => { await api.post(`/v1/workflow/blocks/${blockId}/decision`, body); setMessage('Decision saved.'); })}
-          onRate={(blockId, itemNumber) => run(async () => {
-            const res = await api.post(`/v1/workflow/blocks/${blockId}/rate`, { itemNumber });
-            setMessage(res.data.match === 'UNIQUE' ? 'One rate matched.' : res.data.match === 'AMBIGUOUS' ? 'More than one rate matches. Nothing was selected.' : 'No rate matched. Choose another item number or add the line manually.');
+          onBindRates={() => run(async () => {
+            const res = await api.post(`/v1/workflow/cases/${id}/bind-rates`);
+            setMessage(res.data.note || `Bound rates on ${res.data.rebound || 0} line(s).`);
           })}
-          onManual={(structureIdForLine, body) => run(async () => { await api.post(`/v1/workflow/structures/${structureIdForLine}/manual-block`, body); })}
+          onExcludeHelpers={() => run(async () => {
+            const res = await api.post(`/v1/workflow/cases/${id}/exclude-helper-blocks`, { structureId });
+            setMessage(res.data.note || `Excluded ${res.data.excluded || 0} helper line(s).`);
+          })}
+          onAcceptAllDrafts={() => run(async () => {
+            const res = await api.post(`/v1/workflow/cases/${id}/accept-draft-blocks`, { structureId });
+            setMessage(res.data.note || `${res.data.accepted || 0} draft line(s) accepted.`);
+          })}
+          onManual={(structureIdForLine, body) => run(async () => { await api.post(`/v1/workflow/structures/${structureIdForLine}/manual-block`, body); setMessage('Measured item added. The unit comes from the catalogue row you selected.'); })}
           onCalculate={() => run(async () => { await api.post(`/v1/workflow/cases/${id}/calculate`); setMessage('Draft abstract prepared from accepted quantities.'); setScreen(5); })}
         />
       )}
@@ -242,332 +375,339 @@ export const ValuationWorkspace: React.FC = () => {
   );
 };
 
-function Field({ label, value, onChange, disabled }: { label: string; value: string; onChange: (value: string) => void; disabled?: boolean }) {
+function Field({ label, value, onChange, disabled, type = 'text' }: { label: string; value: string; onChange: (value: string) => void; disabled?: boolean; type?: string }) {
   return (
     <label className="block text-sm">
       <span className="font-semibold text-slate-700">{label}</span>
-      <input disabled={disabled} className="mt-1 w-full border border-slate-200 rounded-gov-sm px-3 py-2" value={value} onChange={(e) => onChange(e.target.value)} />
+      <input type={type} disabled={disabled} className="mt-1 w-full border border-slate-200 rounded-gov-sm px-3 py-2" value={value} onChange={(e) => onChange(e.target.value)} />
     </label>
   );
 }
 
-function IdentityScreen({ bundle, canWrite, onSave, onAdd, onEvidence }: {
+const STRUCTURE_KIND_CHIPS: { label: string; kind: string }[] = [
+  { label: 'Main house', kind: 'MAIN_HOUSE' },
+  { label: 'Tin / GI shed', kind: 'GI_SHED' },
+  { label: 'Open shed', kind: 'OPEN_SHED' },
+  { label: 'Porch / Veranda', kind: 'PORCH' },
+  { label: 'Store', kind: 'STORE' },
+  { label: 'Other structure', kind: 'OTHER' },
+];
+
+function IdentityScreen({ bundle, canWrite, busy, onSave, onAdd, onRemove, onEvidence }: {
   bundle: Bundle;
   canWrite: boolean;
+  busy?: boolean;
   onSave: (body: Record<string, string | null>) => void;
-  onAdd: (name: string) => void;
+  onAdd: (name: string, structureKind: string) => void;
+  onRemove: (structureId: string) => void;
   onEvidence: (form: FormData) => void;
 }) {
   const [form, setForm] = useState({ ...bundle.property, valuationDate: bundle.case.valuationDate, dateOfInspection: bundle.case.dateOfInspection, conflictingIdentifierNotes: bundle.case.conflictingIdentifierNotes || '', rateScheduleVersionId: bundle.case.rateScheduleVersionId || '', ypTableVersionId: bundle.case.ypTableVersionId || '' });
   const [name, setName] = useState('Main house');
+  const [structureKind, setStructureKind] = useState('MAIN_HOUSE');
   const set = (key: string) => (value: string) => setForm((current) => ({ ...current, [key]: value }));
+  const locked = !canWrite || Boolean(busy);
+
+  useEffect(() => {
+    setForm({
+      ...bundle.property,
+      valuationDate: bundle.case.valuationDate,
+      dateOfInspection: bundle.case.dateOfInspection,
+      conflictingIdentifierNotes: bundle.case.conflictingIdentifierNotes || '',
+      rateScheduleVersionId: bundle.case.rateScheduleVersionId || '',
+      ypTableVersionId: bundle.case.ypTableVersionId || '',
+    });
+  }, [
+    bundle.case.id,
+    bundle.case.valuationDate,
+    bundle.case.dateOfInspection,
+    bundle.case.rateScheduleVersionId,
+    bundle.case.ypTableVersionId,
+    bundle.case.conflictingIdentifierNotes,
+    bundle.property.ownerName,
+    bundle.property.surveyNumber,
+    bundle.property.village,
+  ]);
+
   return (
     <div className="grid lg:grid-cols-2 gap-6">
       <section className="bg-white border border-slate-200 rounded-gov-lg p-5 space-y-3">
-        <h2 className="font-bold text-gov-navy">Case identity</h2>
-        <Field label="Owner" value={form.ownerName || ''} onChange={set('ownerName')} disabled={!canWrite} />
-        <Field label="Gut / survey number" value={form.surveyNumber || ''} onChange={set('surveyNumber')} disabled={!canWrite} />
-        <Field label="House number" value={form.houseNumber || ''} onChange={set('houseNumber')} disabled={!canWrite} />
-        <Field label="Village" value={form.village || ''} onChange={set('village')} disabled={!canWrite} />
-        <Field label="Taluka" value={form.taluka || ''} onChange={set('taluka')} disabled={!canWrite} />
-        <Field label="District" value={form.district || ''} onChange={set('district')} disabled={!canWrite} />
-        <Field label="LA case number" value={form.laCaseNumber || ''} onChange={set('laCaseNumber')} disabled={!canWrite} />
-        <Field label="Valuation date" value={form.valuationDate || ''} onChange={set('valuationDate')} disabled={!canWrite} />
-        <Field label="Conflicting identity notes" value={form.conflictingIdentifierNotes} onChange={set('conflictingIdentifierNotes')} disabled={!canWrite} />
+        <h2 className="font-bold text-gov-navy text-base">Case identity</h2>
+        <Field label="Owner" value={form.ownerName || ''} onChange={set('ownerName')} disabled={locked} />
+        <Field label="Gut / survey number" value={form.surveyNumber || ''} onChange={set('surveyNumber')} disabled={locked} />
+        <Field label="House number" value={form.houseNumber || ''} onChange={set('houseNumber')} disabled={locked} />
+        <Field label="Village" value={form.village || ''} onChange={set('village')} disabled={locked} />
+        <Field label="Taluka" value={form.taluka || ''} onChange={set('taluka')} disabled={locked} />
+        <Field label="District" value={form.district || ''} onChange={set('district')} disabled={locked} />
+        <Field label="LA case number" value={form.laCaseNumber || ''} onChange={set('laCaseNumber')} disabled={locked} />
+        <Field label="Valuation date" type="date" value={form.valuationDate || ''} onChange={set('valuationDate')} disabled={locked} />
+        <Field label="Inspection date" type="date" value={form.dateOfInspection || ''} onChange={set('dateOfInspection')} disabled={locked} />
         <label className="block text-sm">
-          <span className="font-semibold text-slate-700">Rate schedule version</span>
-          <select className="mt-1 w-full border rounded-gov-sm px-3 py-2" value={form.rateScheduleVersionId} disabled={!canWrite} onChange={(e) => set('rateScheduleVersionId')(e.target.value)}>
-            <option value="">Not pinned</option>
-            {bundle.rateScheduleVersions.map((schedule) => <option key={schedule.id} value={schedule.id}>{schedule.versionLabel}{schedule.legacy ? ' (legacy seed)' : ''}</option>)}
+          <span className="font-semibold text-slate-700">Rate schedule</span>
+          <select className="mt-1 w-full border border-slate-200 rounded-gov-sm px-3 py-2" value={form.rateScheduleVersionId} disabled={locked} onChange={(e) => set('rateScheduleVersionId')(e.target.value)}>
+            <option value="">Select schedule…</option>
+            {bundle.rateScheduleVersions.map((schedule) => <option key={schedule.id} value={schedule.id}>{schedule.versionLabel}{schedule.legacy ? ' (legacy)' : ''}</option>)}
           </select>
         </label>
         <label className="block text-sm">
           <span className="font-semibold text-slate-700">Year’s Purchase table</span>
-          <select className="mt-1 w-full border rounded-gov-sm px-3 py-2" value={form.ypTableVersionId} disabled={!canWrite} onChange={(e) => set('ypTableVersionId')(e.target.value)}>
-            <option value="">Not pinned</option>
+          <select className="mt-1 w-full border border-slate-200 rounded-gov-sm px-3 py-2" value={form.ypTableVersionId} disabled={locked} onChange={(e) => set('ypTableVersionId')(e.target.value)}>
+            <option value="">Select YP table…</option>
             {bundle.ypTables.map((table) => <option key={table.id} value={table.id}>{table.name}{table.legacy ? ' (legacy)' : ''}</option>)}
           </select>
         </label>
-        {canWrite && <button className="bg-gov-navy text-white rounded-gov-md px-4 py-2 text-sm font-semibold" onClick={() => onSave(form)}>Save identity</button>}
+        <Field label="Identity notes" value={form.conflictingIdentifierNotes} onChange={set('conflictingIdentifierNotes')} disabled={locked} />
+        {canWrite && (
+          <button className="bg-gov-navy text-white rounded-gov-md px-4 py-2 text-sm font-semibold disabled:opacity-60" disabled={locked} onClick={() => onSave(form)}>
+            {busy ? 'Saving…' : 'Save identity'}
+          </button>
+        )}
       </section>
       <section className="space-y-4">
         <div className="bg-white border border-slate-200 rounded-gov-lg p-5 space-y-3">
-          <h2 className="font-bold text-gov-navy">Structures</h2>
+          <h2 className="font-bold text-gov-navy text-base">Structures</h2>
           <ul className="text-sm space-y-2">
-            {bundle.structures.map((structure) => <li key={structure.id}>{structure.name} · {structure.participation === 'EXCLUDED' ? 'excluded' : 'included'} · life {structure.usefulLifeYears ?? 'not entered'}</li>)}
+            {bundle.structures.map((structure) => (
+              <li key={structure.id} className="flex items-center justify-between gap-3 border-b border-slate-100 pb-2">
+                <div>
+                  <div className="font-medium text-slate-800">{structure.name}</div>
+                  <div className="text-xs text-slate-500">
+                    {STRUCTURE_KIND_CHIPS.find((item) => item.kind === structure.structureKind)?.label || structure.structureKind || 'Structure'}
+                    {' · '}
+                    {structure.geometryStatus === 'CONFIRMED' ? 'Plan confirmed' : structure.geometryStatus === 'DRAFT_GENERATED' ? 'Draft plan' : 'Needs plan'}
+                  </div>
+                </div>
+                {canWrite && (
+                  <button
+                    type="button"
+                    className="text-xs font-semibold text-red-700 disabled:opacity-50"
+                    disabled={locked}
+                    onClick={() => {
+                      const finalized = bundle.snapshots.some((snapshot) => snapshot.status === 'FINALIZED' && snapshot.label === 'PLATFORM');
+                      const ok = window.confirm(
+                        finalized
+                          ? `Remove “${structure.name}”? This also clears finalization so the case can be edited again.`
+                          : `Remove “${structure.name}” from this case?`
+                      );
+                      if (ok) onRemove(structure.id);
+                    }}
+                  >
+                    Remove
+                  </button>
+                )}
+              </li>
+            ))}
             {bundle.structures.length === 0 && <li className="text-slate-500">No structure yet.</li>}
           </ul>
           {canWrite && (
-            <div className="flex gap-2">
-              <input className="border rounded-gov-sm px-3 py-2 text-sm flex-1" value={name} onChange={(e) => setName(e.target.value)} />
-              <button className="bg-gov-teal text-white rounded-gov-md px-4 py-2 text-sm font-semibold" onClick={() => onAdd(name)}>Add structure</button>
+            <div className="space-y-2 pt-1">
+              <p className="text-xs font-semibold text-slate-600">Add structure</p>
+              <div className="flex flex-wrap gap-2">
+                {STRUCTURE_KIND_CHIPS.map((item) => (
+                  <button key={item.kind} type="button" disabled={locked} className={`border rounded-full px-3 py-1.5 text-xs ${structureKind === item.kind ? 'bg-gov-navy text-white border-gov-navy' : 'border-slate-200'}`} onClick={() => { setName(item.label); setStructureKind(item.kind); }}>{item.label}</button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input className="border border-slate-200 rounded-gov-sm px-3 py-2 text-sm flex-1" value={name} disabled={locked} onChange={(e) => setName(e.target.value)} placeholder="Name" />
+                <button className="bg-gov-teal text-white rounded-gov-md px-4 py-2 text-sm font-semibold disabled:opacity-60" disabled={locked || !name.trim()} onClick={() => onAdd(name, structureKind)}>
+                  {busy ? 'Adding…' : 'Add & continue'}
+                </button>
+              </div>
             </div>
           )}
         </div>
-        <EvidenceBox evidence={bundle.evidence} canWrite={canWrite} onEvidence={onEvidence} />
+        <EvidenceBox evidence={bundle.evidence} canWrite={canWrite} busy={busy} onEvidence={onEvidence} />
       </section>
     </div>
   );
 }
 
-function EvidenceBox({ evidence, canWrite, onEvidence }: { evidence: Bundle['evidence']; canWrite: boolean; onEvidence: (form: FormData) => void }) {
+function EvidenceBox({ evidence, canWrite, busy, onEvidence }: { evidence: Bundle['evidence']; canWrite: boolean; busy?: boolean; onEvidence: (form: FormData) => void }) {
   const [documentType, setDocumentType] = useState('FIELD_DRAWING');
   const [notes, setNotes] = useState('');
   return (
     <div className="bg-white border border-slate-200 rounded-gov-lg p-5 space-y-3">
-      <h2 className="font-bold text-gov-navy">Evidence</h2>
-      <p className="text-xs text-slate-500">The field drawing is stored with the case. Dimensions are not read from the file.</p>
+      <h2 className="font-bold text-gov-navy text-base">Evidence</h2>
       <ul className="text-sm space-y-1">
         {evidence.map((item) => <li key={item.id}>{item.documentType} v{item.version}: {item.originalName}</li>)}
+        {evidence.length === 0 && <li className="text-slate-400">Optional — no files yet.</li>}
       </ul>
       {canWrite && (
         <form className="space-y-2" onSubmit={(e) => {
           e.preventDefault();
+          if (busy) return;
           const data = new FormData(e.currentTarget);
           data.set('documentType', documentType);
           data.set('notes', notes);
           onEvidence(data);
         }}>
-          <select className="border rounded-gov-sm px-3 py-2 text-sm w-full" value={documentType} onChange={(e) => setDocumentType(e.target.value)}>
-            {['FIELD_DRAWING', 'SECTION_SKETCH', 'SITE_PHOTO', 'SOURCE_WORKBOOK', 'RATE_DOCUMENT', 'SUPPORTING_MEASUREMENT', 'OTHER'].map((type) => <option key={type}>{type}</option>)}
+          <select className="border border-slate-200 rounded-gov-sm px-3 py-2 text-sm w-full" value={documentType} disabled={busy} onChange={(e) => setDocumentType(e.target.value)}>
+            {[
+              ['FIELD_DRAWING', 'Field drawing'],
+              ['SECTION_SKETCH', 'Section sketch'],
+              ['SITE_PHOTO', 'Site photo'],
+              ['SOURCE_WORKBOOK', 'Source workbook'],
+              ['RATE_DOCUMENT', 'Rate document'],
+              ['SUPPORTING_MEASUREMENT', 'Supporting measurement'],
+              ['OTHER', 'Other evidence'],
+            ].map(([type, label]) => <option key={type} value={type}>{label}</option>)}
           </select>
-          <input name="file" type="file" className="text-sm" required />
-          <input className="border rounded-gov-sm px-3 py-2 text-sm w-full" placeholder="Note" value={notes} onChange={(e) => setNotes(e.target.value)} />
-          <button className="bg-gov-navy text-white rounded-gov-md px-4 py-2 text-sm font-semibold">Attach version</button>
+          <input name="file" type="file" className="text-sm" required disabled={busy} />
+          <input className="border border-slate-200 rounded-gov-sm px-3 py-2 text-sm w-full" placeholder="Note" value={notes} disabled={busy} onChange={(e) => setNotes(e.target.value)} />
+          <button className="bg-gov-navy text-white rounded-gov-md px-4 py-2 text-sm font-semibold disabled:opacity-60" disabled={busy}>{busy ? 'Uploading…' : 'Attach file'}</button>
         </form>
       )}
     </div>
   );
 }
 
-function BuildingScreen(props: {
-  structure: StructureRow;
-  structures: StructureRow[];
-  rooms: RoomRow[];
-  walls: WallRow[];
-  openings: Bundle['openings'];
-  members: Bundle['members'];
-  canWrite: boolean;
-  onSelect: (id: string) => void;
-  onProfile: (body: StructureRow) => void;
-  onRooms: (rooms: RoomRow[]) => void;
-  onCandidates: () => void;
-  onConfirm: (id: string, body: Record<string, unknown>) => void;
-  onManualWall: (body: Record<string, unknown>) => void;
-  onOpenings: (openings: Bundle['openings']) => void;
-  onMembers: (members: Bundle['members']) => void;
-}) {
-  const [profile, setProfile] = useState(props.structure);
-  const [rooms, setRooms] = useState<RoomRow[]>(props.rooms.length ? props.rooms : [emptyRoom()]);
-  const [openingCode, setOpeningCode] = useState('D1');
-  const [memberKind, setMemberKind] = useState('COLUMN');
-  const [wallLabel, setWallLabel] = useState('');
-  const [wallLength, setWallLength] = useState('');
-  useEffect(() => { setProfile(props.structure); setRooms(props.rooms.length ? props.rooms : [emptyRoom()]); }, [props.structure.id]);
-  const set = (key: keyof StructureRow) => (value: string) => setProfile((current) => ({ ...current, [key]: value }));
-  return (
-    <div className="space-y-5">
-      <label className="text-sm font-semibold">Structure
-        <select className="ml-2 border rounded-gov-sm px-3 py-2" value={props.structure.id} onChange={(e) => props.onSelect(e.target.value)}>
-          {props.structures.map((structure) => <option key={structure.id} value={structure.id}>{structure.name}</option>)}
-        </select>
-      </label>
-      <section className="bg-white border rounded-gov-lg p-5 grid md:grid-cols-2 gap-3">
-        <h2 className="md:col-span-2 font-bold text-gov-navy">Construction profile</h2>
-        <Field label="Type" value={profile.structureTypeText} onChange={set('structureTypeText')} disabled={!props.canWrite} />
-        <Field label="Wall material" value={profile.wallMaterialText} onChange={set('wallMaterialText')} disabled={!props.canWrite} />
-        <Field label="Wall thickness (m)" value={profile.wallThicknessM?.toString() || ''} onChange={(value) => setProfile((c) => ({ ...c, wallThicknessM: value === '' ? null : Number(value) }))} disabled={!props.canWrite} />
-        <Field label="Storey height (m)" value={profile.storeyHeightM?.toString() || ''} onChange={(value) => setProfile((c) => ({ ...c, storeyHeightM: value === '' ? null : Number(value) }))} disabled={!props.canWrite} />
-        <Field label="Construction year" value={profile.constructionYear?.toString() || ''} onChange={(value) => setProfile((c) => ({ ...c, constructionYear: value === '' ? null : Number(value) }))} disabled={!props.canWrite} />
-        <Field label="Useful life (typed, not assumed)" value={profile.usefulLifeYears?.toString() || ''} onChange={(value) => setProfile((c) => ({ ...c, usefulLifeYears: value === '' ? null : Number(value) }))} disabled={!props.canWrite} />
-        <Field label="Floor" value={profile.floorFinish} onChange={set('floorFinish')} disabled={!props.canWrite} />
-        <Field label="Roof" value={profile.roofFinish} onChange={set('roofFinish')} disabled={!props.canWrite} />
-        {props.canWrite && <button className="bg-gov-navy text-white rounded-gov-md px-4 py-2 text-sm font-semibold" onClick={() => props.onProfile(profile)}>Save profile</button>}
-      </section>
-      <section className="bg-white border rounded-gov-lg p-5 space-y-3">
-        <h2 className="font-bold text-gov-navy">Rooms and placement</h2>
-        <p className="text-xs text-slate-500">Leave row and bay empty if the layout is not known. A plan will not be invented.</p>
-        {rooms.map((room, index) => (
-          <div key={index} className="grid grid-cols-6 gap-2 text-sm">
-            <input className="border rounded px-2 py-1" placeholder="Code" value={room.code} onChange={(e) => setRooms(rooms.map((item, i) => i === index ? { ...item, code: e.target.value } : item))} />
-            <input className="border rounded px-2 py-1" placeholder="Length" value={room.lengthM ?? ''} onChange={(e) => setRooms(rooms.map((item, i) => i === index ? { ...item, lengthM: e.target.value === '' ? null : Number(e.target.value) } : item))} />
-            <input className="border rounded px-2 py-1" placeholder="Breadth" value={room.breadthM ?? ''} onChange={(e) => setRooms(rooms.map((item, i) => i === index ? { ...item, breadthM: e.target.value === '' ? null : Number(e.target.value) } : item))} />
-            <input className="border rounded px-2 py-1" placeholder="Row" value={room.rowIndex ?? ''} onChange={(e) => setRooms(rooms.map((item, i) => i === index ? { ...item, rowIndex: e.target.value === '' ? null : Number(e.target.value) } : item))} />
-            <input className="border rounded px-2 py-1" placeholder="Bay" value={room.bayIndex ?? ''} onChange={(e) => setRooms(rooms.map((item, i) => i === index ? { ...item, bayIndex: e.target.value === '' ? null : Number(e.target.value) } : item))} />
-            <select className="border rounded px-2 py-1" value={room.enclosure} onChange={(e) => setRooms(rooms.map((item, i) => i === index ? { ...item, enclosure: e.target.value as RoomRow['enclosure'] } : item))}>
-              <option value="UNKNOWN">Unknown</option>
-              <option value="ENCLOSED">Enclosed</option>
-              <option value="OPEN">Open</option>
-            </select>
-          </div>
-        ))}
-        {props.canWrite && (
-          <div className="flex gap-2">
-            <button className="border rounded-gov-md px-3 py-2 text-sm" onClick={() => setRooms([...rooms, emptyRoom()])}>Add room</button>
-            <button className="bg-gov-navy text-white rounded-gov-md px-3 py-2 text-sm" onClick={() => props.onRooms(rooms)}>Save rooms</button>
-            <button className="bg-gov-teal text-white rounded-gov-md px-3 py-2 text-sm" onClick={props.onCandidates}>Propose candidate walls</button>
-          </div>
-        )}
-      </section>
-      <section className="bg-white border rounded-gov-lg p-5 space-y-2">
-        <h2 className="font-bold text-gov-navy">Walls</h2>
-        <table className="w-full text-sm">
-          <thead><tr className="text-left text-slate-500"><th>Status</th><th>Description</th><th>Length</th><th></th></tr></thead>
-          <tbody>
-            {props.walls.map((wall) => (
-              <tr key={wall.id} className="border-t">
-                <td className="py-2">{wall.origin === 'CANDIDATE' ? 'Candidate' : 'Confirmed'}</td>
-                <td>{wall.label}</td>
-                <td>{wall.lengthM} m</td>
-                <td>
-                  {props.canWrite && wall.origin === 'CANDIDATE' && (
-                    <span className="space-x-2">
-                      <button className="text-gov-navy font-semibold" onClick={() => props.onConfirm(wall.id, { action: 'CONFIRM' })}>Confirm</button>
-                      <button className="text-red-700" onClick={() => props.onConfirm(wall.id, { action: 'REJECT' })}>Reject</button>
-                    </span>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {props.walls.length === 0 && <p className="text-sm text-slate-500">No walls yet.</p>}
-        {props.canWrite && (
-          <form className="flex flex-wrap gap-2 text-sm" onSubmit={(event) => {
-            event.preventDefault();
-            const lengthM = Number(wallLength);
-            if (!wallLabel.trim() || !(lengthM > 0)) return;
-            props.onManualWall({ label: wallLabel.trim(), lengthM, count: 1 });
-            setWallLabel('');
-            setWallLength('');
-          }}>
-            <input className="border rounded px-2 py-1" placeholder="Wall label from the drawing" value={wallLabel} onChange={(e) => setWallLabel(e.target.value)} />
-            <input className="border rounded px-2 py-1" placeholder="Measured length (m)" value={wallLength} onChange={(e) => setWallLength(e.target.value)} />
-            <button className="border rounded-gov-md px-3 py-1">Add measured wall</button>
-          </form>
-        )}
-      </section>
-      <section className="bg-white border rounded-gov-lg p-5 space-y-2 text-sm">
-        <h2 className="font-bold text-gov-navy">Openings and members</h2>
-        <p>Openings: {props.openings.map((o) => o.code).join(', ') || 'none'}</p>
-        <p>Members: {props.members.map((m) => `${m.kind} ${m.count ?? 'count missing'}`).join(', ') || 'none'}</p>
-        {props.canWrite && (
-          <div className="flex flex-wrap gap-2">
-            <input className="border rounded px-2 py-1" value={openingCode} onChange={(e) => setOpeningCode(e.target.value)} />
-            <button className="border rounded px-3 py-1" onClick={() => props.onOpenings([...props.openings, { id: '', structureId: props.structure.id, code: openingCode, kind: 'DOOR', count: null, widthM: null, heightM: null }])}>Add opening</button>
-            <select className="border rounded px-2 py-1" value={memberKind} onChange={(e) => setMemberKind(e.target.value)}>
-              {['COLUMN', 'BEAM', 'POST', 'RAFTER_X', 'RAFTER_Y', 'PAULI', 'BALLI', 'GI_PIPE', 'MS_ANGLE', 'MESH', 'OTHER'].map((kind) => <option key={kind}>{kind}</option>)}
-            </select>
-            <button className="border rounded px-3 py-1" onClick={() => props.onMembers([...props.members, { id: '', structureId: props.structure.id, kind: memberKind, count: null, lengthM: null, breadthM: null, depthM: null }])}>Add member</button>
-          </div>
-        )}
-      </section>
-    </div>
-  );
-}
-
-function GeneratedScreen({ applicability, blocks, canWrite, onGenerate, onDraft }: {
-  applicability: { ruleId: string; title: string; state: string; reason: string; ruleStatus: string }[];
-  blocks: BlockRow[];
-  canWrite: boolean;
-  onGenerate: () => void;
-  onDraft: (ruleId: string) => void;
-}) {
-  return (
-    <div className="bg-white border rounded-gov-lg p-5 space-y-4">
-      <h2 className="font-bold text-gov-navy">Applicable work</h2>
-      <p className="text-sm text-slate-600">Generating the list does not write quantities. A draft suggestion is created only when you ask for that line.</p>
-      {canWrite && <button className="bg-gov-navy text-white rounded-gov-md px-4 py-2 text-sm font-semibold" onClick={onGenerate}>Check what can be measured</button>}
-      <table className="w-full text-sm">
-        <thead><tr className="text-left text-slate-500"><th>Suggestion</th><th>State</th><th>Why</th><th></th></tr></thead>
-        <tbody>
-          {applicability.map((row) => (
-            <tr key={row.ruleId} className="border-t align-top">
-              <td className="py-2 pr-2">{row.title}<div className="text-xs text-slate-400">{row.ruleStatus}</div></td>
-              <td>{row.state}</td>
-              <td className="text-slate-600">{row.reason}</td>
-              <td>{canWrite && row.state !== 'NOT_APPLICABLE' && <button className="text-gov-navy font-semibold" onClick={() => onDraft(row.ruleId)}>Create draft line</button>}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <h3 className="font-semibold">Lines on this structure</h3>
-      {blocks.map((block) => <p key={block.id} className="text-sm">{block.title}: {block.status} · derived {block.derivedNet ?? '—'} {block.unit}</p>)}
-    </div>
-  );
-}
-
-function ReviewScreen({ bundle, canWrite, onDecision, onRate, onManual, onCalculate }: {
+function ReviewScreen({ bundle, canWrite, onDecision, onBindRates, onExcludeHelpers, onAcceptAllDrafts, onManual, onCalculate }: {
   bundle: Bundle;
   canWrite: boolean;
   onDecision: (id: string, body: Record<string, unknown>) => void;
-  onRate: (id: string, itemNumber: string) => void;
+  onBindRates?: () => void;
+  onExcludeHelpers?: () => void;
+  onAcceptAllDrafts?: () => void;
   onManual: (structureId: string, body: Record<string, unknown>) => void;
   onCalculate: () => void;
 }) {
-  const [manual, setManual] = useState({ structureId: bundle.structures[0]?.id || '', title: '', quantity: '', unit: 'cum', reason: '' });
+  const [manual, setManual] = useState({ structureId: bundle.structures[0]?.id || '', quantity: '', reason: '', catalogueItemId: '', description: '', unit: '', itemNumber: '', rate: '' });
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<{ id: string; itemNumber: string; description: string; unit: string; rate: number }[]>([]);
+  const [searchNote, setSearchNote] = useState('');
+  const unmapped = bundle.blocks.filter((block) => block.status !== 'EXCLUDED' && block.rateMatch !== 'UNIQUE' && block.rateMatch !== 'MANUAL');
+  const hasEknathLines = bundle.blocks.some((block) => block.ruleId.startsWith('eknath.') && block.status !== 'EXCLUDED');
+  // Only treat leftover draft.* as helpers when an Eknath sheet is present (ordinary cases ARE draft.*).
+  const helpers = hasEknathLines
+    ? bundle.blocks.filter((block) => block.ruleId.startsWith('draft.') && block.status !== 'EXCLUDED')
+    : [];
+  const search = async () => {
+    const res = await api.get(`/v1/workflow/cases/${bundle.case.id}/catalogue`, { params: { q: query } });
+    setResults(res.data.results || []);
+    setSearchNote(res.data.reason || '');
+  };
   return (
-    <div className="bg-white border rounded-gov-lg p-5 space-y-4">
-      <h2 className="font-bold text-gov-navy">Review</h2>
-      <p className="text-sm text-slate-600">Each line keeps its own item number. Item 19.1 stays a string so it is not stored as 19.1 with a floating-point tail.</p>
-      <table className="w-full text-sm">
-        <thead><tr className="text-left text-slate-500"><th>Line</th><th>Derived</th><th>Engineer</th><th>Status</th><th>Rate</th><th>Decision</th></tr></thead>
-        <tbody>
-          {bundle.blocks.map((block) => (
-            <ReviewRow key={block.id} block={block} canWrite={canWrite} onDecision={onDecision} onRate={onRate} />
-          ))}
-        </tbody>
-      </table>
-      {canWrite && (
-        <form className="grid md:grid-cols-6 gap-2 text-sm" onSubmit={(event) => {
-          event.preventDefault();
-          const quantity = Number(manual.quantity);
-          if (!manual.structureId || !manual.title.trim() || !(quantity > 0) || !manual.reason.trim()) return;
-          onManual(manual.structureId, { title: manual.title.trim(), quantity, unit: manual.unit, reason: manual.reason.trim() });
-          setManual((current) => ({ ...current, title: '', quantity: '', reason: '' }));
-        }}>
-          <select className="border rounded px-2 py-1" value={manual.structureId} onChange={(e) => setManual({ ...manual, structureId: e.target.value })}>
-            {bundle.structures.map((structure) => <option key={structure.id} value={structure.id}>{structure.name}</option>)}
-          </select>
-          <input className="border rounded px-2 py-1" placeholder="Item title" value={manual.title} onChange={(e) => setManual({ ...manual, title: e.target.value })} />
-          <input className="border rounded px-2 py-1" placeholder="Quantity" value={manual.quantity} onChange={(e) => setManual({ ...manual, quantity: e.target.value })} />
-          <input className="border rounded px-2 py-1" placeholder="Unit" value={manual.unit} onChange={(e) => setManual({ ...manual, unit: e.target.value })} />
-          <input className="border rounded px-2 py-1" placeholder="Why this quantity" value={manual.reason} onChange={(e) => setManual({ ...manual, reason: e.target.value })} />
-          <button className="border rounded px-3 py-1">Add measured item</button>
-        </form>
+    <div className="bg-white border border-slate-200 rounded-gov-lg p-5 space-y-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <h2 className="font-bold text-gov-navy text-base">Review</h2>
+        {canWrite && (
+          <div className="flex flex-wrap gap-2">
+            {onBindRates && (
+              <button className="border border-gov-navy text-gov-navy rounded-gov-md px-3 py-2 text-sm font-semibold" onClick={onBindRates}>Bind rates</button>
+            )}
+            {onExcludeHelpers && helpers.length > 0 && (
+              <button className="border border-amber-700 text-amber-900 rounded-gov-md px-3 py-2 text-sm font-semibold" onClick={onExcludeHelpers}>Exclude helpers ({helpers.length})</button>
+            )}
+            {onAcceptAllDrafts && (
+              <button className="border border-gov-navy text-gov-navy rounded-gov-md px-3 py-2 text-sm font-semibold" onClick={onAcceptAllDrafts}>Accept all drafts</button>
+            )}
+            <button className="bg-gov-navy text-white rounded-gov-md px-3 py-2 text-sm font-semibold" onClick={onCalculate}>Prepare abstract</button>
+          </div>
+        )}
+      </div>
+      {!bundle.case.rateScheduleVersionId && (
+        <div className="rounded-gov-md bg-amber-50 text-amber-950 text-sm px-4 py-3">
+          Pin a rate schedule on Screen 1, then bind rates here.
+        </div>
       )}
-      {canWrite && <button className="bg-gov-navy text-white rounded-gov-md px-4 py-2 text-sm font-semibold" onClick={onCalculate}>Prepare abstract</button>}
+      {bundle.case.rateScheduleVersionId && unmapped.length > 0 && (
+        <div className="rounded-gov-md bg-amber-50 text-amber-950 text-sm px-4 py-3">
+          {unmapped.length} line(s) still need rates.
+        </div>
+      )}
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead><tr className="text-left text-slate-500"><th className="pb-2">Line</th><th>Qty</th><th>Status</th><th>Rate</th><th>Actions</th></tr></thead>
+          <tbody>
+            {bundle.blocks.map((block) => (
+              <ReviewRow key={block.id} block={block} canWrite={canWrite} onDecision={onDecision} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {bundle.blocks.length === 0 && <p className="text-sm text-slate-500">No measurement lines yet. Generate them on Screen 3.</p>}
+      {canWrite && (
+        <details className="text-sm border border-slate-200 rounded-gov-md p-3">
+          <summary className="font-semibold cursor-pointer">Add measured item</summary>
+          <div className="mt-3 space-y-3">
+            <div className="flex gap-2">
+              <input className="border border-slate-200 rounded-gov-sm px-3 py-2 flex-1" placeholder="Search catalogue" value={query} onChange={(e) => setQuery(e.target.value)} />
+              <button className="border border-slate-200 rounded-gov-md px-3 py-2" onClick={() => search().catch(() => setSearchNote('Search failed.'))}>Search</button>
+            </div>
+            {searchNote && <p className="text-slate-600">{searchNote}</p>}
+            <ul className="space-y-2">
+              {results.map((item) => (
+                <li key={item.id} className="border border-slate-200 rounded-gov-md p-2 flex justify-between gap-3">
+                  <div>
+                    <div className="font-semibold">{item.description}</div>
+                    <div className="text-xs text-slate-500">{item.itemNumber} · {item.unit} · ₹{item.rate}</div>
+                  </div>
+                  <button className="text-gov-navy font-semibold" onClick={() => setManual({ ...manual, catalogueItemId: item.id, description: item.description, unit: item.unit, itemNumber: item.itemNumber, rate: String(item.rate) })}>Select</button>
+                </li>
+              ))}
+            </ul>
+            {manual.catalogueItemId && (
+              <form className="grid md:grid-cols-4 gap-2" onSubmit={(event) => {
+                event.preventDefault();
+                const quantity = Number(manual.quantity);
+                if (!manual.structureId || !(quantity > 0) || !manual.reason.trim()) return;
+                onManual(manual.structureId, { catalogueItemId: manual.catalogueItemId, quantity, reason: manual.reason.trim() });
+                setManual((current) => ({ ...current, quantity: '', reason: '', catalogueItemId: '', description: '', unit: '', itemNumber: '', rate: '' }));
+              }}>
+                <p className="md:col-span-4 text-slate-700">{manual.description} <span className="text-xs text-slate-500">({manual.itemNumber} · {manual.unit} · ₹{manual.rate})</span></p>
+                <select className="border border-slate-200 rounded-gov-sm px-3 py-2" value={manual.structureId} onChange={(e) => setManual({ ...manual, structureId: e.target.value })}>
+                  {bundle.structures.map((structure) => <option key={structure.id} value={structure.id}>{structure.name}</option>)}
+                </select>
+                <input className="border border-slate-200 rounded-gov-sm px-3 py-2" inputMode="decimal" placeholder={`Qty (${manual.unit})`} value={manual.quantity} onChange={(e) => { if (e.target.value === '' || /^\d*\.?\d*$/.test(e.target.value)) setManual({ ...manual, quantity: e.target.value }); }} />
+                <input className="border border-slate-200 rounded-gov-sm px-3 py-2" placeholder="Measurement note" value={manual.reason} onChange={(e) => setManual({ ...manual, reason: e.target.value })} />
+                <button className="bg-gov-navy text-white rounded-gov-md px-3 py-2 font-semibold">Add line</button>
+              </form>
+            )}
+          </div>
+        </details>
+      )}
     </div>
   );
 }
 
-function ReviewRow({ block, canWrite, onDecision, onRate }: {
+function statusLabel(status: string): string {
+  if (status === 'MANUAL') return 'Measured';
+  if (status === 'ACCEPTED') return 'Accepted';
+  if (status === 'OVERRIDDEN') return 'Overridden';
+  if (status === 'EXCLUDED') return 'Excluded';
+  if (status === 'DRAFT') return 'Draft';
+  if (status === 'REQUIRES_REVIEW') return 'Needs review';
+  return status.split('_').join(' ');
+}
+
+function ReviewRow({ block, canWrite, onDecision }: {
   block: BlockRow;
   canWrite: boolean;
   onDecision: (id: string, body: Record<string, unknown>) => void;
-  onRate: (id: string, itemNumber: string) => void;
 }) {
   const [reason, setReason] = useState('');
   const [overrideNet, setOverrideNet] = useState(block.engineerNet?.toString() || block.derivedNet?.toString() || '');
-  const [itemNumber, setItemNumber] = useState('');
+  const qty = block.engineerNet ?? block.derivedNet;
   return (
     <tr className="border-t align-top">
-      <td className="py-2 pr-2">{block.title}<div className="text-xs text-slate-400">{block.formulaText}</div></td>
-      <td>{block.derivedNet ?? '—'} {block.unit}</td>
-      <td>{block.engineerNet ?? '—'} {block.unit}</td>
-      <td>{block.status}<div className="text-xs text-slate-400">{block.rateMatch}</div></td>
-      <td className="text-xs">{block.rateItemId || 'not pinned'}</td>
-      <td>
-        {canWrite && (
-          <div className="flex flex-wrap gap-1 py-1">
-            <button className="text-gov-navy font-semibold" onClick={() => onDecision(block.id, { action: 'ACCEPT' })}>Accept</button>
-            <input className="border rounded px-1 w-20" placeholder="Qty" value={overrideNet} onChange={(e) => setOverrideNet(e.target.value)} />
-            <input className="border rounded px-1 w-28" placeholder="Reason" value={reason} onChange={(e) => setReason(e.target.value)} />
-            <button onClick={() => onDecision(block.id, { action: 'OVERRIDE', reason, overrideNet: Number(overrideNet) })}>Override</button>
-            <button onClick={() => onDecision(block.id, { action: 'EXCLUDE', reason })}>Exclude</button>
-            <button onClick={() => onDecision(block.id, { action: 'RESET' })}>Reset</button>
-            <input className="border rounded px-1 w-16" placeholder="19.1" value={itemNumber} onChange={(e) => setItemNumber(e.target.value)} />
-            <button onClick={() => onRate(block.id, itemNumber)}>Match rate</button>
+      <td className="py-3 pr-3">
+        <div className="font-medium text-slate-900">{block.title}</div>
+        <div className="text-xs text-slate-400 mt-0.5">{block.formulaText}</div>
+      </td>
+      <td className="py-3 whitespace-nowrap">{qty ?? '—'} {block.unit}</td>
+      <td className="py-3">{statusLabel(block.status)}</td>
+      <td className="py-3 text-xs">{block.rateItemId ? 'Bound' : block.rateMatch === 'AMBIGUOUS' ? 'Ambiguous' : 'Missing'}</td>
+      <td className="py-3">
+        {canWrite && block.status !== 'EXCLUDED' && (
+          <div className="flex flex-wrap gap-1.5 items-center">
+            {block.status !== 'ACCEPTED' && (
+              <button className="text-gov-navy font-semibold text-xs" onClick={() => onDecision(block.id, { action: 'ACCEPT' })}>Accept</button>
+            )}
+            <input className="border border-slate-200 rounded px-1.5 py-1 w-20 text-xs" inputMode="decimal" aria-label="Override quantity" placeholder="Qty" value={overrideNet} onChange={(e) => { if (e.target.value === '' || /^\d*\.?\d*$/.test(e.target.value)) setOverrideNet(e.target.value); }} />
+            <input className="border border-slate-200 rounded px-1.5 py-1 w-28 text-xs" aria-label="Override reason" placeholder="Reason" value={reason} onChange={(e) => setReason(e.target.value)} />
+            <button className="text-xs text-slate-700" onClick={() => onDecision(block.id, { action: 'OVERRIDE', reason, overrideNet: Number(overrideNet) })}>Override</button>
+            <button className="text-xs text-red-700" onClick={() => onDecision(block.id, { action: 'EXCLUDE', reason })}>Exclude</button>
+            <button className="text-xs text-slate-500" onClick={() => onDecision(block.id, { action: 'RESET' })}>Reset</button>
           </div>
         )}
       </td>
@@ -584,23 +724,44 @@ function FinalizeScreen({ bundle, latest, canWrite, canFinalize, onAcceptDep, on
   onCalculate: () => void;
   onFinalize: (id: string) => void;
 }) {
+  const schedule = bundle.rateScheduleVersions.find((version) => version.id === bundle.case.rateScheduleVersionId)?.versionLabel || 'Not pinned';
+  const yp = bundle.ypTables.find((table) => table.id === bundle.case.ypTableVersionId)?.name || 'Not pinned';
   return (
-    <div className="bg-white border rounded-gov-lg p-5 space-y-3 text-sm">
-      <h2 className="font-bold text-gov-navy text-base">Final review</h2>
-      <p>Owner: {bundle.property?.ownerName}. Structures: {bundle.structures.map((s) => s.name).join(', ') || 'none'}.</p>
-      <p>Evidence files: {bundle.evidence.length}. Rate version: {bundle.case.rateScheduleVersionId || 'not pinned'}. Year’s Purchase table: {bundle.case.ypTableVersionId || 'not pinned'}.</p>
-      <p>Useful life is whatever was typed on each structure. It is not defaulted to 10 or 45. There is no salvage line.</p>
+    <div className="bg-white border border-slate-200 rounded-gov-lg p-5 space-y-4 text-sm">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <h2 className="font-bold text-gov-navy text-base">Depreciation and finalize</h2>
+        <div className="flex flex-wrap gap-2">
+          {canWrite && <button className="border border-slate-200 rounded-gov-md px-3 py-2" onClick={onCalculate}>Recalculate</button>}
+          {canWrite && <button className="border border-slate-200 rounded-gov-md px-3 py-2" onClick={onAcceptDep}>Accept depreciation</button>}
+          {canFinalize && latest && latest.status !== 'FINALIZED' && (
+            <button className="bg-gov-navy text-white rounded-gov-md px-4 py-2 font-semibold" onClick={() => onFinalize(latest.id)}>Finalize</button>
+          )}
+        </div>
+      </div>
+      <div className="grid md:grid-cols-3 gap-3 text-xs">
+        <div className="rounded-gov-md bg-slate-50 border border-slate-200 px-3 py-2"><div className="text-slate-500">Owner</div><div className="font-semibold text-slate-900 mt-0.5">{bundle.property?.ownerName || '—'}</div></div>
+        <div className="rounded-gov-md bg-slate-50 border border-slate-200 px-3 py-2"><div className="text-slate-500">Rate schedule</div><div className="font-semibold text-slate-900 mt-0.5">{schedule}</div></div>
+        <div className="rounded-gov-md bg-slate-50 border border-slate-200 px-3 py-2"><div className="text-slate-500">YP table</div><div className="font-semibold text-slate-900 mt-0.5">{yp}</div></div>
+      </div>
       {latest ? (
         <>
-          <p>Present cost: {latest.presentCost ?? 'blocked'}</p>
-          <p>Depreciated value: {latest.depreciatedValue ?? 'blocked'}</p>
+          <div className="grid md:grid-cols-2 gap-3">
+            <div className="rounded-gov-md border border-slate-200 px-4 py-3">
+              <div className="text-xs text-slate-500">Present cost</div>
+              <div className="text-xl font-bold text-slate-900 mt-1">{latest.presentCost ?? 'Blocked'}</div>
+            </div>
+            <div className="rounded-gov-md border border-slate-200 px-4 py-3">
+              <div className="text-xs text-slate-500">Depreciated value</div>
+              <div className="text-xl font-bold text-slate-900 mt-1">{latest.depreciatedValue ?? 'Blocked'}</div>
+            </div>
+          </div>
           {latest.body?.abstract && latest.body.abstract.length > 0 && (
             <table className="w-full text-sm">
-              <thead><tr className="text-left text-slate-500"><th>Item</th><th>Description</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead>
+              <thead><tr className="text-left text-slate-500"><th className="pb-2">Item</th><th>Description</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead>
               <tbody>
                 {latest.body.abstract.map((line) => (
                   <tr key={`${line.itemNumber}-${line.title}`} className="border-t">
-                    <td className="py-1">{line.itemNumber || '—'}</td>
+                    <td className="py-1.5">{line.itemNumber || '—'}</td>
                     <td>{line.title}</td>
                     <td>{line.quantity} {line.unit}</td>
                     <td>{line.rate ?? '—'}</td>
@@ -610,23 +771,13 @@ function FinalizeScreen({ bundle, latest, canWrite, canFinalize, onAcceptDep, on
               </tbody>
             </table>
           )}
-          <p>Formula: {latest.depreciationFormula}</p>
-          <p>Rounding profile: {latest.roundingProfileId}</p>
-          <p>Status: {latest.status}{latest.finalizedAt ? ` at ${latest.finalizedAt}` : ''}</p>
+          <p className="text-xs text-slate-500">{latest.depreciationFormula} · {latest.status}{latest.finalizedAt ? ` · ${latest.finalizedAt}` : ''}</p>
           {latest.blockers.length > 0 && (
             <ul className="list-disc pl-5 text-red-800">{latest.blockers.map((blocker) => <li key={blocker}>{blocker}</li>)}</ul>
           )}
         </>
-      ) : <p>No snapshot yet.</p>}
-      {canWrite && <button className="border rounded-gov-md px-3 py-2" onClick={onCalculate}>Recalculate draft</button>}
-      {canWrite && <button className="ml-2 border rounded-gov-md px-3 py-2" onClick={onAcceptDep}>Accept depreciation</button>}
-      {canFinalize && latest && latest.status !== 'FINALIZED' && (
-        <div>
-          <button className="bg-gov-navy text-white rounded-gov-md px-4 py-2 font-semibold" onClick={() => onFinalize(latest.id)}>Finalize</button>
-          <p className="text-xs text-slate-500 mt-2">Finalize is refused while any blocker remains. This role check is provisional.</p>
-        </div>
-      )}
-      {!canFinalize && <p className="text-xs text-slate-500">The provisional matrix allows only an administrator to finalize.</p>}
+      ) : <p className="text-slate-500">Prepare the abstract on Screen 4 first.</p>}
+      {!canFinalize && <p className="text-xs text-slate-500">Only an administrator can finalize.</p>}
     </div>
   );
 }
@@ -636,29 +787,42 @@ async function downloadSnapshot(snapshotId: string, kind: 'pdf' | 'xls') {
   const url = URL.createObjectURL(res.data);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `${snapshotId}.${kind === 'pdf' ? 'pdf' : 'xls'}`;
+  link.download = kind === 'pdf' ? `Valuation_Report_${snapshotId}.pdf` : `Valuation_Workbook_${snapshotId}.xlsx`;
   link.click();
   URL.revokeObjectURL(url);
 }
 
 function DocumentsScreen({ bundle, onReplay, canWrite }: { bundle: Bundle; onReplay: () => void; canWrite: boolean }) {
+  const finalized = [...bundle.snapshots].reverse().find((snapshot) => snapshot.status === 'FINALIZED' && snapshot.label === 'PLATFORM')
+    || [...bundle.snapshots].reverse().find((snapshot) => snapshot.status === 'FINALIZED');
   return (
-    <div className="bg-white border rounded-gov-lg p-5 space-y-3 text-sm">
+    <div className="bg-white border border-slate-200 rounded-gov-lg p-5 space-y-4 text-sm">
       <h2 className="font-bold text-gov-navy text-base">Documents</h2>
-      <p>PDF and Excel are rendered from the snapshot. Opening them does not recalculate the valuation.</p>
-      <ul className="space-y-2">
-        {bundle.snapshots.map((snapshot) => (
-          <li key={snapshot.id}>
-            {snapshot.label} {snapshot.status}: present {snapshot.presentCost ?? '—'}, depreciated {snapshot.depreciatedValue ?? '—'}
-            <button className="ml-3 text-gov-navy font-semibold" onClick={() => downloadSnapshot(snapshot.id, 'pdf')}>PDF</button>
-            <button className="ml-3 text-gov-navy font-semibold" onClick={() => downloadSnapshot(snapshot.id, 'xls')}>Excel</button>
-          </li>
-        ))}
-      </ul>
-      {canWrite && (
-        <button className="border rounded-gov-md px-3 py-2" onClick={onReplay}>Run gut-193 source replay on this case</button>
+      {finalized ? (
+        <div className="space-y-3">
+          <div className="rounded-gov-md bg-teal-50 text-teal-950 px-4 py-3">
+            Finalized · present cost {finalized.presentCost ?? '—'} · depreciated {finalized.depreciatedValue ?? '—'}
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button className="bg-gov-navy text-white rounded-gov-md px-4 py-2 text-sm font-semibold" onClick={() => downloadSnapshot(finalized.id, 'pdf')}>
+              Download PDF
+            </button>
+            <button className="border border-gov-navy text-gov-navy rounded-gov-md px-4 py-2 text-sm font-semibold" onClick={() => downloadSnapshot(finalized.id, 'xls')}>
+              Download Excel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <p className="rounded-gov-md bg-amber-50 text-amber-950 px-4 py-3">
+          Finalize on Screen 5 to unlock PDF and Excel downloads.
+        </p>
       )}
-      <p className="text-xs text-slate-500">Source replay reproduces the workbook totals. It does not become the rule for the next house.</p>
+      {canWrite && (
+        <details className="text-xs text-slate-500">
+          <summary className="cursor-pointer">Advanced</summary>
+          <button className="mt-2 border border-slate-200 rounded-gov-md px-3 py-2" onClick={onReplay}>Run source replay fixture</button>
+        </details>
+      )}
     </div>
   );
 }
