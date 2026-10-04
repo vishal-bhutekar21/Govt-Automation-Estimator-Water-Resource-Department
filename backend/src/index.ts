@@ -33,6 +33,22 @@ app.use(async (_req, _res, next) => {
   }
 });
 
+// Flush Postgres/file writes before the response body leaves, so creates/updates
+// are durable even when save() is fire-and-forget from controllers.
+app.use((req, res, next) => {
+  const originalJson = res.json.bind(res);
+  res.json = ((body: unknown) => {
+    void db
+      .flushSaves()
+      .catch((err) => console.warn('flushSaves before response failed:', err))
+      .finally(() => {
+        originalJson(body);
+      });
+    return res;
+  }) as typeof res.json;
+  next();
+});
+
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/projects', projectRoutes);

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { DecimalField, sanitizeDecimalInput } from '../../components/ui/DecimalField';
 import { StructureSketch, type SketchSelection } from './StructureSketch';
 import { generateRectangularGrid, type SpanMode } from './gridGeometry';
 
@@ -180,8 +181,9 @@ export function StructureLayoutPanel(props: {
             <div className="flex flex-wrap gap-2">
               {columnSpans.map((value, index) => (
                 <input key={`c-${index}`} className="border rounded px-2 py-1 w-24" inputMode="decimal" value={value} disabled={!props.canWrite} onChange={(e) => {
-                  if (e.target.value !== '' && !/^\d*\.?\d*$/.test(e.target.value)) return;
-                  setColumnSpans(columnSpans.map((item, i) => i === index ? e.target.value : item));
+                  const next = sanitizeDecimalInput(e.target.value);
+                  if (next === null) return;
+                  setColumnSpans(columnSpans.map((item, i) => i === index ? next : item));
                 }} />
               ))}
             </div>
@@ -191,8 +193,9 @@ export function StructureLayoutPanel(props: {
             <div className="flex flex-wrap gap-2">
               {rowSpans.map((value, index) => (
                 <input key={`r-${index}`} className="border rounded px-2 py-1 w-24" inputMode="decimal" value={value} disabled={!props.canWrite} onChange={(e) => {
-                  if (e.target.value !== '' && !/^\d*\.?\d*$/.test(e.target.value)) return;
-                  setRowSpans(rowSpans.map((item, i) => i === index ? e.target.value : item));
+                  const next = sanitizeDecimalInput(e.target.value);
+                  if (next === null) return;
+                  setRowSpans(rowSpans.map((item, i) => i === index ? next : item));
                 }} />
               ))}
             </div>
@@ -309,43 +312,18 @@ function NumberField(props: {
   disabled?: boolean;
   hint?: string;
 }) {
-  const [focused, setFocused] = useState(false);
-  const [draft, setDraft] = useState(props.value);
-
-  useEffect(() => {
-    if (!focused) setDraft(props.value);
-  }, [props.value, focused]);
-
   return (
-    <label className="block">
-      <span className="font-semibold text-slate-700">{props.label}{props.suffix ? ` (${props.suffix})` : ''}</span>
-      <input
-        disabled={props.disabled}
-        inputMode={props.integer ? 'numeric' : 'decimal'}
-        className="mt-1 w-full border border-slate-200 rounded-gov-sm px-3 py-2"
-        value={focused ? draft : props.value}
-        placeholder={props.placeholder}
-        onFocus={() => {
-          setFocused(true);
-          setDraft(props.value);
-        }}
-        onBlur={() => setFocused(false)}
-        onChange={(e) => {
-          const next = e.target.value;
-          if (next === '') {
-            setDraft(next);
-            props.onChange(next);
-            return;
-          }
-          if (props.integer && !/^\d+$/.test(next)) return;
-          if (!props.integer && !/^\d*\.?\d*$/.test(next)) return;
-          setDraft(next);
-          if (!props.integer && (next === '.' || next.endsWith('.'))) return;
-          props.onChange(next);
-        }}
-      />
-      {props.hint && <span className="text-xs text-slate-400">{props.hint}</span>}
-    </label>
+    <DecimalField
+      label={props.label}
+      value={props.value}
+      onChange={props.onChange}
+      placeholder={props.placeholder}
+      suffix={props.suffix}
+      integer={props.integer}
+      disabled={props.disabled}
+      hint={props.hint}
+      className="block"
+    />
   );
 }
 

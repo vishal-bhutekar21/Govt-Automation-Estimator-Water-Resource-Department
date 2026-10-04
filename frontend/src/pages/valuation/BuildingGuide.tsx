@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { DecimalField } from '../../components/ui/DecimalField';
 import { StructureLayoutPanel } from './StructureLayoutPanel';
 import { SimplePlanPanel } from './SimplePlanPanel';
 
@@ -576,36 +577,28 @@ function Labelled(props: {
   disabled?: boolean;
   hint?: string;
 }) {
-  const propText = props.value === null || props.value === undefined ? '' : String(props.value);
-  const [focused, setFocused] = useState(false);
-  const [draft, setDraft] = useState(propText);
-
-  useEffect(() => {
-    if (!focused) setDraft(propText);
-  }, [propText, focused]);
-
+  if (props.numeric) {
+    return (
+      <DecimalField
+        label={props.label}
+        value={props.value}
+        onChange={props.onChange}
+        placeholder={props.placeholder}
+        suffix={props.suffix}
+        disabled={props.disabled}
+        hint={props.hint}
+      />
+    );
+  }
   return (
     <label className="block text-sm">
       <span className="font-semibold text-slate-700">{props.label}{props.suffix ? ` (${props.suffix})` : ''}</span>
       <input
         disabled={props.disabled}
-        inputMode={props.numeric ? 'decimal' : 'text'}
         className="mt-1 w-full border border-slate-200 rounded-gov-sm px-3 py-2"
-        value={focused ? draft : propText}
+        value={props.value}
         placeholder={props.placeholder}
-        onFocus={() => {
-          setFocused(true);
-          setDraft(propText);
-        }}
-        onBlur={() => setFocused(false)}
-        onChange={(e) => {
-          const next = e.target.value;
-          if (props.numeric && next !== '' && !/^\d*\.?\d*$/.test(next)) return;
-          setDraft(next);
-          // Keep incomplete decimals (e.g. "1.") in the input; commit complete values only.
-          if (props.numeric && (next === '.' || next.endsWith('.'))) return;
-          props.onChange(next);
-        }}
+        onChange={(e) => props.onChange(e.target.value)}
       />
       {props.hint && <span className="text-xs text-slate-400">{props.hint}</span>}
     </label>

@@ -3,6 +3,7 @@ import api from '../../../services/api';
 import { Card } from '../../../components/ui/Card';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
+import { parseDecimal, sanitizeDecimalInput } from '../../../components/ui/DecimalField';
 import { CalculationModal } from '../../../components/common/CalculationModal';
 import {
   MeasurementGroup,
@@ -44,18 +45,18 @@ export const MeasurementStep: React.FC<MeasurementStepProps> = ({ caseData, onPr
   const [activeAddLineGroup, setActiveAddLineGroup] = useState<string | null>(null);
   const [newLineDesc, setNewLineDesc] = useState('');
   const [newLineType, setNewLineType] = useState<CalculationType>('VOLUME');
-  const [newLineNo, setNewLineNo] = useState<number>(1);
-  const [newLineL, setNewLineL] = useState<number>(0);
-  const [newLineB, setNewLineB] = useState<number>(0);
-  const [newLineD, setNewLineD] = useState<number>(0);
+  const [newLineNo, setNewLineNo] = useState('1');
+  const [newLineL, setNewLineL] = useState('');
+  const [newLineB, setNewLineB] = useState('');
+  const [newLineD, setNewLineD] = useState('');
 
   // New Deduction State
   const [newDedCode, setNewDedCode] = useState('D1');
   const [newDedDesc, setNewDedDesc] = useState('Door Opening');
-  const [newDedNo, setNewDedNo] = useState<number>(1);
-  const [newDedL, setNewDedL] = useState<number>(0.90);
-  const [newDedB, setNewDedB] = useState<number>(0.23);
-  const [newDedH, setNewDedH] = useState<number>(2.10);
+  const [newDedNo, setNewDedNo] = useState('1');
+  const [newDedL, setNewDedL] = useState('0.90');
+  const [newDedB, setNewDedB] = useState('0.23');
+  const [newDedH, setNewDedH] = useState('2.10');
 
   // Calculation Modal State
   const [calcModalData, setCalcModalData] = useState<any | null>(null);
@@ -95,17 +96,17 @@ export const MeasurementStep: React.FC<MeasurementStepProps> = ({ caseData, onPr
         groupId,
         description: newLineDesc,
         calculationType: newLineType,
-        numberCount: newLineNo,
-        length: newLineL,
-        breadth: newLineB,
-        depthOrHeight: newLineD,
+        numberCount: parseDecimal(newLineNo) ?? 1,
+        length: parseDecimal(newLineL) ?? 0,
+        breadth: parseDecimal(newLineB) ?? 0,
+        depthOrHeight: parseDecimal(newLineD) ?? 0,
       });
 
       setNewLineDesc('');
-      setNewLineNo(1);
-      setNewLineL(0);
-      setNewLineB(0);
-      setNewLineD(0);
+      setNewLineNo('1');
+      setNewLineL('');
+      setNewLineB('');
+      setNewLineD('');
       setActiveAddLineGroup(null);
 
       fetchMeasurements();
@@ -130,10 +131,10 @@ export const MeasurementStep: React.FC<MeasurementStepProps> = ({ caseData, onPr
       await api.post(`/v1/cases/measurements/items/${itemId}/deductions`, {
         code: newDedCode,
         description: newDedDesc,
-        numberCount: newDedNo,
-        length: newDedL,
-        breadth: newDedB,
-        depthOrHeight: newDedH,
+        numberCount: parseDecimal(newDedNo) ?? 1,
+        length: parseDecimal(newDedL) ?? 0,
+        breadth: parseDecimal(newDedB) ?? 0,
+        depthOrHeight: parseDecimal(newDedH) ?? 0,
       });
 
       setActiveDeductionItem(null);
@@ -141,6 +142,11 @@ export const MeasurementStep: React.FC<MeasurementStepProps> = ({ caseData, onPr
     } catch (err) {
       console.error('Failed to add deduction:', err);
     }
+  };
+
+  const onDecimal = (setter: (value: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const next = sanitizeDecimalInput(e.target.value);
+    if (next !== null) setter(next);
   };
 
   // Delete Deduction
@@ -454,26 +460,27 @@ export const MeasurementStep: React.FC<MeasurementStepProps> = ({ caseData, onPr
                                           className="px-2 py-1 border rounded col-span-2"
                                         />
                                         <input
-                                          type="number"
+                                          type="text"
+                                          inputMode="decimal"
                                           placeholder="No."
                                           value={newDedNo}
-                                          onChange={(e) => setNewDedNo(Number(e.target.value))}
+                                          onChange={onDecimal(setNewDedNo)}
                                           className="px-2 py-1 border rounded"
                                         />
                                         <input
-                                          type="number"
-                                          step="0.01"
+                                          type="text"
+                                          inputMode="decimal"
                                           placeholder="L"
                                           value={newDedL}
-                                          onChange={(e) => setNewDedL(Number(e.target.value))}
+                                          onChange={onDecimal(setNewDedL)}
                                           className="px-2 py-1 border rounded"
                                         />
                                         <input
-                                          type="number"
-                                          step="0.01"
+                                          type="text"
+                                          inputMode="decimal"
                                           placeholder="H/D"
                                           value={newDedH}
-                                          onChange={(e) => setNewDedH(Number(e.target.value))}
+                                          onChange={onDecimal(setNewDedH)}
                                           className="px-2 py-1 border rounded"
                                         />
                                       </div>
@@ -528,34 +535,35 @@ export const MeasurementStep: React.FC<MeasurementStepProps> = ({ caseData, onPr
                             <option value="COUNT">Count (No.)</option>
                           </select>
                           <input
-                            type="number"
+                            type="text"
+                            inputMode="decimal"
                             placeholder="No."
                             value={newLineNo}
-                            onChange={(e) => setNewLineNo(Number(e.target.value))}
+                            onChange={onDecimal(setNewLineNo)}
                             className="px-2.5 py-1.5 border rounded"
                           />
                           <input
-                            type="number"
-                            step="0.01"
+                            type="text"
+                            inputMode="decimal"
                             placeholder="Length (m)"
                             value={newLineL}
-                            onChange={(e) => setNewLineL(Number(e.target.value))}
+                            onChange={onDecimal(setNewLineL)}
                             className="px-2.5 py-1.5 border rounded"
                           />
                           <input
-                            type="number"
-                            step="0.01"
+                            type="text"
+                            inputMode="decimal"
                             placeholder="Breadth (m)"
                             value={newLineB}
-                            onChange={(e) => setNewLineB(Number(e.target.value))}
+                            onChange={onDecimal(setNewLineB)}
                             className="px-2.5 py-1.5 border rounded"
                           />
                           <input
-                            type="number"
-                            step="0.01"
+                            type="text"
+                            inputMode="decimal"
                             placeholder="Depth/Ht (m)"
                             value={newLineD}
-                            onChange={(e) => setNewLineD(Number(e.target.value))}
+                            onChange={onDecimal(setNewLineD)}
                             className="px-2.5 py-1.5 border rounded"
                           />
                         </div>

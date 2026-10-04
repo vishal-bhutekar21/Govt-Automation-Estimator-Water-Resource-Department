@@ -666,7 +666,7 @@ function ReviewScreen({ bundle, canWrite, onDecision, onBindRates, onExcludeHelp
                 <select className="border border-slate-200 rounded-gov-sm px-3 py-2" value={manual.structureId} onChange={(e) => setManual({ ...manual, structureId: e.target.value })}>
                   {bundle.structures.map((structure) => <option key={structure.id} value={structure.id}>{structure.name}</option>)}
                 </select>
-                <input className="border border-slate-200 rounded-gov-sm px-3 py-2" inputMode="decimal" placeholder={`Qty (${manual.unit})`} value={manual.quantity} onChange={(e) => { if (e.target.value === '' || /^\d*\.?\d*$/.test(e.target.value)) setManual({ ...manual, quantity: e.target.value }); }} />
+                <input className="border border-slate-200 rounded-gov-sm px-3 py-2" inputMode="decimal" placeholder={`Qty (${manual.unit})`} value={manual.quantity} onChange={(e) => { const next = e.target.value.replace(/,/g, '.'); if (next === '' || /^\d*\.?\d*$/.test(next)) setManual({ ...manual, quantity: next }); }} />
                 <input className="border border-slate-200 rounded-gov-sm px-3 py-2" placeholder="Measurement note" value={manual.reason} onChange={(e) => setManual({ ...manual, reason: e.target.value })} />
                 <button className="bg-gov-navy text-white rounded-gov-md px-3 py-2 font-semibold">Add line</button>
               </form>
@@ -711,7 +711,7 @@ function ReviewRow({ block, canWrite, onDecision }: {
             {block.status !== 'ACCEPTED' && (
               <button className="text-gov-navy font-semibold text-xs" onClick={() => onDecision(block.id, { action: 'ACCEPT' })}>Accept</button>
             )}
-            <input className="border border-slate-200 rounded px-1.5 py-1 w-20 text-xs" inputMode="decimal" aria-label="Override quantity" placeholder="Qty" value={overrideNet} onChange={(e) => { if (e.target.value === '' || /^\d*\.?\d*$/.test(e.target.value)) setOverrideNet(e.target.value); }} />
+            <input className="border border-slate-200 rounded px-1.5 py-1 w-20 text-xs" inputMode="decimal" aria-label="Override quantity" placeholder="Qty" value={overrideNet} onChange={(e) => { const next = e.target.value.replace(/,/g, '.'); if (next === '' || /^\d*\.?\d*$/.test(next)) setOverrideNet(next); }} />
             <input className="border border-slate-200 rounded px-1.5 py-1 w-28 text-xs" aria-label="Override reason" placeholder="Reason" value={reason} onChange={(e) => setReason(e.target.value)} />
             <button className="text-xs text-slate-700" onClick={() => onDecision(block.id, { action: 'OVERRIDE', reason, overrideNet: Number(overrideNet) })}>Override</button>
             <button className="text-xs text-red-700" onClick={() => onDecision(block.id, { action: 'EXCLUDE', reason })}>Exclude</button>

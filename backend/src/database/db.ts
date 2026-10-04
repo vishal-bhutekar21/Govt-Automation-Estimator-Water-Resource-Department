@@ -273,17 +273,29 @@ class DatabaseManager {
     console.log('🌱 Seed database initialized with Golden Sample Case (Mohan Vishwanath Gai).');
   }
 
+  private writeQueue: Promise<void> = Promise.resolve();
+
+  /** Queue a durable write. Controllers keep calling this synchronously. */
   save(): void {
     if (process.env.VALUATION_DB_READONLY === '1') return;
-    void this.persistAsync();
+    this.writeQueue = this.writeQueue
+      .then(() => this.persistAsync())
+      .catch((err) => console.warn('Database save queue error:', err));
+  }
+
+  /** Wait until every queued save has finished (used before sending API responses). */
+  async flushSaves(): Promise<void> {
+    await this.writeQueue;
   }
 
   private async persistAsync(): Promise<void> {
     if (process.env.VALUATION_DB_READONLY === '1') return;
+    // Snapshot so in-flight requests cannot mutate the payload mid-serialize.
+    const snapshot = JSON.parse(JSON.stringify(this.data)) as DatabaseSchema;
 
     if (postgresEnabled() && this.backend === 'postgres') {
       try {
-        await savePostgresPayload(this.data);
+        await savePostgresPayload(snapshot);
         return;
       } catch (err) {
         console.warn('Postgres save failed; trying local file fallback:', err);
@@ -294,7 +306,7 @@ class DatabaseManager {
       if (!fs.existsSync(DB_DIR)) {
         fs.mkdirSync(DB_DIR, { recursive: true });
       }
-      fs.writeFileSync(DB_FILE, JSON.stringify(this.data, null, 2), 'utf-8');
+      fs.writeFileSync(DB_FILE, JSON.stringify(snapshot, null, 2), 'utf-8');
       if (this.backend === 'memory') this.backend = 'file';
     } catch (err) {
       console.warn('Database save failed (in-memory only until restart):', DB_FILE, err);

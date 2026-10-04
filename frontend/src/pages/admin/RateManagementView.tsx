@@ -5,6 +5,7 @@ import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { RateItem, RateSchedule } from '../../types';
 import { useAuth } from '../../context/AuthContext';
+import { parseDecimal, sanitizeDecimalInput } from '../../components/ui/DecimalField';
 import { BookOpenCheck, Plus, Search, Filter, Edit, CheckCircle2, Building } from 'lucide-react';
 
 export const RateManagementView: React.FC = () => {
@@ -22,7 +23,7 @@ export const RateManagementView: React.FC = () => {
   const [itemNumber, setItemNumber] = useState('');
   const [description, setDescription] = useState('');
   const [unit, setUnit] = useState('Cum');
-  const [rateValue, setRateValue] = useState<number>(0);
+  const [rateValue, setRateValue] = useState('0');
   const [scheduleYear, setScheduleYear] = useState('2014-15');
   const [referenceSource, setReferenceSource] = useState('');
 
@@ -67,7 +68,7 @@ export const RateManagementView: React.FC = () => {
     setItemNumber(`Item ${rates.length + 1}`);
     setDescription('');
     setUnit('Cum');
-    setRateValue(0);
+    setRateValue('');
     setScheduleYear('2014-15');
     setReferenceSource('PWD CSR 2014-15');
     setIsModalOpen(true);
@@ -79,7 +80,7 @@ export const RateManagementView: React.FC = () => {
     setItemNumber(item.itemNumber);
     setDescription(item.description);
     setUnit(item.unit);
-    setRateValue(item.rate);
+    setRateValue(String(item.rate));
     setScheduleYear(item.scheduleYear);
     setReferenceSource(item.referenceSource);
     setIsModalOpen(true);
@@ -87,12 +88,13 @@ export const RateManagementView: React.FC = () => {
 
   const handleSaveRate = async (e: React.FormEvent) => {
     e.preventDefault();
+    const rate = parseDecimal(rateValue) ?? 0;
     try {
       if (editingRate) {
         await api.put(`/v1/rates/${editingRate.id}`, {
           description,
           unit,
-          rate: rateValue,
+          rate,
           referenceSource,
         });
       } else {
@@ -101,7 +103,7 @@ export const RateManagementView: React.FC = () => {
           itemNumber,
           description,
           unit,
-          rate: rateValue,
+          rate,
           scheduleYear,
           referenceSource,
         });
@@ -302,11 +304,14 @@ export const RateManagementView: React.FC = () => {
                 <div className="space-y-1">
                   <label className="font-bold text-slate-700 uppercase">Approved Rate (₹) *</label>
                   <input
-                    type="number"
-                    step="0.01"
+                    type="text"
+                    inputMode="decimal"
                     required
                     value={rateValue}
-                    onChange={(e) => setRateValue(Number(e.target.value))}
+                    onChange={(e) => {
+                      const next = sanitizeDecimalInput(e.target.value);
+                      if (next !== null) setRateValue(next);
+                    }}
                     className="w-full px-3 py-2 border rounded font-mono font-bold"
                   />
                 </div>
