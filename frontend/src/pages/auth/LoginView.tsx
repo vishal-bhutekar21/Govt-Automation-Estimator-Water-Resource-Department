@@ -16,9 +16,9 @@ export const LoginView: React.FC = () => {
   const navigate = useNavigate();
 
   const loadingMessages = [
-    'Verifying departmental credentials...',
-    'Establishing encrypted session...',
-    'Loading Jigaon Project database...',
+    'Verifying departmental credentials…',
+    'Establishing secure session…',
+    'Loading valuation workspace…',
   ];
 
   const handleLogin = async (e: React.FormEvent) => {

@@ -1,7 +1,14 @@
 import axios from 'axios';
 
+/** Same-origin `/api` on Vercel; override only when the API is hosted elsewhere. */
+function resolveApiBaseUrl(): string {
+  const raw = (import.meta.env.VITE_API_URL || '').trim();
+  if (!raw || raw === '/') return '/api';
+  return raw.replace(/\/+$/, '');
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: resolveApiBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },

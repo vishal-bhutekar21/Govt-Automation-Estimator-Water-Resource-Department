@@ -198,8 +198,9 @@ export const ValuationWorkspace: React.FC = () => {
     <div className="space-y-5 max-w-6xl">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <button className="text-xs font-semibold text-gov-navy" onClick={() => navigate('/cases')}>Back to cases</button>
+          <button type="button" className="text-xs font-semibold text-gov-navy hover:underline" onClick={() => navigate('/cases')}>Back to cases</button>
           <h1 className="text-2xl font-bold text-slate-900 mt-1 tracking-tight">{bundle.property?.ownerName || 'Valuation'} · {bundle.case.caseNumber}</h1>
+          <p className="text-sm text-slate-500 mt-1">Screen {screen}: {SCREENS.find((item) => item.id === screen)?.label}</p>
         </div>
         <div className="text-right space-y-1">
           {saving && (
@@ -208,21 +209,23 @@ export const ValuationWorkspace: React.FC = () => {
               Saving…
             </div>
           )}
-          <div className="text-xs text-slate-500">{user?.role}</div>
+          <div className="text-xs font-medium text-slate-500 uppercase tracking-wide">{user?.role}</div>
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <nav className="flex flex-wrap gap-2" aria-label="Valuation steps">
         {SCREENS.map((item) => (
           <button
             key={item.id}
+            type="button"
             onClick={() => setScreen(item.id)}
-            className={`px-3 py-2 rounded-gov-md text-sm font-semibold transition-colors ${screen === item.id ? 'bg-gov-navy text-white' : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300'}`}
+            aria-current={screen === item.id ? 'step' : undefined}
+            className={`px-3 py-2 rounded-gov-md text-sm font-semibold transition-colors ${screen === item.id ? 'bg-gov-navy text-white shadow-sm' : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300'}`}
           >
             {item.id}. {item.label}
           </button>
         ))}
-      </div>
+      </nav>
 
       {bundle.guidance && (
         <div className="bg-white border border-slate-200 rounded-gov-lg px-4 py-3 flex flex-wrap items-center justify-between gap-3">
