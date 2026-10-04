@@ -26,6 +26,14 @@ Built strictly in accordance with **Maharashtra Public Works Department (PWD) Co
 
 ---
 
+## New cases
+
+A case created from **New Valuation Case** uses the building workflow in `docs/BUILDING_WORKFLOW.md`: several structures, rooms, candidate walls, engineer review, a pinned rate version, Year’s Purchase without a fallback factor, and one snapshot for the PDF and Excel. It does not start from a 45-year life or a 10% salvage deduction.
+
+`CASE/2008-09/165` and any case without `workflow: "BUILDING"` still open the wizard described below. That wizard is the legacy path.
+
+Creating an officer account now requires an administrator token. The public register form no longer succeeds on its own.
+
 ## 📖 Complete "How To Use" Guide (Step-by-Step)
 
 ```

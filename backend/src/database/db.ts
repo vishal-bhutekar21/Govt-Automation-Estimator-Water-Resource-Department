@@ -21,6 +21,20 @@ import {
   EvidencePhoto,
 } from '../models/types';
 import {
+  BuildingStructure,
+  CaseEvidenceRecord,
+  CatalogueItemRecord,
+  CalculationSnapshotRecord,
+  DepreciationDecision,
+  MeasurementBlockFact,
+  MemberFact,
+  OpeningFact,
+  RateScheduleVersionRecord,
+  RoomFact,
+  WallRunFact,
+  YpTableVersionRecord,
+} from '../workflow/types';
+import {
   getSyncSeedUsers,
   getSeedUsers,
   seedProjects,
@@ -57,6 +71,19 @@ interface DatabaseSchema {
   calculationVersions: CalculationVersion[];
   panchanamaRecords?: PanchanamaDetails[];
   evidencePhotos?: EvidencePhoto[];
+  buildingStructures?: BuildingStructure[];
+  rooms?: RoomFact[];
+  wallRuns?: WallRunFact[];
+  openings?: OpeningFact[];
+  members?: MemberFact[];
+  measurementBlocks?: MeasurementBlockFact[];
+  caseEvidence?: CaseEvidenceRecord[];
+  rateScheduleVersions?: RateScheduleVersionRecord[];
+  catalogueItems?: CatalogueItemRecord[];
+  ypTables?: YpTableVersionRecord[];
+  calculationSnapshots?: CalculationSnapshotRecord[];
+  depreciationDecisions?: DepreciationDecision[];
+  legacyCatalogCopied?: boolean;
 }
 
 const DB_DIR = path.resolve(__dirname, '../../data');
@@ -94,6 +121,7 @@ class DatabaseManager {
         const parsed = JSON.parse(raw);
         if (parsed && Array.isArray(parsed.cases) && parsed.cases.length > 0) {
           this.data = parsed;
+          this.ensureWorkflowCollections();
           console.log('📦 Database loaded from disk:', DB_FILE);
         }
       }
@@ -101,7 +129,63 @@ class DatabaseManager {
       console.warn('Note: Running with default in-memory dataset:', err);
     }
 
+    this.ensureWorkflowCollections();
     this.isInitialized = true;
+  }
+
+  ensureWorkflowCollections(): void {
+    const data = this.data;
+    data.buildingStructures = data.buildingStructures || [];
+    data.rooms = data.rooms || [];
+    data.wallRuns = data.wallRuns || [];
+    data.openings = data.openings || [];
+    data.members = data.members || [];
+    data.measurementBlocks = data.measurementBlocks || [];
+    data.caseEvidence = data.caseEvidence || [];
+    data.rateScheduleVersions = data.rateScheduleVersions || [];
+    data.catalogueItems = data.catalogueItems || [];
+    data.ypTables = data.ypTables || [];
+    data.calculationSnapshots = data.calculationSnapshots || [];
+    data.depreciationDecisions = data.depreciationDecisions || [];
+    if (!data.legacyCatalogCopied) {
+      const scheduleId = 'rate-pwd-csr-2014-15-seed';
+      if (!data.rateScheduleVersions!.some((row) => row.id === scheduleId)) {
+        data.rateScheduleVersions!.push({
+          id: scheduleId,
+          name: 'PWD CSR seed',
+          authority: 'Repository seed',
+          versionLabel: 'PWD-CSR-2014-15-SEED',
+          effectiveFrom: null,
+          effectiveTo: null,
+          sourceDocument: 'backend/src/database/seedData.ts',
+          importedAt: new Date().toISOString(),
+          legacy: true,
+        });
+        for (const item of data.rateItems) {
+          data.catalogueItems!.push({
+            id: `cat-${item.id}`,
+            scheduleVersionId: scheduleId,
+            itemNumber: String(item.itemNumber),
+            description: item.description,
+            unit: item.unit,
+            rate: item.rate,
+            sourceRow: item.itemCode,
+            reference: item.referenceSource,
+          });
+        }
+      }
+      const ypId = 'yp-legacy-seed';
+      if (!data.ypTables!.some((row) => row.id === ypId)) {
+        data.ypTables!.push({
+          id: ypId,
+          name: 'Legacy software Year’s Purchase rows',
+          citation: 'Copied from the existing depreciationFactors seed. Not the default for a new case.',
+          legacy: true,
+          rows: data.depreciationFactors.map((factor) => ({ year: factor.year, factor: factor.factor })),
+        });
+      }
+      data.legacyCatalogCopied = true;
+    }
   }
 
   async seed(): Promise<void> {
@@ -124,11 +208,13 @@ class DatabaseManager {
       auditLogs: [...seedAuditLogs],
       calculationVersions: [],
     };
+    this.ensureWorkflowCollections();
     this.save();
     console.log('🌱 Seed database initialized with Golden Sample Case (Mohan Vishwanath Gai).');
   }
 
   save(): void {
+    if (process.env.VALUATION_DB_READONLY === '1') return;
     try {
       if (!fs.existsSync(DB_DIR)) {
         fs.mkdirSync(DB_DIR, { recursive: true });
@@ -160,6 +246,18 @@ class DatabaseManager {
   set panchanamaRecords(records) { this.data.panchanamaRecords = records; }
   get evidencePhotos() { return this.data.evidencePhotos; }
   set evidencePhotos(photos) { this.data.evidencePhotos = photos; }
+  get buildingStructures() { return this.data.buildingStructures || []; }
+  get rooms() { return this.data.rooms || []; }
+  get wallRuns() { return this.data.wallRuns || []; }
+  get openings() { return this.data.openings || []; }
+  get members() { return this.data.members || []; }
+  get measurementBlocks() { return this.data.measurementBlocks || []; }
+  get caseEvidence() { return this.data.caseEvidence || []; }
+  get rateScheduleVersions() { return this.data.rateScheduleVersions || []; }
+  get catalogueItems() { return this.data.catalogueItems || []; }
+  get ypTables() { return this.data.ypTables || []; }
+  get calculationSnapshots() { return this.data.calculationSnapshots || []; }
+  get depreciationDecisions() { return this.data.depreciationDecisions || []; }
 }
 
 export const db = new DatabaseManager();

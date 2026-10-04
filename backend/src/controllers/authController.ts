@@ -44,32 +44,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
 
     const cleanEmail = email.toLowerCase().trim();
-
-    // ─── Super Admin Hardcoded Bypass (works on Vercel serverless) ───────────
-    // This ensures the Super Admin can always log in regardless of db.json state
-    if (cleanEmail === SUPER_ADMIN_EMAIL.toLowerCase() && password === SUPER_ADMIN_PASSWORD) {
-      const token = signToken({
-        id: 'usr-superadmin-vishal',
-        email: SUPER_ADMIN_EMAIL,
-        role: 'ADMIN',
-      });
-
-      res.status(200).json({
-        message: 'Authentication successful',
-        token,
-        user: {
-          id: 'usr-superadmin-vishal',
-          email: SUPER_ADMIN_EMAIL,
-          name: 'Er. Vishal Bhutekar (Super Admin)',
-          role: 'ADMIN',
-          department: 'Water Resources Department, Maharashtra',
-          designation: 'Super Administrator / Chief System Architect',
-        },
-      });
-      return;
-    }
-    // ─────────────────────────────────────────────────────────────────────────
-
     await ensureSuperAdmin();
 
     const user = db.users.find((u) => u.email.toLowerCase() === cleanEmail);

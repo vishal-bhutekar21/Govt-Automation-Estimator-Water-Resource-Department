@@ -17,9 +17,9 @@ export const CaseCreationModal: React.FC<CaseCreationModalProps> = ({ isOpen, on
   const [caseNumber, setCaseNumber] = useState<string>('');
   const [ownerName, setOwnerName] = useState<string>('');
   const [houseNumber, setHouseNumber] = useState<string>('');
-  const [village, setVillage] = useState<string>('Dadulgaon');
-  const [taluka, setTaluka] = useState<string>('Nandura');
-  const [district, setDistrict] = useState<string>('Buldhana');
+  const [village, setVillage] = useState<string>('');
+  const [taluka, setTaluka] = useState<string>('');
+  const [district, setDistrict] = useState<string>('');
   const [laCaseNumber, setLaCaseNumber] = useState<string>('');
   const [surveyNumber, setSurveyNumber] = useState<string>('');
   const [dateOfInspection, setDateOfInspection] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -36,9 +36,6 @@ export const CaseCreationModal: React.FC<CaseCreationModalProps> = ({ isOpen, on
           setProjectId(res.data.projects[0].id);
         }
       });
-      // Generate a default case number
-      const randomNo = Math.floor(100 + Math.random() * 900);
-      setCaseNumber(`CASE/2008-09/${randomNo}`);
     }
   }, [isOpen]);
 
@@ -149,11 +146,10 @@ export const CaseCreationModal: React.FC<CaseCreationModalProps> = ({ isOpen, on
               </div>
 
               <div className="space-y-1">
-                <label className="font-semibold text-slate-600">House Number *</label>
+                <label className="font-semibold text-slate-600">House Number</label>
                 <input
                   type="text"
-                  required
-                  placeholder="e.g. 165"
+                  placeholder="Leave blank when the gut number identifies the property"
                   value={houseNumber}
                   onChange={(e) => setHouseNumber(e.target.value)}
                   className="w-full px-3 py-2 rounded-gov-md border border-slate-300 focus:ring-2 focus:ring-gov-navy outline-none bg-white"
@@ -166,6 +162,7 @@ export const CaseCreationModal: React.FC<CaseCreationModalProps> = ({ isOpen, on
                 <label className="font-semibold text-slate-600">Village</label>
                 <input
                   type="text"
+                  placeholder="e.g. Bondgaon"
                   value={village}
                   onChange={(e) => setVillage(e.target.value)}
                   className="w-full px-3 py-2 rounded-gov-md border border-slate-300 focus:ring-2 focus:ring-gov-navy outline-none bg-white"
@@ -176,6 +173,7 @@ export const CaseCreationModal: React.FC<CaseCreationModalProps> = ({ isOpen, on
                 <label className="font-semibold text-slate-600">Taluka</label>
                 <input
                   type="text"
+                  placeholder="e.g. Shegaon"
                   value={taluka}
                   onChange={(e) => setTaluka(e.target.value)}
                   className="w-full px-3 py-2 rounded-gov-md border border-slate-300 focus:ring-2 focus:ring-gov-navy outline-none bg-white"
@@ -186,6 +184,7 @@ export const CaseCreationModal: React.FC<CaseCreationModalProps> = ({ isOpen, on
                 <label className="font-semibold text-slate-600">District</label>
                 <input
                   type="text"
+                  placeholder="e.g. Buldhana"
                   value={district}
                   onChange={(e) => setDistrict(e.target.value)}
                   className="w-full px-3 py-2 rounded-gov-md border border-slate-300 focus:ring-2 focus:ring-gov-navy outline-none bg-white"

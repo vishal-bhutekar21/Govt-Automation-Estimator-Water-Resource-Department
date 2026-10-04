@@ -9,7 +9,7 @@ import { SuperAdminPortalView } from './pages/auth/SuperAdminPortalView';
 import { DashboardView } from './pages/dashboard/DashboardView';
 import { ProjectListView } from './pages/projects/ProjectListView';
 import { CaseListView } from './pages/cases/CaseListView';
-import { CaseWizardView } from './pages/cases/CaseWizardView';
+import { CaseEntry } from './pages/cases/CaseEntry';
 import { RateManagementView } from './pages/admin/RateManagementView';
 import { DepreciationFactorsView } from './pages/admin/DepreciationFactorsView';
 import { AuditLogView } from './pages/admin/AuditLogView';
@@ -99,7 +99,7 @@ export const AppRoutes: React.FC = () => {
         <Route path="/dashboard" element={<DashboardView />} />
         <Route path="/projects" element={<ProjectListView />} />
         <Route path="/cases" element={<CaseListView />} />
-        <Route path="/cases/:id" element={<CaseWizardView />} />
+        <Route path="/cases/:id" element={<CaseEntry />} />
         <Route path="/rates" element={<RateManagementView />} />
         <Route path="/depreciation-factors" element={<DepreciationFactorsView />} />
         <Route path="/audit-logs" element={<AuditLogView />} />

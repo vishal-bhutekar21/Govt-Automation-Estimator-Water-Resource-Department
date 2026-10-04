@@ -43,6 +43,11 @@ export interface ValuationCase {
   id: string;
   caseNumber: string;
   projectId: string;
+  /** Missing means a legacy case. New cases are BUILDING. */
+  workflow?: 'LEGACY' | 'BUILDING';
+  rateScheduleVersionId?: string | null;
+  ypTableVersionId?: string | null;
+  conflictingIdentifierNotes?: string;
   status: CaseStatus;
   dateOfInspection: string;
   valuationDate: string;

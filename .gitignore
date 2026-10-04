@@ -21,3 +21,4 @@ Thumbs.db
 
 # Temp media storage
 backend/data/*.tmp
+backend/data/evidence/

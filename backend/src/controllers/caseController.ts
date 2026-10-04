@@ -95,6 +95,13 @@ export const getCaseById = (req: AuthRequest, res: Response): void => {
 
 export const createCase = (req: AuthRequest, res: Response): void => {
   try {
+    if (req.user && req.user.role !== 'ADMIN' && req.user.role !== 'ESTIMATOR') {
+      res.status(403).json({
+        error: 'FORBIDDEN',
+        message: 'Creating a case is limited to the estimator and administrator roles.',
+      });
+      return;
+    }
     const {
       projectId,
       caseNumber,
@@ -133,12 +140,15 @@ export const createCase = (req: AuthRequest, res: Response): void => {
       id: newCaseId,
       caseNumber: caseNumber.trim(),
       projectId,
+      workflow: 'BUILDING',
+      rateScheduleVersionId: null,
+      ypTableVersionId: null,
       status: 'DRAFT',
       dateOfInspection: dateOfInspection || new Date().toISOString().split('T')[0],
       valuationDate: valuationDate || new Date().toISOString().split('T')[0],
-      preparedBy: req.user?.name || 'Assigned Estimator',
-      checkedBy: 'Assistant Engineer (A.E. Gr-I)',
-      approvedBy: 'Executive Engineer (E.E.)',
+      preparedBy: req.user?.name || '',
+      checkedBy: '',
+      approvedBy: '',
       createdBy: req.user?.id || 'system',
       createdAt: now,
       updatedAt: now,
@@ -156,33 +166,13 @@ export const createCase = (req: AuthRequest, res: Response): void => {
       laCaseNumber: laCaseNumber || '',
       houseNumber: houseNumber || '',
       surveyNumber: surveyNumber || '',
-      submergenceType: 'Full Submergence (Reservoir Area)',
-      additionalNotes: '',
-      updatedAt: now,
-    };
-
-    const newStructure: StructureDetails = {
-      id: `struct-${uuidv4().slice(0, 8)}`,
-      caseId: newCaseId,
-      structureType: 'Residential Dwelling',
-      constructionType: 'B.B.M. Wall + C.G.I. Sheet Roof (Class-B)',
-      yearOfConstruction: new Date().getFullYear() - 4,
-      totalUsefulLife: 45,
-      presentLife: 4,
-      futureLife: 41,
-      roofType: 'C.G.I. Sheet over Country Teak Frame',
-      wallType: 'Burnt Brick Masonry in CM 1:6',
-      floorType: 'Cement Concrete 1:4:8 with IPS',
-      numberOfRooms: 3,
-      builtUpArea: 60.00,
-      plinthArea: 68.00,
+      submergenceType: '',
       additionalNotes: '',
       updatedAt: now,
     };
 
     db.cases.push(newCase);
     db.properties.push(newProperty);
-    db.structures.push(newStructure);
     db.save();
 
     // Audit log
@@ -203,7 +193,6 @@ export const createCase = (req: AuthRequest, res: Response): void => {
       message: 'Valuation Case created successfully',
       case: newCase,
       property: newProperty,
-      structure: newStructure,
     });
   } catch (err: any) {
     res.status(500).json({ error: 'SERVER_ERROR', message: err.message });

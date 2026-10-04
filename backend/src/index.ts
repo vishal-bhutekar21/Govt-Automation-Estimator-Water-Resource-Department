@@ -13,6 +13,7 @@ import salvageRoutes from './routes/salvageRoutes';
 import panchanamaRoutes from './routes/panchanamaRoutes';
 import pdfReportRoutes from './routes/pdfReportRoutes';
 import auditRoutes from './routes/auditRoutes';
+import workflowRoutes from './routes/workflowRoutes';
 
 const app: Express = express();
 const PORT = process.env.PORT || 5000;
@@ -37,13 +38,14 @@ app.use('/api/v1/cases', salvageRoutes);
 app.use('/api/v1/cases', panchanamaRoutes);
 app.use('/api/v1/cases', pdfReportRoutes);
 app.use('/api/v1/audit', auditRoutes);
+app.use('/api/v1/workflow', workflowRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req: Request, res: Response) => {
   res.status(200).json({
     status: 'HEALTHY',
     service: 'House Valuation & Estimation Calculation Engine',
-    version: '1.0.0',
+    version: '1.1.0',
     timestamp: new Date().toISOString(),
   });
 });

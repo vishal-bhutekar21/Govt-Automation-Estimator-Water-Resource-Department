@@ -34,6 +34,7 @@ export interface ValuationCase {
   id: string;
   caseNumber: string;
   projectId: string;
+  workflow?: 'LEGACY' | 'BUILDING';
   status: CaseStatus;
   dateOfInspection: string;
   valuationDate: string;
