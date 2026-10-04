@@ -34,6 +34,7 @@ import {
   WallRunFact,
   YpTableVersionRecord,
 } from '../workflow/types';
+import { ensureGut193GuideCatalog } from './workflowSeedCatalog';
 import {
   getSyncSeedUsers,
   getSeedUsers,
@@ -186,6 +187,12 @@ class DatabaseManager {
       }
       data.legacyCatalogCopied = true;
     }
+    // Always ensure Gut-193 guide schedule + YP exist (local disk DB and Vercel in-memory).
+    ensureGut193GuideCatalog({
+      rateScheduleVersions: data.rateScheduleVersions!,
+      catalogueItems: data.catalogueItems!,
+      ypTables: data.ypTables!,
+    });
   }
 
   async seed(): Promise<void> {

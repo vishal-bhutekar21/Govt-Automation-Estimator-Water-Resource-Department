@@ -1,5 +1,18 @@
 # Rate import
 
+## Built-in schedules (always available)
+
+On every boot (local and Vercel), `ensureWorkflowCollections` seeds:
+
+| Pin on Screen 1 | Contents |
+|---|---|
+| **CASE-193-RA-UI-GUIDE** | Gut 193 workbook RA extract (12 items: 1, 4, 21, 121, 19.1, 6, 68, 112, 98, 30, 29, 97) |
+| **Gut 193 workbook YP (7 & 10)** | YP factors year 7 = 5.389, year 10 = 7.024 (year 93 blocked / null) |
+| PWD-CSR-2014-15-SEED | Legacy 18-row CSR seed |
+| Legacy software Year’s Purchase rows | Legacy YP factors |
+
+Source: `backend/src/database/workflowSeedCatalog.ts`.
+
 `POST /api/v1/workflow/rate-schedules/import` requires an administrator token.
 
 Body:
