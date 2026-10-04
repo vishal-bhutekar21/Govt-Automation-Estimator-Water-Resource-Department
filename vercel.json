@@ -1,12 +1,12 @@
 {
   "version": 2,
-  "installCommand": "npm install && npm install --prefix frontend && npm install --prefix backend",
+  "installCommand": "npm install --prefix frontend",
   "buildCommand": "npm run build --prefix frontend",
   "outputDirectory": "frontend/dist",
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/index.ts"
+      "source": "/api/:path*",
+      "destination": "https://govt-automation-estimator-backend.onrender.com/api/:path*"
     },
     {
       "source": "/((?!api/).*)",

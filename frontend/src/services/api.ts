@@ -1,6 +1,11 @@
 import axios from 'axios';
 
-/** Same-origin `/api` on Vercel; override only when the API is hosted elsewhere. */
+/**
+ * API base URL:
+ * - Production build: `frontend/.env.production` → Render
+ * - Local: Vite proxies `/api` → backend (see vite.config.ts)
+ * - Vercel also proxies `/api/*` to Render (see root vercel.json) as a fallback
+ */
 function resolveApiBaseUrl(): string {
   const raw = (import.meta.env.VITE_API_URL || '').trim();
   if (!raw || raw === '/') return '/api';

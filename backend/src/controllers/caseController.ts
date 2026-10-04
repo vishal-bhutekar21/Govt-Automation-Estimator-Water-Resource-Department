@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../database/db';
+import { GUT193_RATE_SCHEDULE_ID, GUT193_YP_TABLE_ID } from '../database/workflowSeedCatalog';
 import { AuthRequest } from '../middleware/auth';
 import { ValuationCase, PropertyDetails, StructureDetails, CaseStatus } from '../models/types';
 import { DecimalMath } from '../utils/decimal';
@@ -145,13 +146,21 @@ export const createCase = (req: AuthRequest, res: Response): void => {
     const newCaseId = `case-${uuidv4().slice(0, 8)}`;
     const now = new Date().toISOString();
 
+    // Pin the Gut-193 guide schedule + YP so new BUILDING cases can price MS immediately.
+    const defaultScheduleId = db.rateScheduleVersions.some((row) => row.id === GUT193_RATE_SCHEDULE_ID)
+      ? GUT193_RATE_SCHEDULE_ID
+      : null;
+    const defaultYpId = db.ypTables.some((row) => row.id === GUT193_YP_TABLE_ID)
+      ? GUT193_YP_TABLE_ID
+      : null;
+
     const newCase: ValuationCase = {
       id: newCaseId,
       caseNumber: caseNumber.trim(),
       projectId,
       workflow: 'BUILDING',
-      rateScheduleVersionId: null,
-      ypTableVersionId: null,
+      rateScheduleVersionId: defaultScheduleId,
+      ypTableVersionId: defaultYpId,
       status: 'DRAFT',
       dateOfInspection: dateOfInspection || new Date().toISOString().split('T')[0],
       valuationDate: valuationDate || new Date().toISOString().split('T')[0],

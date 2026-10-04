@@ -87,7 +87,8 @@ interface DatabaseSchema {
   legacyCatalogCopied?: boolean;
 }
 
-const DB_DIR = path.resolve(__dirname, '../../data');
+/** Override on Render with a persistent disk mount, e.g. VALUATION_DB_DIR=/var/data */
+const DB_DIR = path.resolve(process.env.VALUATION_DB_DIR || path.join(__dirname, '../../data'));
 const DB_FILE = path.join(DB_DIR, 'db.json');
 
 class DatabaseManager {
@@ -228,7 +229,8 @@ class DatabaseManager {
       }
       fs.writeFileSync(DB_FILE, JSON.stringify(this.data, null, 2), 'utf-8');
     } catch (err) {
-      // In serverless / read-only environments, disk writes may fail; in-memory data persists for request lifetime
+      // Free/ephemeral hosts lose writes across restarts; prefer VALUATION_DB_DIR on a Render disk.
+      console.warn('Database save failed (in-memory only until restart):', DB_FILE, err);
     }
   }
 
