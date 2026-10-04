@@ -177,6 +177,13 @@ function NumberField(props: {
   integer?: boolean;
   disabled?: boolean;
 }) {
+  const [focused, setFocused] = useState(false);
+  const [draft, setDraft] = useState(props.value);
+
+  useEffect(() => {
+    if (!focused) setDraft(props.value);
+  }, [props.value, focused]);
+
   return (
     <label className="block">
       <span className="font-semibold text-slate-700">{props.label}{props.suffix ? ` (${props.suffix})` : ''}</span>
@@ -184,13 +191,24 @@ function NumberField(props: {
         disabled={props.disabled}
         inputMode={props.integer ? 'numeric' : 'decimal'}
         className="mt-1 w-full border border-slate-200 rounded-gov-sm px-3 py-2"
-        value={props.value}
+        value={focused ? draft : props.value}
         placeholder={props.placeholder}
+        onFocus={() => {
+          setFocused(true);
+          setDraft(props.value);
+        }}
+        onBlur={() => setFocused(false)}
         onChange={(e) => {
           const next = e.target.value;
-          if (next === '') return props.onChange(next);
+          if (next === '') {
+            setDraft(next);
+            props.onChange(next);
+            return;
+          }
           if (props.integer && !/^\d+$/.test(next)) return;
           if (!props.integer && !/^\d*\.?\d*$/.test(next)) return;
+          setDraft(next);
+          if (!props.integer && (next === '.' || next.endsWith('.'))) return;
           props.onChange(next);
         }}
       />

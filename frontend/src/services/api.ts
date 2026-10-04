@@ -12,6 +12,8 @@ function resolveApiBaseUrl(): string {
   return raw.replace(/\/+$/, '');
 }
 
+export const AUTH_EXPIRED_EVENT = 'gov_valuation_auth_expired';
+
 const api = axios.create({
   baseURL: resolveApiBaseUrl(),
   headers: {
@@ -19,7 +21,6 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to attach JWT token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('gov_valuation_token');
@@ -31,14 +32,29 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor for consistent error handling
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
-      // Clear token on unauthorized
-      localStorage.removeItem('gov_valuation_token');
-      localStorage.removeItem('gov_valuation_user');
+    const status = error.response?.status;
+    const code = error.response?.data?.error;
+    const url = String(error.config?.url || '');
+    const isAuthCall = url.includes('/auth/login') || url.includes('/auth/register');
+
+    // Only expire the session on real auth failures — not on every 401 during cold starts
+    // or missing-header races after a prior clear. Keep form state intact until AuthContext redirects.
+    if (
+      status === 401 &&
+      !isAuthCall &&
+      (code === 'TOKEN_EXPIRED_OR_INVALID' || code === 'INVALID_TOKEN' || code === 'UNAUTHORIZED')
+    ) {
+      const hadToken = Boolean(localStorage.getItem('gov_valuation_token'));
+      if (hadToken) {
+        localStorage.removeItem('gov_valuation_token');
+        localStorage.removeItem('gov_valuation_user');
+        window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT, {
+          detail: { message: error.response?.data?.message || 'Your session expired. Please sign in again.' },
+        }));
+      }
     }
     return Promise.reject(error);
   }

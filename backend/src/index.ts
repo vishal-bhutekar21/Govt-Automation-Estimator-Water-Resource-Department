@@ -18,14 +18,21 @@ import workflowRoutes from './routes/workflowRoutes';
 const app: Express = express();
 const PORT = process.env.PORT || 5055;
 
-// Initialize persistent database
+// Kick off DB init immediately; requests wait until ready.
 db.init();
 
-// Middleware
 app.use(cors({ origin: true, credentials: true }));
-app.use(express.json());
+app.use(express.json({ limit: '20mb' }));
 
-// Routes
+app.use(async (_req, _res, next) => {
+  try {
+    await db.waitForInit();
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/projects', projectRoutes);
@@ -40,20 +47,26 @@ app.use('/api/v1/cases', pdfReportRoutes);
 app.use('/api/v1/audit', auditRoutes);
 app.use('/api/v1/workflow', workflowRoutes);
 
-// Health check endpoint
 app.get('/api/health', (req: Request, res: Response) => {
   res.status(200).json({
     status: 'HEALTHY',
     service: 'House Valuation & Estimation Calculation Engine',
     version: '1.1.0',
+    storage: db.storageBackend,
     timestamp: new Date().toISOString(),
   });
 });
 
-if (process.env.VERCEL !== '1' && process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
-    console.log(`🏛️  Government House Valuation Engine running on http://localhost:${PORT}`);
-  });
+async function start(): Promise<void> {
+  await db.waitForInit();
+  if (process.env.VERCEL !== '1' && process.env.NODE_ENV !== 'test') {
+    app.listen(PORT, () => {
+      console.log(`🏛️  Government House Valuation Engine running on http://localhost:${PORT}`);
+      console.log(`💾 Storage backend: ${db.storageBackend}`);
+    });
+  }
 }
+
+void start();
 
 export default app;

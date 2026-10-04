@@ -22,16 +22,16 @@ In Vercel → Project → Settings → General:
 
 If Root Directory is `frontend`, the build fails with `cd: frontend: No such file or directory`.
 
-## Render persistence
+## Render persistence (Postgres)
 
-Render **free** web services have **no persistent disk**. Cases written to `backend/data/db.json` survive while the instance is up, but a **redeploy or cold new instance resets** to seed data.
+The API persists the full valuation store as JSONB in Render Postgres when `DATABASE_URL` is set.
 
-To keep cases across restarts:
+| Env | Purpose |
+|---|---|
+| `DATABASE_URL` | Internal Postgres URL (preferred on Render) |
+| `VALUATION_DB_DIR` | Optional file fallback path |
 
-1. Upgrade the web service to a paid plan that supports disks.
-2. Attach a disk mounted at `/var/data` (or similar).
-3. Set env `VALUATION_DB_DIR=/var/data` on the Render service.
-4. Redeploy.
+Without `DATABASE_URL`, free web services lose `db.json` on redeploy/cold start.
 
 Gut-193 rate schedule + YP (`CASE-193-RA-UI-GUIDE`) are seeded on every boot via `workflowSeedCatalog.ts`. New BUILDING cases auto-pin those IDs.
 

@@ -36,6 +36,12 @@ import {
 } from '../workflow/types';
 import { ensureGut193GuideCatalog } from './workflowSeedCatalog';
 import {
+  ensurePostgresStore,
+  loadPostgresPayload,
+  postgresEnabled,
+  savePostgresPayload,
+} from './postgresStore';
+import {
   getSyncSeedUsers,
   getSeedUsers,
   seedProjects,
@@ -113,26 +119,72 @@ class DatabaseManager {
   };
 
   private isInitialized = false;
+  private initStarted = false;
+  private initPromise: Promise<void> = Promise.resolve();
+  private backend: 'memory' | 'file' | 'postgres' = 'memory';
 
-  init(): void {
+  init(): Promise<void> {
+    if (!this.initStarted) {
+      this.initStarted = true;
+      this.initPromise = this.initAsync();
+    }
+    return this.initPromise;
+  }
+
+  async waitForInit(): Promise<void> {
+    await this.initPromise;
+  }
+
+  get storageBackend(): 'memory' | 'file' | 'postgres' {
+    return this.backend;
+  }
+
+  private async initAsync(): Promise<void> {
     if (this.isInitialized) return;
 
+    if (postgresEnabled()) {
+      try {
+        await ensurePostgresStore();
+        const loaded = await loadPostgresPayload<DatabaseSchema>();
+        if (loaded && Array.isArray(loaded.cases) && loaded.cases.length > 0) {
+          this.data = loaded;
+          console.log('📦 Database loaded from Postgres');
+        } else {
+          console.log('📦 Postgres store empty — seeding defaults, then persisting');
+        }
+        this.backend = 'postgres';
+      } catch (err) {
+        console.warn('Postgres init failed, falling back to file/memory:', err);
+        this.loadFromFile();
+      }
+    } else {
+      this.loadFromFile();
+    }
+
+    this.ensureWorkflowCollections();
+    this.isInitialized = true;
+    // Persist seed/catalog upgrades so cold starts keep Gut-193 schedules.
+    if (this.backend === 'postgres' || this.backend === 'file') {
+      await this.persistAsync();
+    }
+  }
+
+  private loadFromFile(): void {
     try {
       if (fs.existsSync(DB_FILE)) {
         const raw = fs.readFileSync(DB_FILE, 'utf-8');
         const parsed = JSON.parse(raw);
         if (parsed && Array.isArray(parsed.cases) && parsed.cases.length > 0) {
           this.data = parsed;
-          this.ensureWorkflowCollections();
+          this.backend = 'file';
           console.log('📦 Database loaded from disk:', DB_FILE);
+          return;
         }
       }
     } catch (err) {
       console.warn('Note: Running with default in-memory dataset:', err);
     }
-
-    this.ensureWorkflowCollections();
-    this.isInitialized = true;
+    this.backend = 'memory';
   }
 
   ensureWorkflowCollections(): void {
@@ -223,13 +275,28 @@ class DatabaseManager {
 
   save(): void {
     if (process.env.VALUATION_DB_READONLY === '1') return;
+    void this.persistAsync();
+  }
+
+  private async persistAsync(): Promise<void> {
+    if (process.env.VALUATION_DB_READONLY === '1') return;
+
+    if (postgresEnabled() && this.backend === 'postgres') {
+      try {
+        await savePostgresPayload(this.data);
+        return;
+      } catch (err) {
+        console.warn('Postgres save failed; trying local file fallback:', err);
+      }
+    }
+
     try {
       if (!fs.existsSync(DB_DIR)) {
         fs.mkdirSync(DB_DIR, { recursive: true });
       }
       fs.writeFileSync(DB_FILE, JSON.stringify(this.data, null, 2), 'utf-8');
+      if (this.backend === 'memory') this.backend = 'file';
     } catch (err) {
-      // Free/ephemeral hosts lose writes across restarts; prefer VALUATION_DB_DIR on a Render disk.
       console.warn('Database save failed (in-memory only until restart):', DB_FILE, err);
     }
   }

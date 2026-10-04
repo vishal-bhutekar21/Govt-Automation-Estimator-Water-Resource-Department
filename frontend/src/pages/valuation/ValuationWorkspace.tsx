@@ -168,8 +168,13 @@ export const ValuationWorkspace: React.FC = () => {
       await work();
       await load();
     } catch (err: unknown) {
-      const apiError = err as { response?: { data?: { message?: string } } };
-      setError(apiError.response?.data?.message || 'The request was not saved.');
+      const apiError = err as { response?: { status?: number; data?: { message?: string; error?: string } } };
+      const status = apiError.response?.status;
+      if (status === 401) {
+        setError(apiError.response?.data?.message || 'Session expired. Sign in again — stay on this page so your typed values are not lost until you leave.');
+      } else {
+        setError(apiError.response?.data?.message || 'The request was not saved.');
+      }
     } finally {
       setSaving(false);
     }

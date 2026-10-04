@@ -75,5 +75,5 @@ export const requireRole = (allowedRoles: UserRole[]) => {
 };
 
 export const signToken = (payload: { id: string; email: string; role: UserRole }): string => {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
 };

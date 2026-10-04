@@ -576,6 +576,14 @@ function Labelled(props: {
   disabled?: boolean;
   hint?: string;
 }) {
+  const propText = props.value === null || props.value === undefined ? '' : String(props.value);
+  const [focused, setFocused] = useState(false);
+  const [draft, setDraft] = useState(propText);
+
+  useEffect(() => {
+    if (!focused) setDraft(propText);
+  }, [propText, focused]);
+
   return (
     <label className="block text-sm">
       <span className="font-semibold text-slate-700">{props.label}{props.suffix ? ` (${props.suffix})` : ''}</span>
@@ -583,11 +591,20 @@ function Labelled(props: {
         disabled={props.disabled}
         inputMode={props.numeric ? 'decimal' : 'text'}
         className="mt-1 w-full border border-slate-200 rounded-gov-sm px-3 py-2"
-        value={props.value}
+        value={focused ? draft : propText}
         placeholder={props.placeholder}
+        onFocus={() => {
+          setFocused(true);
+          setDraft(propText);
+        }}
+        onBlur={() => setFocused(false)}
         onChange={(e) => {
-          if (props.numeric && e.target.value !== '' && !/^\d*\.?\d*$/.test(e.target.value)) return;
-          props.onChange(e.target.value);
+          const next = e.target.value;
+          if (props.numeric && next !== '' && !/^\d*\.?\d*$/.test(next)) return;
+          setDraft(next);
+          // Keep incomplete decimals (e.g. "1.") in the input; commit complete values only.
+          if (props.numeric && (next === '.' || next.endsWith('.'))) return;
+          props.onChange(next);
         }}
       />
       {props.hint && <span className="text-xs text-slate-400">{props.hint}</span>}

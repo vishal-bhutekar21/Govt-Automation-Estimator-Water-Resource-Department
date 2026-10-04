@@ -12,7 +12,7 @@ export const LoginView: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loadingStage, setLoadingStage] = useState(0);
 
-  const { login } = useAuth();
+  const { login, sessionMessage, clearSessionMessage } = useAuth();
   const navigate = useNavigate();
 
   const loadingMessages = [
@@ -30,6 +30,7 @@ export const LoginView: React.FC = () => {
 
     setIsLoading(true);
     setError(null);
+    clearSessionMessage();
     setLoadingStage(0);
 
     const stageTimer = setInterval(() => {
@@ -158,13 +159,12 @@ export const LoginView: React.FC = () => {
             className="bg-white rounded-2xl p-6 sm:p-7 space-y-5 border border-slate-200/80"
             style={{ boxShadow: '0 8px 32px rgba(12,26,47,0.08), 0 2px 8px rgba(12,26,47,0.04)' }}
           >
-            {/* Error Message */}
-            {error && (
+            {(sessionMessage || error) && (
               <div className="flex items-start gap-2.5 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium">
                 <svg className="w-4 h-4 text-red-500 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
-                <span>{error}</span>
+                <span>{error || sessionMessage}</span>
               </div>
             )}
 
