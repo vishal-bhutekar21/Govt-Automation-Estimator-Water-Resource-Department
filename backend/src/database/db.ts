@@ -34,6 +34,7 @@ import {
   WallRunFact,
   YpTableVersionRecord,
 } from '../workflow/types';
+import { ensureEknathDemoCase } from './eknathDemoSeed';
 import { ensureGut193GuideCatalog } from './workflowSeedCatalog';
 import {
   ensurePostgresStore,
@@ -245,6 +246,19 @@ class DatabaseManager {
       rateScheduleVersions: data.rateScheduleVersions!,
       catalogueItems: data.catalogueItems!,
       ypTables: data.ypTables!,
+    });
+    // Prefill a complete Eknath walkthrough case (Screens 1–5) with workbook values.
+    ensureEknathDemoCase({
+      cases: data.cases,
+      properties: data.properties,
+      buildingStructures: data.buildingStructures!,
+      rooms: data.rooms!,
+      wallRuns: data.wallRuns!,
+      openings: data.openings!,
+      members: data.members!,
+      measurementBlocks: data.measurementBlocks!,
+      catalogueItems: data.catalogueItems!,
+      depreciationDecisions: data.depreciationDecisions!,
     });
   }
 
